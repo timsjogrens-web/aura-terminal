@@ -1,26 +1,113 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --surface: #121212;
+  --surface-2: #161514;
+  --surface-border: #2a2620;
+  --gold: #f5a524;
+  --gold-dim: #b9821c;
+  --green: #22c55e;
+  --red: #ef4444;
+  --text-primary: #f4f2ec;
+  --text-secondary: #8f897a;
+  --text-muted: #5c584d;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-border: var(--surface-border);
+  --color-gold: var(--gold);
+  --color-gold-dim: var(--gold-dim);
+  --color-green: var(--green);
+  --color-red: var(--red);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--surface-border);
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 165, 36, 0.05), transparent),
+    repeating-linear-gradient(
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.006) 2px,
+      rgba(255, 255, 255, 0.006) 3px
+    );
+}
+
+::selection {
+  background: rgba(245, 165, 36, 0.25);
+  color: var(--text-primary);
+}
+
+.hairline-gold {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 165, 36, 0.5) 20%,
+    rgba(245, 165, 36, 0.5) 80%,
+    transparent
+  );
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker {
+  animation: ticker-scroll 45s linear infinite;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-border);
+  border-radius: 4px;
 }
