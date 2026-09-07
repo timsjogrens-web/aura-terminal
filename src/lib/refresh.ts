@@ -1,18 +1,19 @@
 import { db, setMeta } from "./db";
 import { DEFAULT_UNIVERSE, UNIVERSE_MAP } from "./universe";
-import { getQuote, getEarningsCalendar, FinnhubError } from "./finnhub";
+import { getQuote, getEarningsCalendar, getCompanyNews, FinnhubError } from "./finnhub";
 import { getDailyCandles, YahooError } from "./yahoo";
+import { filterRelevantNews } from "./newsFilter";
 import { sma, rsi, computeScore } from "./scoring";
 
 const upsertStmt = db.prepare(`
   INSERT INTO quote_cache (
     ticker, company_name, sector, price, change, change_pct, open, high, low,
     prev_close, volume, avg_volume, sma50, rsi14, score, signal, sparkline,
-    next_earnings, updated_at, error
+    next_earnings, news, updated_at, error
   ) VALUES (
     @ticker, @company_name, @sector, @price, @change, @change_pct, @open, @high, @low,
     @prev_close, @volume, @avg_volume, @sma50, @rsi14, @score, @signal, @sparkline,
-    @next_earnings, @updated_at, @error
+    @next_earnings, @news, @updated_at, @error
   )
   ON CONFLICT(ticker) DO UPDATE SET
     company_name=excluded.company_name, sector=excluded.sector, price=excluded.price,
@@ -21,7 +22,7 @@ const upsertStmt = db.prepare(`
     volume=excluded.volume, avg_volume=excluded.avg_volume, sma50=excluded.sma50,
     rsi14=excluded.rsi14, score=excluded.score, signal=excluded.signal,
     sparkline=excluded.sparkline, next_earnings=excluded.next_earnings,
-    updated_at=excluded.updated_at, error=excluded.error
+    news=excluded.news, updated_at=excluded.updated_at, error=excluded.error
 `);
 
 const insertHistoryStmt = db.prepare(`
@@ -86,6 +87,19 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
       nextEarnings = null;
     }
 
+    let news: { headline: string; url: string; source: string; datetime: number }[] = [];
+    try {
+      const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const to = new Date().toISOString().slice(0, 10);
+      const items = await getCompanyNews(ticker, from, to);
+      news = filterRelevantNews(items, name)
+        .sort((a, b) => b.datetime - a.datetime)
+        .slice(0, 3)
+        .map((n) => ({ headline: n.headline, url: n.url, source: n.source, datetime: n.datetime }));
+    } catch {
+      news = [];
+    }
+
     upsertStmt.run({
       ticker,
       company_name: name,
@@ -105,6 +119,7 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
       signal: breakdown.signal,
       sparkline: JSON.stringify(sparkline),
       next_earnings: nextEarnings,
+      news: JSON.stringify(news),
       updated_at: now,
       error: candleError,
     });
@@ -134,7 +149,7 @@ export async function refreshAll() {
 
   for (const [ticker, meta] of targets) {
     await refreshOne(ticker, meta.name, meta.sector);
-    await new Promise((r) => setTimeout(r, 250)); // stay well under Finnhub's rate limit
+    await new Promise((r) => setTimeout(r, 350)); // stay well under Finnhub's rate limit
   }
 
   setMeta("last_refresh_at", new Date().toISOString());

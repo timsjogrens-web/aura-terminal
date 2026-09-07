@@ -3,6 +3,7 @@ import { formatPrice } from "@/lib/format";
 import Sparkline from "./Sparkline";
 import SignalBadge from "./SignalBadge";
 import { buildComment } from "@/lib/comment";
+import NewsList from "./NewsList";
 
 export default function StockCard({ q }: { q: Quote }) {
   return (
@@ -35,6 +36,8 @@ export default function StockCard({ q }: { q: Quote }) {
           Next earnings: <span className="text-[var(--text-secondary)]">{q.next_earnings}</span>
         </p>
       )}
+
+      <NewsList news={q.news} />
     </div>
   );
 }

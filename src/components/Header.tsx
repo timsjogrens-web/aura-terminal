@@ -4,12 +4,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuotes } from "@/lib/useQuotes";
+import { useNotificationPermission, useStrongBuyAlerts } from "@/lib/useAlerts";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [watchlistCount, setWatchlistCount] = useState<number | null>(null);
   const { data } = useQuotes();
+  const { permission, requestPermission } = useNotificationPermission();
+  useStrongBuyAlerts(permission === "granted");
 
   useEffect(() => {
     let cancelled = false;
@@ -95,6 +98,29 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
+          {permission !== "unsupported" && (
+            <button
+              onClick={requestPermission}
+              disabled={permission !== "default"}
+              title={
+                permission === "granted"
+                  ? "STRONG BUY alerts are on"
+                  : permission === "denied"
+                  ? "Notifications blocked in your browser settings"
+                  : "Enable STRONG BUY alerts"
+              }
+              className={`h-8 w-8 rounded-md border flex items-center justify-center transition ${
+                permission === "granted"
+                  ? "border-[rgba(245,165,36,0.35)] text-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
+                  : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:hover:text-[var(--text-secondary)]"
+              }`}
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
           <div className="hidden md:flex items-center gap-2 text-xs font-mono uppercase tracking-wider">
             <span
               className={`h-2 w-2 rounded-full ${

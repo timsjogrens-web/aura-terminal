@@ -98,3 +98,24 @@ export interface FinnhubSearchResult {
 export async function searchSymbol(query: string): Promise<FinnhubSearchResult> {
   return finnhubGet<FinnhubSearchResult>("/search", { q: query });
 }
+
+export interface FinnhubNewsItem {
+  headline: string;
+  url: string;
+  source: string;
+  datetime: number; // unix seconds
+  summary: string;
+}
+
+export async function getCompanyNews(
+  symbol: string,
+  fromDate: string,
+  toDate: string
+): Promise<FinnhubNewsItem[]> {
+  const items = await finnhubGet<FinnhubNewsItem[]>("/company-news", {
+    symbol,
+    from: fromDate,
+    to: toDate,
+  });
+  return items ?? [];
+}

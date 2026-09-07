@@ -22,6 +22,7 @@ interface QuoteRow {
   signal: string | null;
   sparkline: string | null;
   next_earnings: string | null;
+  news: string | null;
   updated_at: string | null;
   error: string | null;
 }
@@ -40,6 +41,7 @@ export async function GET() {
   const quotes = rows.map((r) => ({
     ...r,
     sparkline: r.sparkline ? (JSON.parse(r.sparkline) as number[]) : [],
+    news: r.news ? JSON.parse(r.news) : [],
   }));
 
   return NextResponse.json({

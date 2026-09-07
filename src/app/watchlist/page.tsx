@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Sparkline from "@/components/Sparkline";
 import SignalBadge from "@/components/SignalBadge";
+import NewsList from "@/components/NewsList";
 import { useQuotes } from "@/lib/useQuotes";
 import { formatPct, formatPrice } from "@/lib/format";
 import { buildComment } from "@/lib/comment";
@@ -182,6 +183,9 @@ export default function WatchlistPage() {
                           <span className="text-[var(--text-secondary)]">{q.next_earnings}</span>
                         </p>
                       )}
+                      <div className="mt-3">
+                        <NewsList news={q.news} />
+                      </div>
                     </>
                   ) : (
                     <p className="text-sm text-[var(--text-muted)]">Fetching live data…</p>

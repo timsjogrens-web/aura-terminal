@@ -17,8 +17,16 @@ export interface Quote {
   signal: string | null;
   sparkline: number[];
   next_earnings: string | null;
+  news: NewsItem[];
   updated_at: string | null;
   error: string | null;
+}
+
+export interface NewsItem {
+  headline: string;
+  url: string;
+  source: string;
+  datetime: number;
 }
 
 export interface QuotesResponse {

@@ -35,6 +35,7 @@ function createDb(): Database.Database {
       signal TEXT,
       sparkline TEXT,
       next_earnings TEXT,
+      news TEXT,
       updated_at TEXT,
       error TEXT
     );
@@ -61,6 +62,14 @@ function createDb(): Database.Database {
       value TEXT
     );
   `);
+
+  const existingColumns = db
+    .prepare("PRAGMA table_info(quote_cache)")
+    .all() as { name: string }[];
+  if (!existingColumns.some((c) => c.name === "news")) {
+    db.exec("ALTER TABLE quote_cache ADD COLUMN news TEXT");
+  }
+
   return db;
 }
 
