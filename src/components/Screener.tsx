@@ -1,7 +1,8 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Quote } from "@/lib/types";
 import { formatPct, formatPrice } from "@/lib/format";
 import Sparkline from "./Sparkline";
@@ -12,10 +13,10 @@ const SECTORS = ["ALL", "Technology", "Financials", "Healthcare", "Energy", "Con
 const SIGNALS = ["ALL", "STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"];
 
 export default function Screener({ quotes }: { quotes: Quote[] }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("ALL");
   const [signal, setSignal] = useState("ALL");
-  const [expanded, setExpanded] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return quotes.filter((q) => {
@@ -100,11 +101,11 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
           </thead>
           <tbody>
             {filtered.map((q) => (
-              <Fragment key={q.ticker}>
-                <tr
-                  onClick={() => setExpanded(expanded === q.ticker ? null : q.ticker)}
-                  className="border-b border-[var(--surface-border)] hover:bg-black/20 cursor-pointer transition-colors"
-                >
+              <tr
+                key={q.ticker}
+                onClick={() => router.push(`/stock/${q.ticker}`)}
+                className="border-b border-[var(--surface-border)] hover:bg-black/20 cursor-pointer transition-colors"
+              >
                   <td className="px-5 py-4">
                     <Link
                       href={`/stock/${q.ticker}`}
@@ -154,43 +155,6 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
                     />
                   </td>
                 </tr>
-                {expanded === q.ticker && (
-                  <tr className="bg-black/20 border-b border-[var(--surface-border)]">
-                    <td colSpan={7} className="px-5 py-4">
-                      {q.error ? (
-                        <p className="text-sm text-[var(--red)]">{q.error}</p>
-                      ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-                          <div>
-                            <p className="text-[var(--text-secondary)] mb-1">50D SMA</p>
-                            <p className="text-[var(--text-primary)]">
-                              {q.sma50 !== null ? `$${formatPrice(q.sma50)}` : "N/A"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[var(--text-secondary)] mb-1">RSI(14)</p>
-                            <p className="text-[var(--text-primary)]">
-                              {q.rsi14 !== null ? q.rsi14.toFixed(1) : "N/A"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[var(--text-secondary)] mb-1">Volume</p>
-                            <p className="text-[var(--text-primary)]">
-                              {q.volume !== null ? Math.round(q.volume).toLocaleString() : "N/A"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[var(--text-secondary)] mb-1">Avg Volume (20D)</p>
-                            <p className="text-[var(--text-primary)]">
-                              {q.avg_volume !== null ? Math.round(q.avg_volume).toLocaleString() : "N/A"}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
             ))}
             {filtered.length === 0 && (
               <tr>
