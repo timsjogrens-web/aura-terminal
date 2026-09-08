@@ -135,7 +135,7 @@ export default function StockDetailPage({
         )}
 
         <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-6">
-          <PriceChart ticker={ticker} />
+          <PriceChart ticker={ticker} changePct={quote?.change_pct} />
         </div>
 
         {quote && !quote.error && (

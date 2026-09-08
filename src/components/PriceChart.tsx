@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatPrice } from "@/lib/format";
 
-const RANGES = ["1D", "1W", "1M", "6M", "1Y", "5Y", "MAX"] as const;
+const RANGES = ["1D", "1W", "1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y"] as const;
 type Range = (typeof RANGES)[number];
 
 interface ChartData {
@@ -21,9 +21,64 @@ const WIDTH = 800;
 const HEIGHT = 280;
 const PADDING = 32;
 
-export default function PriceChart({ ticker }: { ticker: string }) {
+const DAYS_AGO: Partial<Record<Range, number>> = {
+  "1W": 7,
+  "1M": 30,
+  "3M": 91,
+  "6M": 182,
+  "1Y": 365,
+  "3Y": 365 * 3,
+};
+
+function sliceByDaysAgo(series: ChartData, daysAgo: number): ChartData {
+  if (series.timestamps.length === 0) return series;
+  const nowTs = series.timestamps[series.timestamps.length - 1];
+  const targetTs = nowTs - daysAgo * 86400;
+  const startIdx = series.timestamps.findIndex((t) => t >= targetTs);
+  const idx = startIdx === -1 ? 0 : startIdx;
+  return { timestamps: series.timestamps.slice(idx), closes: series.closes.slice(idx) };
+}
+
+function sliceByYTD(series: ChartData): ChartData {
+  if (series.timestamps.length === 0) return series;
+  const now = new Date(series.timestamps[series.timestamps.length - 1] * 1000);
+  const jan1 = Date.UTC(now.getUTCFullYear(), 0, 1) / 1000;
+  const startIdx = series.timestamps.findIndex((t) => t >= jan1);
+  const idx = startIdx === -1 ? 0 : startIdx;
+  return { timestamps: series.timestamps.slice(idx), closes: series.closes.slice(idx) };
+}
+
+function pctChange(series: ChartData | null): number | null {
+  if (!series || series.closes.length < 2) return null;
+  const start = series.closes[0];
+  const end = series.closes[series.closes.length - 1];
+  if (!start) return null;
+  return ((end - start) / start) * 100;
+}
+
+async function fetchSeries(ticker: string, range: string): Promise<ChartData | null> {
+  const res = await fetch(`/api/chart?ticker=${ticker}&range=${range}`);
+  const json = await res.json();
+  if (json.error) return null;
+  return { timestamps: json.timestamps, closes: json.closes };
+}
+
+export default function PriceChart({
+  ticker,
+  changePct,
+}: {
+  ticker: string;
+  changePct?: number | null;
+}) {
   const [range, setRange] = useState<Range>("1M");
-  const [data, setData] = useState<ChartData | null>(null);
+  // "Medium" (1y daily) and "long" (5y weekly) are fetched once per ticker;
+  // every range except 1D/1W is derived from them locally (instant, no
+  // refetch on click). 1D/1W need finer intraday granularity those two
+  // series don't have, so they're fetched on demand instead.
+  const [mediumSeries, setMediumSeries] = useState<ChartData | null>(null);
+  const [longSeries, setLongSeries] = useState<ChartData | null>(null);
+  const [intradaySeries, setIntradaySeries] = useState<ChartData | null>(null);
+  const [intradayRange, setIntradayRange] = useState<Range | null>(null);
   const [markers, setMarkers] = useState<SignalMarker[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,16 +87,14 @@ export default function PriceChart({ ticker }: { ticker: string }) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-
-    fetch(`/api/chart?ticker=${ticker}&range=${range}`)
-      .then((r) => r.json())
-      .then((json) => {
+    Promise.all([fetchSeries(ticker, "1Y"), fetchSeries(ticker, "5Y")])
+      .then(([medium, long]) => {
         if (cancelled) return;
-        if (json.error) {
-          setError(json.error);
-          setData(null);
+        if (!medium && !long) {
+          setError("Could not load chart data.");
         } else {
-          setData({ timestamps: json.timestamps, closes: json.closes });
+          setMediumSeries(medium);
+          setLongSeries(long);
         }
       })
       .catch(() => {
@@ -50,11 +103,28 @@ export default function PriceChart({ ticker }: { ticker: string }) {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-
     return () => {
       cancelled = true;
     };
-  }, [ticker, range]);
+  }, [ticker]);
+
+  useEffect(() => {
+    if (range !== "1D" && range !== "1W") return;
+    if (intradayRange === range) return;
+    let cancelled = false;
+    fetchSeries(ticker, range).then((series) => {
+      if (cancelled) return;
+      if (series) {
+        setIntradaySeries(series);
+        setIntradayRange(range);
+      } else {
+        setError("Could not load chart data for this range.");
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [range, ticker, intradayRange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,14 +138,15 @@ export default function PriceChart({ ticker }: { ticker: string }) {
           score: number | null;
           price: number | null;
         }[];
-        const strongBuys = rows
-          .filter((r) => r.signal === "STRONG BUY")
-          .map((r) => ({
-            timestamp: Math.floor(new Date(r.timestamp).getTime() / 1000),
-            score: r.score,
-            price: r.price,
-          }));
-        setMarkers(strongBuys);
+        setMarkers(
+          rows
+            .filter((r) => r.signal === "STRONG BUY")
+            .map((r) => ({
+              timestamp: Math.floor(new Date(r.timestamp).getTime() / 1000),
+              score: r.score,
+              price: r.price,
+            }))
+        );
       })
       .catch(() => {});
     return () => {
@@ -83,7 +154,35 @@ export default function PriceChart({ ticker }: { ticker: string }) {
     };
   }, [ticker]);
 
-  if (loading && !data) {
+  const displayData: ChartData | null = useMemo(() => {
+    if (range === "1D" || range === "1W") {
+      return intradayRange === range ? intradaySeries : null;
+    }
+    if (range === "YTD") return mediumSeries ? sliceByYTD(mediumSeries) : null;
+    if (range === "3Y" || range === "5Y") return longSeries;
+    if (!mediumSeries) return null;
+    const days = DAYS_AGO[range];
+    return days ? sliceByDaysAgo(mediumSeries, days) : mediumSeries;
+  }, [range, mediumSeries, longSeries, intradaySeries, intradayRange]);
+
+  const rangePercents = useMemo(() => {
+    const out: Partial<Record<Range, number | null>> = { "1D": changePct ?? null };
+    if (mediumSeries) {
+      out["1W"] = pctChange(sliceByDaysAgo(mediumSeries, 7));
+      out["1M"] = pctChange(sliceByDaysAgo(mediumSeries, 30));
+      out["3M"] = pctChange(sliceByDaysAgo(mediumSeries, 91));
+      out["6M"] = pctChange(sliceByDaysAgo(mediumSeries, 182));
+      out.YTD = pctChange(sliceByYTD(mediumSeries));
+      out["1Y"] = pctChange(mediumSeries);
+    }
+    if (longSeries) {
+      out["3Y"] = pctChange(sliceByDaysAgo(longSeries, 365 * 3));
+      out["5Y"] = pctChange(longSeries);
+    }
+    return out;
+  }, [mediumSeries, longSeries, changePct]);
+
+  if (loading && !mediumSeries && !longSeries) {
     return (
       <div className="h-[280px] flex items-center justify-center text-[var(--text-secondary)] text-sm">
         Loading chart…
@@ -91,36 +190,35 @@ export default function PriceChart({ ticker }: { ticker: string }) {
     );
   }
 
-  if (error || !data) {
+  if (error && !displayData) {
+    return <div className="h-[240px] flex items-center justify-center text-[var(--red)] text-sm">{error}</div>;
+  }
+
+  if (!displayData || displayData.closes.length < 2) {
     return (
       <div>
-        <RangeSelector range={range} onChange={setRange} />
-        <div className="h-[240px] flex items-center justify-center text-[var(--red)] text-sm">
-          {error ?? "No chart data available."}
+        <div className="h-[240px] flex items-center justify-center text-[var(--text-secondary)] text-sm">
+          Loading…
         </div>
+        <RangeSelector range={range} onChange={setRange} percents={rangePercents} />
       </div>
     );
   }
 
-  const { timestamps, closes } = data;
+  const { timestamps, closes } = displayData;
   const min = Math.min(...closes);
   const max = Math.max(...closes);
   const priceRange = max - min || 1;
   const rising = closes[closes.length - 1] >= closes[0];
   const lineColor = rising ? "var(--green)" : "var(--red)";
 
-  const xFor = (i: number) =>
-    PADDING + (i / (timestamps.length - 1)) * (WIDTH - PADDING * 2);
-  const yFor = (price: number) =>
-    HEIGHT - PADDING - ((price - min) / priceRange) * (HEIGHT - PADDING * 2);
+  const xFor = (i: number) => PADDING + (i / (timestamps.length - 1)) * (WIDTH - PADDING * 2);
+  const yFor = (price: number) => HEIGHT - PADDING - ((price - min) / priceRange) * (HEIGHT - PADDING * 2);
 
   const points = closes.map((c, i) => `${xFor(i).toFixed(1)},${yFor(c).toFixed(1)}`).join(" ");
   const areaPoints = `${PADDING},${HEIGHT - PADDING} ${points} ${WIDTH - PADDING},${HEIGHT - PADDING}`;
 
   const rangeStart = timestamps[0];
-  // Yahoo's chart data can lag a few days behind, so a very recent signal
-  // may fall after the last chart point — snap it to that point instead of
-  // hiding it. Only signals from before the visible range are excluded.
   const visibleMarkers = markers.filter((m) => m.timestamp >= rangeStart);
 
   function closestIndex(ts: number): number {
@@ -136,14 +234,10 @@ export default function PriceChart({ ticker }: { ticker: string }) {
     return best;
   }
 
-  // Multiple signals can snap to the same nearest chart point (e.g. several
-  // refresh cycles in a row, or Yahoo's data lagging behind); one dot per
-  // point reads far more cleanly than several overlapping in the same spot.
   const markerIndices = Array.from(new Set(visibleMarkers.map((m) => closestIndex(m.timestamp))));
 
   return (
     <div>
-      <RangeSelector range={range} onChange={setRange} />
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto">
         <text x={PADDING} y={16} fontSize="11" fill="var(--text-muted)" fontFamily="var(--font-mono)">
           ${formatPrice(max)}
@@ -173,44 +267,63 @@ export default function PriceChart({ ticker }: { ticker: string }) {
           />
         ))}
       </svg>
+
       {visibleMarkers.length > 0 && (
-        <p className="text-xs font-mono text-[var(--text-secondary)] mt-2 flex items-center gap-1.5">
+        <p className="text-xs font-mono text-[var(--text-secondary)] mt-2 mb-1 flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-[var(--gold)] inline-block" />
           {visibleMarkers.length} STRONG BUY signal{visibleMarkers.length > 1 ? "s" : ""} in this range
         </p>
       )}
+
+      <RangeSelector range={range} onChange={setRange} percents={rangePercents} />
     </div>
   );
 }
 
-// "M" reads as "million" to plenty of people at a glance — spelling out
-// the unit (1mo, 6mo) removes the ambiguity without needing more space.
-const RANGE_LABELS: Record<Range, string> = {
-  "1D": "1D",
-  "1W": "1W",
-  "1M": "1 Month",
-  "6M": "6 Months",
-  "1Y": "1Y",
-  "5Y": "5Y",
-  MAX: "MAX",
-};
-
-function RangeSelector({ range, onChange }: { range: Range; onChange: (r: Range) => void }) {
+function RangeSelector({
+  range,
+  onChange,
+  percents,
+}: {
+  range: Range;
+  onChange: (r: Range) => void;
+  percents: Partial<Record<Range, number | null>>;
+}) {
   return (
-    <div className="flex flex-wrap gap-1 mb-3">
-      {RANGES.map((r) => (
-        <button
-          key={r}
-          onClick={() => onChange(r)}
-          className={`text-xs font-mono rounded px-3 py-1.5 border transition whitespace-nowrap ${
-            range === r
-              ? "border-[var(--gold)] text-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
-              : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-          }`}
-        >
-          {RANGE_LABELS[r]}
-        </button>
-      ))}
+    <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-[var(--surface-border)]">
+      {RANGES.map((r) => {
+        const pct = percents[r];
+        return (
+          <button
+            key={r}
+            onClick={() => onChange(r)}
+            className={`flex flex-col items-center gap-0.5 rounded px-2.5 py-1.5 border transition whitespace-nowrap ${
+              range === r
+                ? "border-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
+                : "border-transparent hover:border-[var(--surface-border)]"
+            }`}
+          >
+            <span
+              className={`text-xs font-mono ${
+                range === r ? "text-[var(--gold)]" : "text-[var(--text-secondary)]"
+              }`}
+            >
+              {r}
+            </span>
+            <span
+              className={`text-xs font-mono whitespace-nowrap ${
+                pct === null || pct === undefined
+                  ? "text-[var(--text-muted)]"
+                  : pct >= 0
+                  ? "text-[var(--green)]"
+                  : "text-[var(--red)]"
+              }`}
+            >
+              {pct === null || pct === undefined ? "—" : `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

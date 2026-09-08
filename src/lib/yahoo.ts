@@ -88,8 +88,11 @@ const RANGE_PRESETS: Record<string, { range: string; interval: string }> = {
   "1D": { range: "1d", interval: "5m" },
   "1W": { range: "5d", interval: "15m" },
   "1M": { range: "1mo", interval: "1d" },
+  "3M": { range: "3mo", interval: "1d" },
   "6M": { range: "6mo", interval: "1d" },
+  YTD: { range: "ytd", interval: "1d" },
   "1Y": { range: "1y", interval: "1d" },
+  "3Y": { range: "3y", interval: "1wk" },
   "5Y": { range: "5y", interval: "1wk" },
   MAX: { range: "max", interval: "1mo" },
 };
