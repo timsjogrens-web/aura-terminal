@@ -66,8 +66,10 @@ export default function HistoryPage() {
           Signal History
         </h1>
         <p className="text-[var(--text-secondary)] mb-8">
-          Every score is logged with a timestamp. A call &ldquo;hits&rdquo; when
-          price moved in the called direction by the next recorded snapshot.
+          Every score is logged with a timestamp. A call only counts as a
+          &ldquo;hit&rdquo; or &ldquo;miss&rdquo; once the price has moved at
+          least 5% at least 4 hours later — smaller or too-soon moves are
+          left unscored rather than counted as noise.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
