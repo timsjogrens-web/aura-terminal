@@ -5,6 +5,9 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignalHistoryTable, { HistoryEntry } from "@/components/SignalHistoryTable";
+import SignalBadge from "@/components/SignalBadge";
+import { useQuotes } from "@/lib/useQuotes";
+import { formatPrice } from "@/lib/format";
 
 interface TickerSummary {
   ticker: string;
@@ -24,6 +27,11 @@ export default function HistoryPage() {
     hitRate: number | null;
     evaluated: number;
   } | null>(null);
+  const [showCurrentPicks, setShowCurrentPicks] = useState(false);
+  const { data: quotesData } = useQuotes();
+  const currentStrongBuys = (quotesData?.quotes ?? [])
+    .filter((q) => q.signal === "STRONG BUY")
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
   useEffect(() => {
     fetch("/api/history")
@@ -63,17 +71,25 @@ export default function HistoryPage() {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-          <div className="rounded-lg border border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.06)] p-5">
-            <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-2">
-              STRONG BUY HIT RATE
-            </p>
+          <button
+            onClick={() => setShowCurrentPicks((v) => !v)}
+            className="text-left rounded-lg border border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.06)] p-5 hover:border-[rgba(34,197,94,0.5)] transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-2">
+                STRONG BUY HIT RATE
+              </p>
+              <span className="text-xs font-mono text-[var(--green)]">
+                {showCurrentPicks ? "Hide picks ▲" : "See current picks ▼"}
+              </span>
+            </div>
             <p className="text-4xl font-mono font-bold text-[var(--green)]">
               {strongBuyHitRate !== null ? `${strongBuyHitRate}%` : "—"}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
               {strongBuyEvaluated} STRONG BUY calls evaluated across every stock tracked.
             </p>
-          </div>
+          </button>
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5">
             <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-2">
               OVERALL HIT RATE
@@ -86,6 +102,42 @@ export default function HistoryPage() {
             </p>
           </div>
         </div>
+
+        {showCurrentPicks && (
+          <div className="rounded-lg border border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.04)] p-5 mb-8">
+            <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-4">
+              CURRENT STRONG BUY PICKS
+            </p>
+            {currentStrongBuys.length === 0 ? (
+              <p className="text-sm text-[var(--text-secondary)]">
+                Nothing is scoring STRONG BUY right now.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {currentStrongBuys.map((q) => (
+                  <Link
+                    key={q.ticker}
+                    href={`/stock/${q.ticker}`}
+                    className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5 border border-transparent hover:border-[var(--surface-border)] hover:bg-black/20 transition-colors"
+                  >
+                    <div className="flex items-baseline gap-3">
+                      <span className="font-mono font-semibold text-[var(--text-primary)]">
+                        {q.ticker}
+                      </span>
+                      <span className="text-sm text-[var(--text-secondary)]">{q.company_name}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-sm text-[var(--text-primary)]">
+                        {q.price !== null ? `$${formatPrice(q.price)}` : "—"}
+                      </span>
+                      <SignalBadge signal={q.signal} score={q.score} />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {tickers.length === 0 ? (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 text-center text-[var(--text-secondary)]">
