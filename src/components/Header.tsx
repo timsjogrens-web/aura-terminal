@@ -95,6 +95,16 @@ export default function Header() {
           >
             History
           </Link>
+          <Link
+            href="/news"
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+              pathname === "/news"
+                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            News
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -164,6 +174,14 @@ export default function Header() {
           }`}
         >
           History
+        </Link>
+        <Link
+          href="/news"
+          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+            pathname === "/news" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+          }`}
+        >
+          News
         </Link>
       </nav>
     </header>
