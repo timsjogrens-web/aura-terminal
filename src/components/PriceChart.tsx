@@ -183,6 +183,18 @@ export default function PriceChart({ ticker }: { ticker: string }) {
   );
 }
 
+// "M" reads as "million" to plenty of people at a glance — spelling out
+// the unit (1mo, 6mo) removes the ambiguity without needing more space.
+const RANGE_LABELS: Record<Range, string> = {
+  "1D": "1D",
+  "1W": "1W",
+  "1M": "1mo",
+  "6M": "6mo",
+  "1Y": "1Y",
+  "5Y": "5Y",
+  MAX: "MAX",
+};
+
 function RangeSelector({ range, onChange }: { range: Range; onChange: (r: Range) => void }) {
   return (
     <div className="flex gap-1 mb-3">
@@ -196,7 +208,7 @@ function RangeSelector({ range, onChange }: { range: Range; onChange: (r: Range)
               : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           }`}
         >
-          {r}
+          {RANGE_LABELS[r]}
         </button>
       ))}
     </div>
