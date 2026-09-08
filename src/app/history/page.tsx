@@ -16,6 +16,8 @@ export default function HistoryPage() {
   const [tickers, setTickers] = useState<TickerSummary[]>([]);
   const [overallHitRate, setOverallHitRate] = useState<number | null>(null);
   const [overallEvaluated, setOverallEvaluated] = useState(0);
+  const [strongBuyHitRate, setStrongBuyHitRate] = useState<number | null>(null);
+  const [strongBuyEvaluated, setStrongBuyEvaluated] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<{
     rows: HistoryEntry[];
@@ -30,6 +32,8 @@ export default function HistoryPage() {
         setTickers(json.tickers ?? []);
         setOverallHitRate(json.overallHitRate ?? null);
         setOverallEvaluated(json.overallEvaluated ?? 0);
+        setStrongBuyHitRate(json.strongBuyHitRate ?? null);
+        setStrongBuyEvaluated(json.strongBuyEvaluated ?? 0);
       })
       .catch(() => {});
   }, []);
@@ -58,19 +62,29 @@ export default function HistoryPage() {
           price moved in the called direction by the next recorded snapshot.
         </p>
 
-        <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-8 flex items-center justify-between flex-wrap gap-3">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div className="rounded-lg border border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.06)] p-5">
+            <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-2">
+              STRONG BUY HIT RATE
+            </p>
+            <p className="text-4xl font-mono font-bold text-[var(--green)]">
+              {strongBuyHitRate !== null ? `${strongBuyHitRate}%` : "—"}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)] mt-2">
+              {strongBuyEvaluated} STRONG BUY calls evaluated across every stock tracked.
+            </p>
+          </div>
+          <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5">
             <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-2">
               OVERALL HIT RATE
             </p>
             <p className="text-4xl font-mono font-bold text-[var(--gold)]">
               {overallHitRate !== null ? `${overallHitRate}%` : "—"}
             </p>
+            <p className="text-xs text-[var(--text-secondary)] mt-2">
+              {overallEvaluated} scored calls across every signal type, not just STRONG BUY.
+            </p>
           </div>
-          <p className="text-sm text-[var(--text-secondary)]">
-            {overallEvaluated} scored calls evaluated so far. This grows as the
-            refresh job logs more snapshots over time.
-          </p>
         </div>
 
         {tickers.length === 0 ? (

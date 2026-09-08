@@ -82,15 +82,25 @@ export async function GET(req: NextRequest) {
 
   let totalHits = 0;
   let totalEvaluated = 0;
+  let strongBuyHits = 0;
+  let strongBuyEvaluated = 0;
   for (const rows of byTicker.values()) {
-    const { hits, evaluated } = computeHitRate(rows);
+    const { rows: withOutcome, hits, evaluated } = computeHitRate(rows);
     totalHits += hits;
     totalEvaluated += evaluated;
+    for (const r of withOutcome) {
+      if (r.signal === "STRONG BUY" && r.outcome) {
+        strongBuyEvaluated++;
+        if (r.outcome === "hit") strongBuyHits++;
+      }
+    }
   }
 
   return NextResponse.json({
     tickers,
     overallHitRate: totalEvaluated > 0 ? Math.round((totalHits / totalEvaluated) * 100) : null,
     overallEvaluated: totalEvaluated,
+    strongBuyHitRate: strongBuyEvaluated > 0 ? Math.round((strongBuyHits / strongBuyEvaluated) * 100) : null,
+    strongBuyEvaluated,
   });
 }

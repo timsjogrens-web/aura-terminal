@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { formatPrice } from "@/lib/format";
+import SignalBadge from "./SignalBadge";
 
 export interface HistoryEntry {
   id: number;
@@ -99,11 +100,18 @@ export default function SignalHistoryTable({
             </thead>
             <tbody>
               {[...filteredRows].reverse().map((r) => (
-                <tr key={r.id} className="border-b border-[var(--surface-border)]">
+                <tr
+                  key={r.id}
+                  className={`border-b border-[var(--surface-border)] ${
+                    r.signal === "STRONG BUY" ? "bg-[rgba(34,197,94,0.05)]" : ""
+                  }`}
+                >
                   <td className="px-4 py-2.5 font-mono text-xs text-[var(--text-secondary)]">
                     {new Date(r.timestamp).toLocaleString()}
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-xs">{r.signal ?? "—"}</td>
+                  <td className="px-4 py-2.5">
+                    <SignalBadge signal={r.signal} score={null} />
+                  </td>
                   <td className="px-4 py-2.5 font-mono text-xs">{r.score ?? "—"}</td>
                   <td className="px-4 py-2.5 font-mono text-xs">
                     {r.price !== null ? `$${formatPrice(r.price)}` : "—"}
