@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/format";
 
-const RANGES = ["1D", "1W", "1M", "6M"] as const;
+const RANGES = ["1D", "1W", "1M", "6M", "1Y", "5Y", "MAX"] as const;
 type Range = (typeof RANGES)[number];
 
 interface ChartData {

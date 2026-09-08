@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -8,15 +8,9 @@ import Sparkline from "@/components/Sparkline";
 import SignalBadge from "@/components/SignalBadge";
 import NewsList from "@/components/NewsList";
 import { useQuotes } from "@/lib/useQuotes";
+import { useWatchlist } from "@/lib/WatchlistContext";
 import { formatPct, formatPrice } from "@/lib/format";
 import { buildComment } from "@/lib/comment";
-
-interface WatchlistEntry {
-  ticker: string;
-  company_name: string | null;
-  sector: string | null;
-  added_at: string;
-}
 
 interface SearchResult {
   symbol: string;
@@ -25,22 +19,14 @@ interface SearchResult {
 
 export default function WatchlistPage() {
   const { data } = useQuotes();
-  const [watchlist, setWatchlist] = useState<WatchlistEntry[]>([]);
+  const { entries, add, remove } = useWatchlist();
+  const watchlist = Array.from(entries.values()).sort(
+    (a, b) => new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
+  );
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const loadWatchlist = useCallback(() => {
-    fetch("/api/watchlist")
-      .then((r) => r.json())
-      .then((json) => setWatchlist(json.watchlist ?? []))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    loadWatchlist();
-  }, [loadWatchlist]);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -56,35 +42,20 @@ export default function WatchlistPage() {
     return () => clearTimeout(id);
   }, [query]);
 
-  async function addTicker(ticker: string) {
+async function addTicker(ticker: string, description?: string) {
     setAdding(true);
     setError(null);
     try {
-      const res = await fetch("/api/watchlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticker }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json.error ?? "Could not add ticker.");
+      const result = await add(ticker, description);
+      if (!result.ok) {
+        setError(result.error ?? "Could not add ticker.");
         return;
       }
       setQuery("");
       setResults([]);
-      loadWatchlist();
     } finally {
       setAdding(false);
     }
-  }
-
-  async function removeTicker(ticker: string) {
-    await fetch("/api/watchlist", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ticker }),
-    });
-    loadWatchlist();
   }
 
   const quoteMap = new Map((data?.quotes ?? []).map((q) => [q.ticker, q]));
@@ -114,7 +85,7 @@ export default function WatchlistPage() {
                 <button
                   key={r.symbol}
                   disabled={adding}
-                  onClick={() => addTicker(r.symbol)}
+                  onClick={() => addTicker(r.symbol, r.description)}
                   className="w-full text-left px-4 py-2.5 hover:bg-black/30 flex items-center justify-between gap-3 disabled:opacity-50"
                 >
                   <span className="font-mono font-semibold text-[var(--text-primary)]">{r.symbol}</span>
@@ -153,7 +124,7 @@ export default function WatchlistPage() {
                     <div className="flex items-center gap-3">
                       {q && <SignalBadge signal={q.signal} score={q.score} />}
                       <button
-                        onClick={() => removeTicker(w.ticker)}
+                        onClick={() => remove(w.ticker)}
                         className="text-xs text-[var(--text-muted)] hover:text-[var(--red)] border border-[var(--surface-border)] rounded px-2 py-1"
                       >
                         Remove

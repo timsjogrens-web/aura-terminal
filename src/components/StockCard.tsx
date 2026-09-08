@@ -3,6 +3,7 @@ import { Quote } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
 import Sparkline from "./Sparkline";
 import SignalBadge from "./SignalBadge";
+import WatchlistButton from "./WatchlistButton";
 import { buildComment } from "@/lib/comment";
 import NewsList from "./NewsList";
 
@@ -15,7 +16,10 @@ export default function StockCard({ q }: { q: Quote }) {
             <p className="text-xl font-sans font-bold text-[var(--text-primary)]">{q.ticker}</p>
             <p className="text-sm text-[var(--text-secondary)]">{q.company_name}</p>
           </div>
-          <SignalBadge signal={q.signal} score={q.score} />
+          <div className="flex items-center gap-2">
+            <WatchlistButton ticker={q.ticker} companyName={q.company_name ?? undefined} sector={q.sector ?? undefined} />
+            <SignalBadge signal={q.signal} score={q.score} />
+          </div>
         </div>
 
         <div className="flex items-end justify-between gap-3">

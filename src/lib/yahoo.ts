@@ -89,6 +89,9 @@ const RANGE_PRESETS: Record<string, { range: string; interval: string }> = {
   "1W": { range: "5d", interval: "15m" },
   "1M": { range: "1mo", interval: "1d" },
   "6M": { range: "6mo", interval: "1d" },
+  "1Y": { range: "1y", interval: "1d" },
+  "5Y": { range: "5y", interval: "1wk" },
+  MAX: { range: "max", interval: "1mo" },
 };
 
 export function isValidChartRange(range: string): boolean {

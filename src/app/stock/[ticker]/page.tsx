@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignalBadge from "@/components/SignalBadge";
+import WatchlistButton from "@/components/WatchlistButton";
 import NewsList from "@/components/NewsList";
 import PriceChart from "@/components/PriceChart";
 import SignalHistoryTable, { HistoryEntry } from "@/components/SignalHistoryTable";
@@ -29,6 +30,25 @@ function formatMarketCap(n?: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}T`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(2)}B`;
   return `$${n.toFixed(0)}M`;
+}
+
+// Finnhub's free profile endpoint doesn't include a description paragraph,
+// so this composes one from the real structured fields it does give us
+// rather than inventing prose we can't back up.
+function buildCompanySummary(ticker: string, profile: CompanyProfile): string {
+  const parts: string[] = [];
+  const name = profile.name ?? ticker;
+  let sentence = name;
+  if (profile.finnhubIndustry) sentence += ` operates in the ${profile.finnhubIndustry} industry`;
+  if (profile.exchange) sentence += `${profile.finnhubIndustry ? " and" : ""} trades on ${profile.exchange}`;
+  parts.push(sentence + ".");
+  if (profile.marketCapitalization) {
+    parts.push(`Current market cap is ${formatMarketCap(profile.marketCapitalization)}.`);
+  }
+  if (profile.ipo) {
+    parts.push(`Listed since ${profile.ipo}.`);
+  }
+  return parts.join(" ");
 }
 
 export default function StockDetailPage({
@@ -87,7 +107,14 @@ export default function StockDetailPage({
               {profile?.name ?? quote?.company_name ?? "Loading…"}
             </p>
           </div>
-          {quote && <SignalBadge signal={quote.signal} score={quote.score} />}
+          <div className="flex items-center gap-2">
+            <WatchlistButton
+              ticker={ticker}
+              companyName={profile?.name ?? quote?.company_name ?? undefined}
+              sector={quote?.sector ?? undefined}
+            />
+            {quote && <SignalBadge signal={quote.signal} score={quote.score} />}
+          </div>
         </div>
 
         {quote && (
@@ -157,39 +184,48 @@ export default function StockDetailPage({
           ) : !profile ? (
             <p className="text-sm text-[var(--text-secondary)]">Loading…</p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-              <div>
-                <p className="text-[var(--text-secondary)] mb-1">Sector</p>
-                <p className="text-[var(--text-primary)]">{profile.finnhubIndustry ?? "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-[var(--text-secondary)] mb-1">Exchange</p>
-                <p className="text-[var(--text-primary)]">{profile.exchange ?? "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-[var(--text-secondary)] mb-1">Market Cap</p>
-                <p className="text-[var(--text-primary)]">
-                  {formatMarketCap(profile.marketCapitalization)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[var(--text-secondary)] mb-1">IPO Date</p>
-                <p className="text-[var(--text-primary)]">{profile.ipo ?? "N/A"}</p>
-              </div>
-              {profile.weburl && (
-                <div className="col-span-2 sm:col-span-4">
-                  <p className="text-[var(--text-secondary)] mb-1">Website</p>
-                  <a
-                    href={profile.weburl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[var(--gold)] hover:underline break-all"
-                  >
-                    {profile.weburl}
-                  </a>
+            <>
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
+                {buildCompanySummary(ticker, profile)}
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
+                <div>
+                  <p className="text-[var(--text-secondary)] mb-1">Sector</p>
+                  <p className="text-[var(--text-primary)]">{profile.finnhubIndustry ?? "N/A"}</p>
                 </div>
-              )}
-            </div>
+                <div>
+                  <p className="text-[var(--text-secondary)] mb-1">Exchange</p>
+                  <p className="text-[var(--text-primary)]">{profile.exchange ?? "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--text-secondary)] mb-1">Market Cap</p>
+                  <p className="text-[var(--text-primary)]">
+                    {formatMarketCap(profile.marketCapitalization)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--text-secondary)] mb-1">IPO Date</p>
+                  <p className="text-[var(--text-primary)]">{profile.ipo ?? "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--text-secondary)] mb-1">Next Earnings</p>
+                  <p className="text-[var(--text-primary)]">{quote?.next_earnings ?? "N/A"}</p>
+                </div>
+                {profile.weburl && (
+                  <div className="col-span-2 sm:col-span-4">
+                    <p className="text-[var(--text-secondary)] mb-1">Website</p>
+                    <a
+                      href={profile.weburl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[var(--gold)] hover:underline break-all"
+                    >
+                      {profile.weburl}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
 

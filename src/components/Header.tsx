@@ -2,39 +2,18 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useQuotes } from "@/lib/useQuotes";
 import { useNotificationPermission, useStrongBuyAlerts } from "@/lib/useAlerts";
+import { useWatchlist } from "@/lib/WatchlistContext";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const [watchlistCount, setWatchlistCount] = useState<number | null>(null);
+  const { entries, loading: watchlistLoading } = useWatchlist();
+  const watchlistCount = watchlistLoading ? null : entries.size;
   const { data } = useQuotes();
   const { permission, requestPermission } = useNotificationPermission();
   useStrongBuyAlerts(permission === "granted");
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/watchlist")
-      .then((r) => r.json())
-      .then((json) => {
-        if (!cancelled) setWatchlistCount(json.watchlist?.length ?? 0);
-      })
-      .catch(() => {});
-    const id = setInterval(() => {
-      fetch("/api/watchlist")
-        .then((r) => r.json())
-        .then((json) => {
-          if (!cancelled) setWatchlistCount(json.watchlist?.length ?? 0);
-        })
-        .catch(() => {});
-    }, 30000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });

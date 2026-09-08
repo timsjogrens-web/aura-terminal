@@ -6,6 +6,7 @@ import { Quote } from "@/lib/types";
 import { formatPct, formatPrice } from "@/lib/format";
 import Sparkline from "./Sparkline";
 import SignalBadge from "./SignalBadge";
+import WatchlistButton from "./WatchlistButton";
 
 const SECTORS = ["ALL", "Technology", "Financials", "Healthcare", "Energy", "Consumer"];
 const SIGNALS = ["ALL", "STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"];
@@ -94,6 +95,7 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
               <th className="px-5 py-3 font-medium hidden md:table-cell">30D</th>
               <th className="px-5 py-3 font-medium">Score</th>
               <th className="px-5 py-3 font-medium">Signal</th>
+              <th className="px-5 py-3 font-medium"></th>
             </tr>
           </thead>
           <tbody>
@@ -144,10 +146,17 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
                   <td className="px-5 py-4">
                     <SignalBadge signal={q.signal} score={null} />
                   </td>
+                  <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
+                    <WatchlistButton
+                      ticker={q.ticker}
+                      companyName={q.company_name ?? undefined}
+                      sector={q.sector ?? undefined}
+                    />
+                  </td>
                 </tr>
                 {expanded === q.ticker && (
                   <tr className="bg-black/20 border-b border-[var(--surface-border)]">
-                    <td colSpan={6} className="px-5 py-4">
+                    <td colSpan={7} className="px-5 py-4">
                       {q.error ? (
                         <p className="text-sm text-[var(--red)]">{q.error}</p>
                       ) : (
@@ -185,7 +194,7 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-[var(--text-secondary)]">
+                <td colSpan={7} className="px-5 py-10 text-center text-[var(--text-secondary)]">
                   No tickers match these filters.
                 </td>
               </tr>
