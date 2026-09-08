@@ -313,6 +313,22 @@ export default function PriceChart({
   );
 }
 
+// Kept short on purpose. Spelling "1 Month" out fully didn't stop browser
+// translation from mangling it (Swedish finance shorthand treats "M" as
+// "miljon" regardless of wording) — writing YTD in Swedish directly at
+// least gives the translator nothing left to substitute.
+const RANGE_LABELS: Record<Range, string> = {
+  "1D": "1D",
+  "1W": "1W",
+  "1M": "1M",
+  "3M": "3M",
+  "6M": "6M",
+  YTD: "I ÅR",
+  "1Y": "1Y",
+  "3Y": "3Y",
+  "5Y": "5Y",
+};
+
 function RangeSelector({
   range,
   onChange,
@@ -341,7 +357,7 @@ function RangeSelector({
                 range === r ? "text-[var(--gold)]" : "text-[var(--text-secondary)]"
               }`}
             >
-              {r}
+              {RANGE_LABELS[r]}
             </span>
             <span
               className={`text-xs font-mono whitespace-nowrap ${
