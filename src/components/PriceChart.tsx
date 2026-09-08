@@ -234,7 +234,26 @@ export default function PriceChart({
     return best;
   }
 
-  const markerIndices = Array.from(new Set(visibleMarkers.map((m) => closestIndex(m.timestamp))));
+  // Several signal snapshots (e.g. many refresh cycles in one day) can
+  // snap to the same nearest chart point — group them so the tooltip can
+  // show exactly when it was first (and how many times it was) called.
+  const markersByIndex = new Map<number, SignalMarker[]>();
+  for (const m of visibleMarkers) {
+    const idx = closestIndex(m.timestamp);
+    if (!markersByIndex.has(idx)) markersByIndex.set(idx, []);
+    markersByIndex.get(idx)!.push(m);
+  }
+  const markerIndices = Array.from(markersByIndex.keys());
+
+  function formatMarkerTooltip(idx: number): string {
+    const group = markersByIndex.get(idx) ?? [];
+    const sorted = [...group].sort((a, b) => a.timestamp - b.timestamp);
+    const first = sorted[0];
+    const dateStr = first ? new Date(first.timestamp * 1000).toLocaleString() : "";
+    const priceStr = first?.price != null ? `$${formatPrice(first.price)}` : "";
+    const extra = sorted.length > 1 ? ` (+${sorted.length - 1} more time${sorted.length > 2 ? "s" : ""} since)` : "";
+    return `STRONG BUY called ${dateStr} at ${priceStr}${extra}`;
+  }
 
   return (
     <div>
@@ -260,19 +279,33 @@ export default function PriceChart({
             key={idx}
             cx={xFor(idx)}
             cy={yFor(closes[idx])}
-            r={5}
+            r={6}
             fill="var(--gold)"
             stroke="var(--background)"
             strokeWidth={1.5}
-          />
+            className="cursor-help"
+          >
+            <title>{formatMarkerTooltip(idx)}</title>
+          </circle>
         ))}
       </svg>
 
       {visibleMarkers.length > 0 && (
-        <p className="text-xs font-mono text-[var(--text-secondary)] mt-2 mb-1 flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-[var(--gold)] inline-block" />
-          {visibleMarkers.length} STRONG BUY signal{visibleMarkers.length > 1 ? "s" : ""} in this range
-        </p>
+        <div className="text-xs font-mono text-[var(--text-secondary)] mt-2 mb-1 space-y-1">
+          <p className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-[var(--gold)] inline-block" />
+            {visibleMarkers.length} STRONG BUY signal{visibleMarkers.length > 1 ? "s" : ""} in this range
+            <span className="hidden sm:inline text-[var(--text-muted)]">— hover a gold dot for the exact time</span>
+          </p>
+          <p className="text-[var(--text-muted)]">
+            Most recent:{" "}
+            <span className="text-[var(--text-secondary)]">
+              {new Date(
+                Math.max(...visibleMarkers.map((m) => m.timestamp)) * 1000
+              ).toLocaleString()}
+            </span>
+          </p>
+        </div>
       )}
 
       <RangeSelector range={range} onChange={setRange} percents={rangePercents} />
