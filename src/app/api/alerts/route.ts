@@ -14,9 +14,8 @@ interface AlertRow {
 export async function GET(req: NextRequest) {
   const sinceId = Number(req.nextUrl.searchParams.get("sinceId") ?? "0");
 
-  const rows = db
-    .prepare(
-      `
+  const res = await db.execute({
+    sql: `
       SELECT id, ticker, score, price, timestamp FROM (
         SELECT id, ticker, score, price, timestamp, signal,
           LAG(signal) OVER (PARTITION BY ticker ORDER BY id) as prev_signal
@@ -26,13 +25,13 @@ export async function GET(req: NextRequest) {
         AND (prev_signal IS NULL OR prev_signal != 'STRONG BUY')
         AND id > ?
       ORDER BY id ASC
-      `
-    )
-    .all(sinceId) as AlertRow[];
+    `,
+    args: [sinceId],
+  });
+  const rows = res.rows as unknown as AlertRow[];
 
-  const maxId = db
-    .prepare("SELECT COALESCE(MAX(id), 0) as maxId FROM signal_history")
-    .get() as { maxId: number };
+  const maxIdRes = await db.execute("SELECT COALESCE(MAX(id), 0) as maxId FROM signal_history");
+  const maxId = maxIdRes.rows[0] as unknown as { maxId: number };
 
   return NextResponse.json({ alerts: rows, latestId: maxId.maxId });
 }

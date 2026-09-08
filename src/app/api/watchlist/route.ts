@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { db } from "@/lib/db";
 import { getProfile, searchSymbol, FinnhubError } from "@/lib/finnhub";
 import { refreshOne } from "@/lib/refresh";
 import { UNIVERSE_MAP } from "@/lib/universe";
 
 export async function GET() {
-  const rows = db
-    .prepare("SELECT ticker, company_name, sector, added_at FROM watchlist ORDER BY added_at DESC")
-    .all();
-  return NextResponse.json({ watchlist: rows });
+  const res = await db.execute(
+    "SELECT ticker, company_name, sector, added_at FROM watchlist ORDER BY added_at DESC"
+  );
+  return NextResponse.json({ watchlist: res.rows });
 }
 
 export async function POST(req: NextRequest) {
@@ -18,8 +18,11 @@ export async function POST(req: NextRequest) {
   }
   const ticker = raw.trim().toUpperCase();
 
-  const existing = db.prepare("SELECT ticker FROM watchlist WHERE ticker = ?").get(ticker);
-  if (existing) {
+  const existingRes = await db.execute({
+    sql: "SELECT ticker FROM watchlist WHERE ticker = ?",
+    args: [ticker],
+  });
+  if (existingRes.rows.length > 0) {
     return NextResponse.json({ error: `${ticker} is already on your watchlist.` }, { status: 409 });
   }
 
@@ -53,11 +56,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  db.prepare(
-    "INSERT INTO watchlist (ticker, company_name, sector, added_at) VALUES (?, ?, ?, ?)"
-  ).run(ticker, name, sector, new Date().toISOString());
+  await db.execute({
+    sql: "INSERT INTO watchlist (ticker, company_name, sector, added_at) VALUES (?, ?, ?, ?)",
+    args: [ticker, name, sector, new Date().toISOString()],
+  });
 
-  refreshOne(ticker, name, sector).catch(() => {});
+  after(() => refreshOne(ticker, name, sector).catch(() => {}));
 
   return NextResponse.json({ ok: true, ticker, name, sector });
 }
@@ -67,6 +71,9 @@ export async function DELETE(req: NextRequest) {
   if (typeof ticker !== "string") {
     return NextResponse.json({ error: "Ticker is required." }, { status: 400 });
   }
-  db.prepare("DELETE FROM watchlist WHERE ticker = ?").run(ticker.toUpperCase());
+  await db.execute({
+    sql: "DELETE FROM watchlist WHERE ticker = ?",
+    args: [ticker.toUpperCase()],
+  });
   return NextResponse.json({ ok: true });
 }

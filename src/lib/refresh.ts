@@ -5,15 +5,15 @@ import { getDailyCandles, YahooError } from "./yahoo";
 import { filterRelevantNews } from "./newsFilter";
 import { sma, rsi, computeScore } from "./scoring";
 
-const upsertStmt = db.prepare(`
+const UPSERT_SQL = `
   INSERT INTO quote_cache (
     ticker, company_name, sector, price, change, change_pct, open, high, low,
     prev_close, volume, avg_volume, sma50, rsi14, score, signal, sparkline,
     next_earnings, news, updated_at, error
   ) VALUES (
-    @ticker, @company_name, @sector, @price, @change, @change_pct, @open, @high, @low,
-    @prev_close, @volume, @avg_volume, @sma50, @rsi14, @score, @signal, @sparkline,
-    @next_earnings, @news, @updated_at, @error
+    :ticker, :company_name, :sector, :price, :change, :change_pct, :open, :high, :low,
+    :prev_close, :volume, :avg_volume, :sma50, :rsi14, :score, :signal, :sparkline,
+    :next_earnings, :news, :updated_at, :error
   )
   ON CONFLICT(ticker) DO UPDATE SET
     company_name=excluded.company_name, sector=excluded.sector, price=excluded.price,
@@ -23,18 +23,18 @@ const upsertStmt = db.prepare(`
     rsi14=excluded.rsi14, score=excluded.score, signal=excluded.signal,
     sparkline=excluded.sparkline, next_earnings=excluded.next_earnings,
     news=excluded.news, updated_at=excluded.updated_at, error=excluded.error
-`);
+`;
 
-const insertHistoryStmt = db.prepare(`
+const INSERT_HISTORY_SQL = `
   INSERT INTO signal_history (ticker, score, signal, price, timestamp)
   VALUES (?, ?, ?, ?, ?)
-`);
+`;
 
-const errorOnlyStmt = db.prepare(`
+const ERROR_ONLY_SQL = `
   INSERT INTO quote_cache (ticker, error, updated_at)
-  VALUES (@ticker, @error, @updated_at)
+  VALUES (:ticker, :error, :updated_at)
   ON CONFLICT(ticker) DO UPDATE SET error=excluded.error, updated_at=excluded.updated_at
-`);
+`;
 
 export async function refreshOne(ticker: string, name: string, sector: string) {
   const now = new Date().toISOString();
@@ -100,41 +100,50 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
       news = [];
     }
 
-    upsertStmt.run({
-      ticker,
-      company_name: name,
-      sector,
-      price: quote.c,
-      change: quote.d,
-      change_pct: quote.dp,
-      open: quote.o,
-      high: quote.h,
-      low: quote.l,
-      prev_close: quote.pc,
-      volume: latestVolume,
-      avg_volume: avgVolume,
-      sma50,
-      rsi14,
-      score: breakdown.score,
-      signal: breakdown.signal,
-      sparkline: JSON.stringify(sparkline),
-      next_earnings: nextEarnings,
-      news: JSON.stringify(news),
-      updated_at: now,
-      error: candleError,
+    await db.execute({
+      sql: UPSERT_SQL,
+      args: {
+        ticker,
+        company_name: name,
+        sector,
+        price: quote.c,
+        change: quote.d,
+        change_pct: quote.dp,
+        open: quote.o,
+        high: quote.h,
+        low: quote.l,
+        prev_close: quote.pc,
+        volume: latestVolume,
+        avg_volume: avgVolume,
+        sma50,
+        rsi14,
+        score: breakdown.score,
+        signal: breakdown.signal,
+        sparkline: JSON.stringify(sparkline),
+        next_earnings: nextEarnings,
+        news: JSON.stringify(news),
+        updated_at: now,
+        error: candleError,
+      },
     });
 
-    insertHistoryStmt.run(ticker, breakdown.score, breakdown.signal, quote.c, now);
+    await db.execute({
+      sql: INSERT_HISTORY_SQL,
+      args: [ticker, breakdown.score, breakdown.signal, quote.c, now],
+    });
   } catch (e) {
     const message = e instanceof FinnhubError ? e.message : "Unknown error fetching data.";
-    errorOnlyStmt.run({ ticker, error: message, updated_at: now });
+    await db.execute({ sql: ERROR_ONLY_SQL, args: { ticker, error: message, updated_at: now } });
   }
 }
 
 export async function refreshAll() {
-  const watchlistRows = db
-    .prepare("SELECT ticker, company_name, sector FROM watchlist")
-    .all() as { ticker: string; company_name: string | null; sector: string | null }[];
+  const watchlistRes = await db.execute("SELECT ticker, company_name, sector FROM watchlist");
+  const watchlistRows = watchlistRes.rows as unknown as {
+    ticker: string;
+    company_name: string | null;
+    sector: string | null;
+  }[];
 
   const targets = new Map<string, { name: string; sector: string }>();
   for (const e of DEFAULT_UNIVERSE) targets.set(e.ticker, { name: e.name, sector: e.sector });
@@ -152,7 +161,7 @@ export async function refreshAll() {
     await new Promise((r) => setTimeout(r, 350)); // stay well under Finnhub's rate limit
   }
 
-  setMeta("last_refresh_at", new Date().toISOString());
+  await setMeta("last_refresh_at", new Date().toISOString());
 }
 
 export function getUniverseTickers(): string[] {

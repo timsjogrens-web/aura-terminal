@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getIronSession } from "iron-session";
 import { sessionOptions, SessionData } from "@/lib/session";
 
-const PUBLIC_PATHS = ["/login", "/api/auth/login"];
+// /api/refresh handles its own auth (session OR cron secret) since Vercel
+// Cron calls it without a session cookie.
+const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/refresh"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;

@@ -1,6 +1,12 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
 
+  // On Vercel (or any host that sets VERCEL), scheduled refresh runs via
+  // Vercel Cron hitting /api/refresh instead — node-cron needs a long-lived
+  // process, which serverless functions aren't. Local `npm run dev` (and any
+  // other persistent-process host) keeps using node-cron here.
+  if (process.env.VERCEL) return;
+
   const cron = await import("node-cron");
   const { refreshAll } = await import("@/lib/refresh");
 

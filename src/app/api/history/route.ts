@@ -51,24 +51,28 @@ export async function GET(req: NextRequest) {
   const ticker = req.nextUrl.searchParams.get("ticker");
 
   if (ticker) {
-    const rows = db
-      .prepare(
-        "SELECT id, ticker, score, signal, price, timestamp FROM signal_history WHERE ticker = ? ORDER BY timestamp ASC"
-      )
-      .all(ticker.toUpperCase()) as HistoryRow[];
+    const res = await db.execute({
+      sql: "SELECT id, ticker, score, signal, price, timestamp FROM signal_history WHERE ticker = ? ORDER BY timestamp ASC",
+      args: [ticker.toUpperCase()],
+    });
+    const rows = res.rows as unknown as HistoryRow[];
     const result = computeHitRate(rows);
     return NextResponse.json({ ticker: ticker.toUpperCase(), ...result });
   }
 
-  const tickers = db
-    .prepare(
-      "SELECT ticker, COUNT(*) as entries, MAX(timestamp) as last_timestamp FROM signal_history GROUP BY ticker ORDER BY last_timestamp DESC"
-    )
-    .all() as { ticker: string; entries: number; last_timestamp: string }[];
+  const tickersRes = await db.execute(
+    "SELECT ticker, COUNT(*) as entries, MAX(timestamp) as last_timestamp FROM signal_history GROUP BY ticker ORDER BY last_timestamp DESC"
+  );
+  const tickers = tickersRes.rows as unknown as {
+    ticker: string;
+    entries: number;
+    last_timestamp: string;
+  }[];
 
-  const allRows = db
-    .prepare("SELECT id, ticker, score, signal, price, timestamp FROM signal_history ORDER BY ticker, timestamp ASC")
-    .all() as HistoryRow[];
+  const allRowsRes = await db.execute(
+    "SELECT id, ticker, score, signal, price, timestamp FROM signal_history ORDER BY ticker, timestamp ASC"
+  );
+  const allRows = allRowsRes.rows as unknown as HistoryRow[];
 
   const byTicker = new Map<string, HistoryRow[]>();
   for (const row of allRows) {
