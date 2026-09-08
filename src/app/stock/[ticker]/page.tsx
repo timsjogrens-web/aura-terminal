@@ -244,6 +244,7 @@ export default function StockDetailPage({
               hitRate={history.hitRate}
               evaluated={history.evaluated}
               title={`${ticker} Signal History`}
+              defaultFilter="STRONG BUY"
             />
           )}
         </div>
