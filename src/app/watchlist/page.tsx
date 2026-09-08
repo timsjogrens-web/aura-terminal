@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Sparkline from "@/components/Sparkline";
@@ -141,7 +142,12 @@ export default function WatchlistPage() {
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
-                      <p className="text-lg font-sans font-bold text-[var(--text-primary)]">{w.ticker}</p>
+                      <Link
+                        href={`/stock/${w.ticker}`}
+                        className="text-lg font-sans font-bold text-[var(--text-primary)] hover:text-[var(--gold)]"
+                      >
+                        {w.ticker}
+                      </Link>
                       <p className="text-sm text-[var(--text-secondary)]">{w.company_name}</p>
                     </div>
                     <div className="flex items-center gap-3">

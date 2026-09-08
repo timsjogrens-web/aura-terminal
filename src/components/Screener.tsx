@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
+import Link from "next/link";
 import { Quote } from "@/lib/types";
 import { formatPct, formatPrice } from "@/lib/format";
 import Sparkline from "./Sparkline";
@@ -103,7 +104,13 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
                   className="border-b border-[var(--surface-border)] hover:bg-black/20 cursor-pointer transition-colors"
                 >
                   <td className="px-5 py-4">
-                    <p className="font-mono font-semibold text-[var(--text-primary)]">{q.ticker}</p>
+                    <Link
+                      href={`/stock/${q.ticker}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]"
+                    >
+                      {q.ticker}
+                    </Link>
                     <p className="text-xs text-[var(--text-secondary)]">{q.company_name}</p>
                   </td>
                   <td className="px-5 py-4 font-mono text-[var(--text-primary)]">

@@ -65,6 +65,14 @@ export async function getQuote(symbol: string): Promise<FinnhubQuote> {
 export interface FinnhubProfile {
   name?: string;
   finnhubIndustry?: string;
+  exchange?: string;
+  ipo?: string;
+  marketCapitalization?: number;
+  shareOutstanding?: number;
+  weburl?: string;
+  logo?: string;
+  country?: string;
+  currency?: string;
 }
 
 export async function getProfile(symbol: string): Promise<FinnhubProfile> {

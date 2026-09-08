@@ -25,10 +25,19 @@ export interface DailyCandles {
   volumes: number[];
 }
 
-export async function getDailyCandles(symbol: string, range = "6mo"): Promise<DailyCandles> {
+export interface ChartSeries {
+  timestamps: number[]; // unix seconds
+  closes: number[];
+}
+
+async function fetchYahooChart(
+  symbol: string,
+  range: string,
+  interval: string
+): Promise<{ timestamp: number[]; quote: { close: (number | null)[]; volume: (number | null)[] } }> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
     symbol
-  )}?range=${range}&interval=1d`;
+  )}?range=${range}&interval=${interval}`;
 
   let res: Response;
   try {
@@ -52,11 +61,14 @@ export async function getDailyCandles(symbol: string, range = "6mo"): Promise<Da
   if (!result) {
     throw new YahooError(`No historical data returned for ${symbol}.`);
   }
+  return { timestamp: result.timestamp, quote: result.indicators.quote[0] };
+}
 
-  const quote = result.indicators.quote[0];
+export async function getDailyCandles(symbol: string, range = "6mo"): Promise<DailyCandles> {
+  const { timestamp, quote } = await fetchYahooChart(symbol, range, "1d");
   const closes: number[] = [];
   const volumes: number[] = [];
-  for (let i = 0; i < result.timestamp.length; i++) {
+  for (let i = 0; i < timestamp.length; i++) {
     const c = quote.close[i];
     const v = quote.volume[i];
     if (c !== null && c !== undefined) {
@@ -70,4 +82,37 @@ export async function getDailyCandles(symbol: string, range = "6mo"): Promise<Da
   }
 
   return { closes, volumes };
+}
+
+const RANGE_PRESETS: Record<string, { range: string; interval: string }> = {
+  "1D": { range: "1d", interval: "5m" },
+  "1W": { range: "5d", interval: "15m" },
+  "1M": { range: "1mo", interval: "1d" },
+  "6M": { range: "6mo", interval: "1d" },
+};
+
+export function isValidChartRange(range: string): boolean {
+  return range in RANGE_PRESETS;
+}
+
+export async function getChartSeries(symbol: string, rangeKey: string): Promise<ChartSeries> {
+  const preset = RANGE_PRESETS[rangeKey];
+  if (!preset) throw new YahooError(`Unsupported chart range: ${rangeKey}`);
+
+  const { timestamp, quote } = await fetchYahooChart(symbol, preset.range, preset.interval);
+  const timestamps: number[] = [];
+  const closes: number[] = [];
+  for (let i = 0; i < timestamp.length; i++) {
+    const c = quote.close[i];
+    if (c !== null && c !== undefined) {
+      timestamps.push(timestamp[i]);
+      closes.push(c);
+    }
+  }
+
+  if (closes.length < 2) {
+    throw new YahooError(`Not enough chart data for ${symbol} at range ${rangeKey}.`);
+  }
+
+  return { timestamps, closes };
 }
