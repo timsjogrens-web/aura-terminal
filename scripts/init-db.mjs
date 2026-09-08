@@ -1,4 +1,3 @@
-import { createClient } from "@libsql/client";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -15,10 +14,23 @@ for (const line of envText.split("\n")) {
   }
 }
 
-const db = createClient({
-  url: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
+const pipelineUrl =
+  process.env.TURSO_DATABASE_URL.replace(/^libsql:\/\//, "https://") + "/v2/pipeline";
+
+async function execute(sql) {
+  const res = await fetch(pipelineUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.TURSO_AUTH_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql } }, { type: "close" }] }),
+  });
+  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+  const json = await res.json();
+  const first = json.results[0];
+  if (first.type === "error") throw new Error(first.error.message);
+}
 
 const statements = [
   `CREATE TABLE IF NOT EXISTS quote_cache (
@@ -66,7 +78,7 @@ const statements = [
 ];
 
 for (const sql of statements) {
-  await db.execute(sql);
+  await execute(sql);
   console.log("OK:", sql.trim().split("\n")[0]);
 }
 console.log("Schema ready.");

@@ -23,7 +23,7 @@ export default function SignalBadge({
   const style = STYLES[signal] ?? STYLES.HOLD;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-xs font-mono font-semibold tracking-wide ${style}`}
+      className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-xs font-mono font-semibold tracking-wide whitespace-nowrap ${style}`}
     >
       {signal}
       {score !== null && <span className="opacity-70">{score}%</span>}

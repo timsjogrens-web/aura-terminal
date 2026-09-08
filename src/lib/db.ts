@@ -1,11 +1,11 @@
-import { createClient, type Client } from "@libsql/client";
+import { createTursoClient, type TursoClient } from "./turso";
 
 // Lazily created so a missing env var only breaks an actual DB call at
 // request time, not module load — Next's build-time route collection
 // imports this file without ever calling anything on `db`.
-let client: Client | null = null;
+let client: TursoClient | null = null;
 
-function getClient(): Client {
+function getClient(): TursoClient {
   if (client) return client;
   const url = process.env.TURSO_DATABASE_URL;
   const authToken = process.env.TURSO_AUTH_TOKEN;
@@ -14,17 +14,13 @@ function getClient(): Client {
       "TURSO_DATABASE_URL and TURSO_AUTH_TOKEN must be set in .env.local (or your host's env vars)."
     );
   }
-  client = createClient({ url, authToken });
+  client = createTursoClient(url, authToken);
   return client;
 }
 
-export const db: Client = new Proxy({} as Client, {
-  get(_target, prop, _receiver) {
-    const real = getClient();
-    const value = Reflect.get(real, prop, real);
-    return typeof value === "function" ? value.bind(real) : value;
-  },
-});
+export const db: TursoClient = {
+  execute: (query) => getClient().execute(query),
+};
 
 export const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS quote_cache (

@@ -19,7 +19,7 @@ export default function StockCard({ q }: { q: Quote }) {
         </div>
 
         <div className="flex items-end justify-between gap-3">
-          <p className="text-3xl font-mono font-semibold text-[var(--text-primary)]">
+          <p className="text-3xl font-mono font-semibold text-[var(--text-primary)] whitespace-nowrap">
             {q.price !== null ? `$${formatPrice(q.price)}` : "—"}
           </p>
           <Sparkline data={q.sparkline} />

@@ -92,12 +92,12 @@ export default function StockDetailPage({
 
         {quote && (
           <div className="flex items-baseline gap-3 mb-8">
-            <p className="text-4xl font-mono font-semibold text-[var(--text-primary)]">
+            <p className="text-4xl font-mono font-semibold text-[var(--text-primary)] whitespace-nowrap">
               {quote.price !== null ? `$${formatPrice(quote.price)}` : "—"}
             </p>
             {quote.change_pct !== null && (
               <span
-                className={`font-mono text-lg ${
+                className={`font-mono text-lg whitespace-nowrap ${
                   quote.change_pct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
                 }`}
               >

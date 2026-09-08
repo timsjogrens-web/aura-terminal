@@ -113,11 +113,11 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
                     </Link>
                     <p className="text-xs text-[var(--text-secondary)]">{q.company_name}</p>
                   </td>
-                  <td className="px-5 py-4 font-mono text-[var(--text-primary)]">
+                  <td className="px-5 py-4 font-mono text-[var(--text-primary)] whitespace-nowrap">
                     {q.price !== null ? `$${formatPrice(q.price)}` : "—"}
                   </td>
                   <td
-                    className={`px-5 py-4 font-mono ${
+                    className={`px-5 py-4 font-mono whitespace-nowrap ${
                       (q.change_pct ?? 0) >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
                     }`}
                   >

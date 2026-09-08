@@ -165,12 +165,12 @@ export default function WatchlistPage() {
                     <>
                       <div className="flex items-end justify-between gap-3 mb-3">
                         <div className="flex items-baseline gap-3">
-                          <p className="text-2xl font-mono font-semibold text-[var(--text-primary)]">
+                          <p className="text-2xl font-mono font-semibold text-[var(--text-primary)] whitespace-nowrap">
                             {q.price !== null ? `$${formatPrice(q.price)}` : "—"}
                           </p>
                           {q.change_pct !== null && (
                             <span
-                              className={`font-mono text-sm ${
+                              className={`font-mono text-sm whitespace-nowrap ${
                                 q.change_pct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
                               }`}
                             >
