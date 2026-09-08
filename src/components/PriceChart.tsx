@@ -188,8 +188,8 @@ export default function PriceChart({ ticker }: { ticker: string }) {
 const RANGE_LABELS: Record<Range, string> = {
   "1D": "1D",
   "1W": "1W",
-  "1M": "1mo",
-  "6M": "6mo",
+  "1M": "1 Month",
+  "6M": "6 Months",
   "1Y": "1Y",
   "5Y": "5Y",
   MAX: "MAX",
@@ -197,12 +197,12 @@ const RANGE_LABELS: Record<Range, string> = {
 
 function RangeSelector({ range, onChange }: { range: Range; onChange: (r: Range) => void }) {
   return (
-    <div className="flex gap-1 mb-3">
+    <div className="flex flex-wrap gap-1 mb-3">
       {RANGES.map((r) => (
         <button
           key={r}
           onClick={() => onChange(r)}
-          className={`text-xs font-mono rounded px-3 py-1.5 border transition ${
+          className={`text-xs font-mono rounded px-3 py-1.5 border transition whitespace-nowrap ${
             range === r
               ? "border-[var(--gold)] text-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
               : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
