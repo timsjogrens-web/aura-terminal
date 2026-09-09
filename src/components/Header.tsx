@@ -115,6 +115,16 @@ export default function Header() {
             Paper
           </Link>
           <Link
+            href="/self-trade"
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
+              pathname === "/self-trade"
+                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Self Trade
+          </Link>
+          <Link
             href="/insiders"
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
               pathname === "/insiders"
@@ -245,6 +255,14 @@ export default function Header() {
           }`}
         >
           Paper
+        </Link>
+        <Link
+          href="/self-trade"
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
+            pathname === "/self-trade" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+          }`}
+        >
+          Self Trade
         </Link>
         <Link
           href="/insiders"

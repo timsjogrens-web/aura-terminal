@@ -18,6 +18,7 @@ export interface Quote {
   sparkline: number[];
   next_earnings: string | null;
   news: NewsItem[];
+  logo: string | null;
   updated_at: string | null;
   error: string | null;
 }

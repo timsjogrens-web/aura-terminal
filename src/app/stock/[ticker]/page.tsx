@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import SignalBadge from "@/components/SignalBadge";
 import WatchlistButton from "@/components/WatchlistButton";
 import ShareButton from "@/components/ShareButton";
+import CompanyLogo from "@/components/CompanyLogo";
 import NewsList from "@/components/NewsList";
 import PriceChart from "@/components/PriceChart";
 import SignalHistoryTable, { HistoryEntry } from "@/components/SignalHistoryTable";
@@ -102,11 +103,14 @@ export default function StockDetailPage({
         </Link>
 
         <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
-          <div>
-            <h1 className="font-serif font-bold text-4xl text-[var(--text-primary)]">{ticker}</h1>
-            <p className="text-[var(--text-secondary)] mt-1">
-              {profile?.name ?? quote?.company_name ?? "Loading…"}
-            </p>
+          <div className="flex items-center gap-3">
+            <CompanyLogo ticker={ticker} logoUrl={quote?.logo} size={44} />
+            <div>
+              <h1 className="font-serif font-bold text-4xl text-[var(--text-primary)]">{ticker}</h1>
+              <p className="text-[var(--text-secondary)] mt-1">
+                {profile?.name ?? quote?.company_name ?? "Loading…"}
+              </p>
+            </div>
           </div>
           <div className="flex flex-col items-end gap-1.5">
             <div className="flex items-center gap-2">

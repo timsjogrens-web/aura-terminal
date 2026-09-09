@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { useQuotes } from "@/lib/useQuotes";
 import { formatPct } from "@/lib/format";
 import { Quote } from "@/lib/types";
+import CompanyLogo from "@/components/CompanyLogo";
 
 const SECTOR_ORDER = ["Technology", "Financials", "Healthcare", "Energy", "Consumer"];
 
@@ -30,9 +31,12 @@ function Tile({ quote }: { quote: Quote }) {
       style={tileStyle(quote.change_pct)}
       className="rounded-md border border-[var(--surface-border)] p-3 flex flex-col justify-between min-h-[84px] hover:border-[var(--gold-dim)] transition-colors"
     >
-      <span className="font-mono font-bold text-sm text-[var(--text-primary)] whitespace-nowrap">
-        {quote.ticker}
-      </span>
+      <div className="flex items-center gap-1.5">
+        <CompanyLogo ticker={quote.ticker} logoUrl={quote.logo} size={16} />
+        <span className="font-mono font-bold text-sm text-[var(--text-primary)] whitespace-nowrap">
+          {quote.ticker}
+        </span>
+      </div>
       <span className="font-mono text-xs text-[var(--text-secondary)] whitespace-nowrap">
         {formatPct(quote.change_pct)}
       </span>

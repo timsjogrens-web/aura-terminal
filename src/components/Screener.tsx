@@ -8,6 +8,7 @@ import { formatPct, formatPrice } from "@/lib/format";
 import Sparkline from "./Sparkline";
 import SignalBadge from "./SignalBadge";
 import WatchlistButton from "./WatchlistButton";
+import CompanyLogo from "./CompanyLogo";
 
 const SECTORS = ["ALL", "Technology", "Financials", "Healthcare", "Energy", "Consumer"];
 const SIGNALS = ["ALL", "STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"];
@@ -107,14 +108,19 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
                 className="border-b border-[var(--surface-border)] hover:bg-black/20 cursor-pointer transition-colors"
               >
                   <td className="px-5 py-4">
-                    <Link
-                      href={`/stock/${q.ticker}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]"
-                    >
-                      {q.ticker}
-                    </Link>
-                    <p className="text-xs text-[var(--text-secondary)]">{q.company_name}</p>
+                    <div className="flex items-center gap-2.5">
+                      <CompanyLogo ticker={q.ticker} logoUrl={q.logo} size={24} />
+                      <div>
+                        <Link
+                          href={`/stock/${q.ticker}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]"
+                        >
+                          {q.ticker}
+                        </Link>
+                        <p className="text-xs text-[var(--text-secondary)]">{q.company_name}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-5 py-4 font-mono text-[var(--text-primary)] whitespace-nowrap">
                     {q.price !== null ? `$${formatPrice(q.price)}` : "—"}

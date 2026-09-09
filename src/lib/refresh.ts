@@ -1,6 +1,6 @@
 import { db, setMeta } from "./db";
 import { DEFAULT_UNIVERSE, UNIVERSE_MAP } from "./universe";
-import { getQuote, getEarningsCalendar, getCompanyNews, FinnhubError } from "./finnhub";
+import { getQuote, getEarningsCalendar, getCompanyNews, getProfile, FinnhubError } from "./finnhub";
 import { getDailyCandles, YahooError } from "./yahoo";
 import { filterRelevantNews } from "./newsFilter";
 import { sma, rsi, computeScore } from "./scoring";
@@ -11,11 +11,11 @@ const UPSERT_SQL = `
   INSERT INTO quote_cache (
     ticker, company_name, sector, price, change, change_pct, open, high, low,
     prev_close, volume, avg_volume, sma50, rsi14, score, signal, sparkline,
-    next_earnings, news, updated_at, error
+    next_earnings, news, logo, updated_at, error
   ) VALUES (
     :ticker, :company_name, :sector, :price, :change, :change_pct, :open, :high, :low,
     :prev_close, :volume, :avg_volume, :sma50, :rsi14, :score, :signal, :sparkline,
-    :next_earnings, :news, :updated_at, :error
+    :next_earnings, :news, :logo, :updated_at, :error
   )
   ON CONFLICT(ticker) DO UPDATE SET
     company_name=excluded.company_name, sector=excluded.sector, price=excluded.price,
@@ -24,8 +24,10 @@ const UPSERT_SQL = `
     volume=excluded.volume, avg_volume=excluded.avg_volume, sma50=excluded.sma50,
     rsi14=excluded.rsi14, score=excluded.score, signal=excluded.signal,
     sparkline=excluded.sparkline, next_earnings=excluded.next_earnings,
-    news=excluded.news, updated_at=excluded.updated_at, error=excluded.error
+    news=excluded.news, logo=excluded.logo, updated_at=excluded.updated_at, error=excluded.error
 `;
+
+const EXISTING_LOGO_SQL = `SELECT logo FROM quote_cache WHERE ticker = ?`;
 
 const INSERT_HISTORY_SQL = `
   INSERT INTO signal_history (ticker, score, signal, price, timestamp)
@@ -79,6 +81,21 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
       avgVolume,
     });
 
+    // Logos don't change, so this is fetched once and reused from the
+    // cache forever after rather than re-hitting Finnhub's profile
+    // endpoint on every refresh cycle.
+    let logo: string | null = null;
+    const existingLogoRes = await db.execute({ sql: EXISTING_LOGO_SQL, args: [ticker] });
+    logo = (existingLogoRes.rows[0] as { logo: string | null } | undefined)?.logo ?? null;
+    if (!logo) {
+      try {
+        const profile = await getProfile(ticker);
+        logo = profile.logo || null;
+      } catch {
+        logo = null;
+      }
+    }
+
     let nextEarnings: string | null = null;
     try {
       const from = new Date().toISOString().slice(0, 10);
@@ -128,6 +145,7 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
         sparkline: JSON.stringify(sparkline),
         next_earnings: nextEarnings,
         news: JSON.stringify(news),
+        logo,
         updated_at: now,
         error: candleError,
       },

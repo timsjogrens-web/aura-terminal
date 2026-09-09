@@ -43,6 +43,7 @@ export const SCHEMA_STATEMENTS = [
     sparkline TEXT,
     next_earnings TEXT,
     news TEXT,
+    logo TEXT,
     updated_at TEXT,
     error TEXT
   )`,
@@ -90,6 +91,16 @@ export const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_insider_trades_ticker ON insider_trades(ticker, transaction_date)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_insider_trades_dedup ON insider_trades(ticker, owner_name, transaction_date, shares, price)`,
+  `CREATE TABLE IF NOT EXISTS manual_trades (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticker TEXT NOT NULL,
+    action TEXT NOT NULL,
+    shares REAL NOT NULL,
+    price REAL NOT NULL,
+    timestamp TEXT NOT NULL,
+    reason TEXT
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_manual_trades_ticker ON manual_trades(ticker, timestamp)`,
 ];
 
 export async function getMeta(key: string): Promise<string | null> {

@@ -2,11 +2,13 @@
 
 import { Quote } from "@/lib/types";
 import { formatPrice, formatPct } from "@/lib/format";
+import CompanyLogo from "./CompanyLogo";
 
 function Item({ q }: { q: Quote }) {
   const up = (q.change_pct ?? 0) >= 0;
   return (
     <div className="flex items-center gap-2 px-5 py-2.5 shrink-0 font-mono text-sm whitespace-nowrap">
+      <CompanyLogo ticker={q.ticker} logoUrl={q.logo} size={16} />
       <span className="text-[var(--text-primary)] font-semibold">{q.ticker}</span>
       <span className="text-[var(--text-secondary)]">
         {q.price !== null ? `$${formatPrice(q.price)}` : "—"}

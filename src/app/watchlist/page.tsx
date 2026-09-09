@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import Sparkline from "@/components/Sparkline";
 import SignalBadge from "@/components/SignalBadge";
 import NewsList from "@/components/NewsList";
+import CompanyLogo from "@/components/CompanyLogo";
 import { useQuotes } from "@/lib/useQuotes";
 import { useWatchlist } from "@/lib/WatchlistContext";
 import { formatPct, formatPrice } from "@/lib/format";
@@ -112,14 +113,17 @@ async function addTicker(ticker: string, description?: string) {
                   className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5"
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <div>
-                      <Link
-                        href={`/stock/${w.ticker}`}
-                        className="text-lg font-sans font-bold text-[var(--text-primary)] hover:text-[var(--gold)]"
-                      >
-                        {w.ticker}
-                      </Link>
-                      <p className="text-sm text-[var(--text-secondary)]">{w.company_name}</p>
+                    <div className="flex items-center gap-2.5">
+                      <CompanyLogo ticker={w.ticker} logoUrl={q?.logo} size={28} />
+                      <div>
+                        <Link
+                          href={`/stock/${w.ticker}`}
+                          className="text-lg font-sans font-bold text-[var(--text-primary)] hover:text-[var(--gold)]"
+                        >
+                          {w.ticker}
+                        </Link>
+                        <p className="text-sm text-[var(--text-secondary)]">{w.company_name}</p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       {q && <SignalBadge signal={q.signal} score={q.score} />}

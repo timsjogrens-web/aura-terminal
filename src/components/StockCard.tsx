@@ -6,15 +6,19 @@ import SignalBadge from "./SignalBadge";
 import WatchlistButton from "./WatchlistButton";
 import { buildComment } from "@/lib/comment";
 import NewsList from "./NewsList";
+import CompanyLogo from "./CompanyLogo";
 
 export default function StockCard({ q }: { q: Quote }) {
   return (
     <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 flex flex-col gap-4 hover:border-[var(--gold-dim)] transition-colors">
       <Link href={`/stock/${q.ticker}`} className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xl font-sans font-bold text-[var(--text-primary)]">{q.ticker}</p>
-            <p className="text-sm text-[var(--text-secondary)]">{q.company_name}</p>
+          <div className="flex items-center gap-2.5">
+            <CompanyLogo ticker={q.ticker} logoUrl={q.logo} size={32} />
+            <div>
+              <p className="text-xl font-sans font-bold text-[var(--text-primary)]">{q.ticker}</p>
+              <p className="text-sm text-[var(--text-secondary)]">{q.company_name}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <WatchlistButton ticker={q.ticker} companyName={q.company_name ?? undefined} sector={q.sector ?? undefined} />

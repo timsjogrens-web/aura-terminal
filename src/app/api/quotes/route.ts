@@ -25,6 +25,7 @@ interface QuoteRow {
   sparkline: string | null;
   next_earnings: string | null;
   news: string | null;
+  logo: string | null;
   updated_at: string | null;
   error: string | null;
 }
