@@ -75,6 +75,22 @@ const statements = [
     key TEXT PRIMARY KEY,
     value TEXT
   )`,
+  `CREATE TABLE IF NOT EXISTS institutional_holdings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    manager_slug TEXT NOT NULL,
+    cusip TEXT NOT NULL,
+    issuer TEXT,
+    ticker TEXT,
+    value REAL,
+    shares REAL,
+    filing_date TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_inst_holdings_manager ON institutional_holdings(manager_slug, filing_date)`,
+  `CREATE TABLE IF NOT EXISTS cusip_ticker_cache (
+    cusip TEXT PRIMARY KEY,
+    ticker TEXT
+  )`,
 ];
 
 for (const sql of statements) {

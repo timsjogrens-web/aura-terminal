@@ -84,6 +84,16 @@ export default function Header() {
           >
             News
           </Link>
+          <Link
+            href="/investors"
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+              pathname === "/investors"
+                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Investors
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -161,6 +171,14 @@ export default function Header() {
           }`}
         >
           News
+        </Link>
+        <Link
+          href="/investors"
+          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+            pathname === "/investors" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+          }`}
+        >
+          Investors
         </Link>
       </nav>
     </header>
