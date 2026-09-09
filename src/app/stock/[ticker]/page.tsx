@@ -107,28 +107,29 @@ export default function StockDetailPage({
               {profile?.name ?? quote?.company_name ?? "Loading…"}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <WatchlistButton
-              ticker={ticker}
-              companyName={profile?.name ?? quote?.company_name ?? undefined}
-              sector={quote?.sector ?? undefined}
-            />
-            {quote && <SignalBadge signal={quote.signal} score={quote.score} />}
+          <div className="flex flex-col items-end gap-1.5">
+            <div className="flex items-center gap-2">
+              <WatchlistButton
+                ticker={ticker}
+                companyName={profile?.name ?? quote?.company_name ?? undefined}
+                sector={quote?.sector ?? undefined}
+              />
+              {quote && <SignalBadge signal={quote.signal} score={quote.score} />}
+            </div>
+            {quote?.signal &&
+              history &&
+              history.rows.length > 0 &&
+              (() => {
+                const latest = history.rows[history.rows.length - 1];
+                if (latest.signal !== quote.signal) return null;
+                return (
+                  <span className="text-xs font-mono text-[var(--gold)] bg-[rgba(245,165,36,0.1)] border border-[rgba(245,165,36,0.3)] rounded px-2 py-1 whitespace-nowrap">
+                    ● Since {new Date(latest.timestamp).toLocaleString()}
+                  </span>
+                );
+              })()}
           </div>
         </div>
-
-        {quote?.signal && history && history.rows.length > 0 && (() => {
-          const latest = history.rows[history.rows.length - 1];
-          if (latest.signal !== quote.signal) return null;
-          return (
-            <p className="text-xs font-mono text-[var(--text-muted)] mb-4 -mt-3">
-              {quote.signal} since{" "}
-              <span className="text-[var(--text-secondary)]">
-                {new Date(latest.timestamp).toLocaleString()}
-              </span>
-            </p>
-          );
-        })()}
 
         {quote && (
           <div className="flex items-baseline gap-3 mb-8">
