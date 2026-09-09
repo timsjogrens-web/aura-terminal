@@ -101,6 +101,21 @@ const statements = [
     reason TEXT
   )`,
   `CREATE INDEX IF NOT EXISTS idx_paper_trades_ticker ON paper_trades(ticker, timestamp)`,
+  `CREATE TABLE IF NOT EXISTS insider_trades (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticker TEXT NOT NULL,
+    owner_name TEXT NOT NULL,
+    owner_title TEXT,
+    transaction_code TEXT NOT NULL,
+    shares REAL NOT NULL,
+    price REAL NOT NULL,
+    value REAL NOT NULL,
+    transaction_date TEXT NOT NULL,
+    filing_date TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_insider_trades_ticker ON insider_trades(ticker, transaction_date)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_insider_trades_dedup ON insider_trades(ticker, owner_name, transaction_date, shares, price)`,
 ];
 
 for (const sql of statements) {

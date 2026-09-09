@@ -23,6 +23,7 @@ interface YahooChartResponse {
 export interface DailyCandles {
   closes: number[];
   volumes: number[];
+  timestamps: number[]; // unix seconds, same length/order as closes
 }
 
 export interface ChartSeries {
@@ -68,12 +69,14 @@ export async function getDailyCandles(symbol: string, range = "6mo"): Promise<Da
   const { timestamp, quote } = await fetchYahooChart(symbol, range, "1d");
   const closes: number[] = [];
   const volumes: number[] = [];
+  const timestamps: number[] = [];
   for (let i = 0; i < timestamp.length; i++) {
     const c = quote.close[i];
     const v = quote.volume[i];
     if (c !== null && c !== undefined) {
       closes.push(c);
       volumes.push(v ?? 0);
+      timestamps.push(timestamp[i]);
     }
   }
 
@@ -81,7 +84,7 @@ export async function getDailyCandles(symbol: string, range = "6mo"): Promise<Da
     throw new YahooError(`Not enough historical data points for ${symbol}.`);
   }
 
-  return { closes, volumes };
+  return { closes, volumes, timestamps };
 }
 
 const RANGE_PRESETS: Record<string, { range: string; interval: string }> = {

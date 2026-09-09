@@ -38,10 +38,10 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden sm:flex items-center gap-1 bg-black/30 rounded-lg p-1 border border-[var(--surface-border)]">
+        <nav className="hidden sm:flex items-center gap-1 bg-black/30 rounded-lg p-1 border border-[var(--surface-border)] flex-1 min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Link
             href="/"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
               pathname === "/"
                 ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -51,7 +51,7 @@ export default function Header() {
           </Link>
           <Link
             href="/watchlist"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition flex items-center gap-2 ${
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition flex items-center gap-2 shrink-0 whitespace-nowrap ${
               pathname === "/watchlist"
                 ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -66,7 +66,7 @@ export default function Header() {
           </Link>
           <Link
             href="/history"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
               pathname === "/history"
                 ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -76,7 +76,7 @@ export default function Header() {
           </Link>
           <Link
             href="/news"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
               pathname === "/news"
                 ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -86,7 +86,7 @@ export default function Header() {
           </Link>
           <Link
             href="/investors"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
               pathname === "/investors"
                 ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -96,7 +96,7 @@ export default function Header() {
           </Link>
           <Link
             href="/heatmap"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
               pathname === "/heatmap"
                 ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -106,13 +106,43 @@ export default function Header() {
           </Link>
           <Link
             href="/paper"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
               pathname === "/paper"
                 ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
             Paper
+          </Link>
+          <Link
+            href="/insiders"
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
+              pathname === "/insiders"
+                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Insiders
+          </Link>
+          <Link
+            href="/backtest"
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
+              pathname === "/backtest"
+                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Backtest
+          </Link>
+          <Link
+            href="/leaderboard"
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
+              pathname === "/leaderboard"
+                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Leaderboard
           </Link>
         </nav>
 
@@ -159,10 +189,10 @@ export default function Header() {
         </div>
       </div>
 
-      <nav className="sm:hidden flex items-center gap-1 px-4 pb-3 -mt-1">
+      <nav className="sm:hidden flex items-center gap-1 px-4 pb-3 -mt-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Link
           href="/"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
             pathname === "/" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
           }`}
         >
@@ -170,7 +200,7 @@ export default function Header() {
         </Link>
         <Link
           href="/watchlist"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
             pathname === "/watchlist" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
           }`}
         >
@@ -178,7 +208,7 @@ export default function Header() {
         </Link>
         <Link
           href="/history"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
             pathname === "/history" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
           }`}
         >
@@ -186,7 +216,7 @@ export default function Header() {
         </Link>
         <Link
           href="/news"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
             pathname === "/news" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
           }`}
         >
@@ -194,7 +224,7 @@ export default function Header() {
         </Link>
         <Link
           href="/investors"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
             pathname === "/investors" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
           }`}
         >
@@ -202,7 +232,7 @@ export default function Header() {
         </Link>
         <Link
           href="/heatmap"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
             pathname === "/heatmap" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
           }`}
         >
@@ -210,11 +240,35 @@ export default function Header() {
         </Link>
         <Link
           href="/paper"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
             pathname === "/paper" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
           }`}
         >
           Paper
+        </Link>
+        <Link
+          href="/insiders"
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
+            pathname === "/insiders" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+          }`}
+        >
+          Insiders
+        </Link>
+        <Link
+          href="/backtest"
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
+            pathname === "/backtest" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+          }`}
+        >
+          Backtest
+        </Link>
+        <Link
+          href="/leaderboard"
+          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
+            pathname === "/leaderboard" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+          }`}
+        >
+          Leaderboard
         </Link>
       </nav>
     </header>

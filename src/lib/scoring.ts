@@ -55,24 +55,35 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
+export interface ScoreWeights {
+  trend: number;
+  momentum: number;
+  volume: number;
+}
+
+export const DEFAULT_WEIGHTS: ScoreWeights = { trend: 40, momentum: 30, volume: 30 };
+
 /**
  * Composite 0-100 score from three real indicators:
- *  - Trend: price vs 50-day SMA (up to 40 pts)
- *  - Momentum: RSI(14), peaking near 55-65, penalized when overbought/oversold (up to 30 pts)
- *  - Volume: current volume vs its recent average, confirms conviction (up to 30 pts)
+ *  - Trend: price vs 50-day SMA (default up to 40 pts)
+ *  - Momentum: RSI(14), peaking near 55-65, penalized when overbought/oversold (default up to 30 pts)
+ *  - Volume: current volume vs its recent average, confirms conviction (default up to 30 pts)
  * Any missing input drops that component and rescales the rest so the score
- * still reflects only real data (never a fabricated fill-in).
+ * still reflects only real data (never a fabricated fill-in). Weights are
+ * parameterized (defaulting to the live 40/30/30 split) so the same formula
+ * can be re-run with different weights for the backtest strategy builder
+ * without duplicating this logic.
  */
-export function computeScore(inputs: ScoreInputs): ScoreBreakdown {
+export function computeScore(inputs: ScoreInputs, weights: ScoreWeights = DEFAULT_WEIGHTS): ScoreBreakdown {
   const components: { weight: number; value: number | null; raw: number | null }[] = [];
 
   let trendComponent: number | null = null;
   let trendPctVsSma: number | null = null;
   if (inputs.sma50 && inputs.sma50 > 0) {
     trendPctVsSma = ((inputs.price - inputs.sma50) / inputs.sma50) * 100;
-    // +/-10% vs SMA50 maps across the full 0-40 range, centered at 20.
-    trendComponent = clamp(20 + trendPctVsSma * 2, 0, 40);
-    components.push({ weight: 40, value: trendComponent, raw: trendPctVsSma });
+    // +/-10% vs SMA50 maps across the full weight range, centered at half.
+    trendComponent = clamp(weights.trend / 2 + trendPctVsSma * (weights.trend / 20), 0, weights.trend);
+    components.push({ weight: weights.trend, value: trendComponent, raw: trendPctVsSma });
   }
 
   let momentumComponent: number | null = null;
@@ -84,8 +95,8 @@ export function computeScore(inputs: ScoreInputs): ScoreBreakdown {
     else if (r <= 65) score01 = 0.3 + ((r - 30) / 35) * 0.7;
     else if (r <= 80) score01 = 1 - ((r - 65) / 15) * 0.4;
     else score01 = 0.6 - ((r - 80) / 20) * 0.6;
-    momentumComponent = clamp(score01 * 30, 0, 30);
-    components.push({ weight: 30, value: momentumComponent, raw: r });
+    momentumComponent = clamp(score01 * weights.momentum, 0, weights.momentum);
+    components.push({ weight: weights.momentum, value: momentumComponent, raw: r });
   }
 
   let volumeComponent: number | null = null;
@@ -93,8 +104,8 @@ export function computeScore(inputs: ScoreInputs): ScoreBreakdown {
   if (inputs.volume && inputs.avgVolume && inputs.avgVolume > 0) {
     volumeRatio = inputs.volume / inputs.avgVolume;
     // 1.0x avg -> mid score, 2x+ avg -> full score, <0.5x -> near zero.
-    volumeComponent = clamp(((volumeRatio - 0.5) / 1.5) * 30, 0, 30);
-    components.push({ weight: 30, value: volumeComponent, raw: volumeRatio });
+    volumeComponent = clamp(((volumeRatio - 0.5) / 1.5) * weights.volume, 0, weights.volume);
+    components.push({ weight: weights.volume, value: volumeComponent, raw: volumeRatio });
   }
 
   let score: number;

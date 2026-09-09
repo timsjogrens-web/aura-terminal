@@ -83,7 +83,9 @@ export async function refreshAllInstitutional() {
       const message = e instanceof SecError ? e.message : "Unknown error fetching 13F data.";
       results.push({ manager: manager.slug, ok: false, error: message });
     }
-    await new Promise((r) => setTimeout(r, 500));
+    // Spaced out mainly for OpenFIGI's ~25 req/min unauthenticated limit —
+    // each manager makes one CUSIP-resolution batch call.
+    await new Promise((r) => setTimeout(r, 2500));
   }
   return results;
 }

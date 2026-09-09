@@ -6,7 +6,12 @@ import { db } from "./db";
 // a CUSIP always maps to the same security.
 
 const OPENFIGI_URL = "https://api.openfigi.com/v3/mapping";
-const BATCH_SIZE = 100; // OpenFIGI's max per request
+// OpenFIGI's documented max is 100 mapping jobs per request, but that's
+// only for API-key-authenticated requests — the unauthenticated tier this
+// app uses actually caps at 10 (confirmed: 25 returns a 413 "Request may
+// only contain 10 mapping jobs"), which was silently dropping every
+// manager with more than 10 holdings to resolve.
+const BATCH_SIZE = 10;
 
 interface OpenFigiEntry {
   ticker?: string;
@@ -19,12 +24,27 @@ interface OpenFigiResult {
 
 async function resolveBatch(cusips: string[]): Promise<Map<string, string | null>> {
   const body = cusips.map((c) => ({ idType: "ID_CUSIP", idValue: c }));
-  const res = await fetch(OPENFIGI_URL, {
+
+  // OpenFIGI's unauthenticated tier allows only ~25 requests/minute. With
+  // several callers (12 fund managers, each firing one batch) that limit
+  // was being hit silently — a 429 just dropped that manager's CUSIPs
+  // entirely (never cached, never resolved) rather than erroring loudly.
+  // One retry after backing off recovers from that instead of losing data.
+  let res = await fetch(OPENFIGI_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
     cache: "no-store",
   });
+  if (res.status === 429) {
+    await new Promise((r) => setTimeout(r, 8000));
+    res = await fetch(OPENFIGI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+  }
   if (!res.ok) throw new Error(`OpenFIGI request failed: ${res.status}`);
   const results = (await res.json()) as OpenFigiResult[];
 
