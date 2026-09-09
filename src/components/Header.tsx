@@ -41,7 +41,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden sm:flex items-center gap-1 bg-black/30 rounded-lg p-1 border border-[var(--surface-border)] flex-1 min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav className="hidden sm:flex items-center gap-1 bg-black/30 rounded-lg p-1 border border-[var(--surface-border)]">
           <Link
             href="/"
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
