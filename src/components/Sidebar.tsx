@@ -41,7 +41,7 @@ export default function Sidebar() {
     <aside className="app-sidebar hidden sm:flex flex-col fixed left-0 top-0 bottom-0 w-52 border-r border-[var(--surface-border)] bg-[var(--surface)]/80 backdrop-blur overflow-y-auto z-20 pt-20 pb-6 px-3 gap-6">
       {GROUPS.map((group) => (
         <div key={group.label}>
-          <p className="text-[10px] font-mono tracking-widest text-[var(--text-muted)] px-3 mb-1.5">
+          <p className="text-[11px] font-mono font-bold tracking-widest text-[var(--gold)] px-3 mb-2">
             {group.label}
           </p>
           <nav className="flex flex-col gap-0.5">
