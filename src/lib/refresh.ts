@@ -5,6 +5,7 @@ import { getDailyCandles, YahooError } from "./yahoo";
 import { filterRelevantNews } from "./newsFilter";
 import { sma, rsi, computeScore } from "./scoring";
 import { maybeTrade } from "./paperTrading";
+import { sendStrongBuyAlert } from "./discordAlert";
 
 const UPSERT_SQL = `
   INSERT INTO quote_cache (
@@ -145,6 +146,9 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
         args: [ticker, breakdown.score, breakdown.signal, quote.c, now],
       });
       await maybeTrade(ticker, breakdown.signal, quote.c, now);
+      if (breakdown.signal === "STRONG BUY") {
+        await sendStrongBuyAlert(ticker, quote.c, breakdown.score);
+      }
     }
   } catch (e) {
     const message = e instanceof FinnhubError ? e.message : "Unknown error fetching data.";
