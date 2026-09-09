@@ -57,6 +57,18 @@ body {
   color: var(--text-primary);
 }
 
+/* Sidebar.tsx renders a fixed .app-sidebar as a sibling of <header> from
+   inside Header.tsx, so every page that includes <Header /> gets it with
+   no per-page layout change — this just makes room for it. Scoped to the
+   same breakpoint the sidebar itself appears at (sm:, see Sidebar.tsx),
+   and :has() means pages that never render Header (login, the public
+   /share cards) are untouched since .app-sidebar won't exist in them. */
+@media (min-width: 640px) {
+  body:has(.app-sidebar) {
+    padding-left: 13rem;
+  }
+}
+
 .hairline-gold {
   background: linear-gradient(
     90deg,

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuotes } from "@/lib/useQuotes";
 import { useNotificationPermission, useStrongBuyAlerts } from "@/lib/useAlerts";
 import { useWatchlist } from "@/lib/WatchlistContext";
+import Sidebar from "./Sidebar";
 
 export default function Header() {
   const pathname = usePathname();
@@ -24,7 +25,9 @@ export default function Header() {
   const isLive = data && !data.isStale && data.apiKeyConfigured;
 
   return (
-    <header className="border-b border-[var(--surface-border)] bg-[var(--surface)]/60 backdrop-blur sticky top-0 z-30">
+    <>
+      <Sidebar />
+      <header className="border-b border-[var(--surface-border)] bg-[var(--surface)]/60 backdrop-blur sticky top-0 z-30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
           <div className="h-8 w-8 rounded-md bg-[var(--gold)] flex items-center justify-center shadow-[0_0_14px_rgba(245,165,36,0.35)]">
@@ -83,76 +86,6 @@ export default function Header() {
             }`}
           >
             News
-          </Link>
-          <Link
-            href="/investors"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/investors"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Investors
-          </Link>
-          <Link
-            href="/heatmap"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/heatmap"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Heatmap
-          </Link>
-          <Link
-            href="/paper"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/paper"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Paper
-          </Link>
-          <Link
-            href="/self-trade"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/self-trade"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Self Trade
-          </Link>
-          <Link
-            href="/insiders"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/insiders"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Insiders
-          </Link>
-          <Link
-            href="/backtest"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/backtest"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Backtest
-          </Link>
-          <Link
-            href="/leaderboard"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/leaderboard"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Leaderboard
           </Link>
         </nav>
 
@@ -290,5 +223,6 @@ export default function Header() {
         </Link>
       </nav>
     </header>
+    </>
   );
 }
