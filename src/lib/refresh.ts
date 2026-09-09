@@ -30,6 +30,10 @@ const INSERT_HISTORY_SQL = `
   VALUES (?, ?, ?, ?, ?)
 `;
 
+const LATEST_HISTORY_SQL = `
+  SELECT signal FROM signal_history WHERE ticker = ? ORDER BY id DESC LIMIT 1
+`;
+
 const ERROR_ONLY_SQL = `
   INSERT INTO quote_cache (ticker, error, updated_at)
   VALUES (:ticker, :error, :updated_at)
@@ -127,10 +131,19 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
       },
     });
 
-    await db.execute({
-      sql: INSERT_HISTORY_SQL,
-      args: [ticker, breakdown.score, breakdown.signal, quote.c, now],
-    });
+    // Only log a new history row when the signal actually changed. Logging
+    // every refresh cycle unconditionally meant a stock sitting at STRONG
+    // BUY for hours produced dozens of near-identical rows — a wall of
+    // overlapping dots on the chart and an inflated, misleading "calls
+    // evaluated" count, all really just one continuous call.
+    const latestRes = await db.execute({ sql: LATEST_HISTORY_SQL, args: [ticker] });
+    const latestSignal = (latestRes.rows[0] as { signal: string } | undefined)?.signal ?? null;
+    if (latestSignal !== breakdown.signal) {
+      await db.execute({
+        sql: INSERT_HISTORY_SQL,
+        args: [ticker, breakdown.score, breakdown.signal, quote.c, now],
+      });
+    }
   } catch (e) {
     const message = e instanceof FinnhubError ? e.message : "Unknown error fetching data.";
     await db.execute({ sql: ERROR_ONLY_SQL, args: { ticker, error: message, updated_at: now } });

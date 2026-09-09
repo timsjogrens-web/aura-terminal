@@ -3,6 +3,7 @@
 import Header from "@/components/Header";
 import TickerBar from "@/components/TickerBar";
 import Hero from "@/components/Hero";
+import HowItWorks from "@/components/HowItWorks";
 import StatCards from "@/components/StatCards";
 import StockCard from "@/components/StockCard";
 import Screener from "@/components/Screener";
@@ -24,6 +25,7 @@ export default function MarketsPage() {
       <Header />
       <TickerBar quotes={quotes} />
       <Hero tickerCount={DEFAULT_UNIVERSE.length} />
+      <HowItWorks />
       <StatCards quotes={quotes} />
       <StatusBanner data={data} fetchError={fetchError} onRefresh={reload} />
 

@@ -117,6 +117,19 @@ export default function StockDetailPage({
           </div>
         </div>
 
+        {quote?.signal && history && history.rows.length > 0 && (() => {
+          const latest = history.rows[history.rows.length - 1];
+          if (latest.signal !== quote.signal) return null;
+          return (
+            <p className="text-xs font-mono text-[var(--text-muted)] mb-4 -mt-3">
+              {quote.signal} since{" "}
+              <span className="text-[var(--text-secondary)]">
+                {new Date(latest.timestamp).toLocaleString()}
+              </span>
+            </p>
+          );
+        })()}
+
         {quote && (
           <div className="flex items-baseline gap-3 mb-8">
             <p className="text-4xl font-mono font-semibold text-[var(--text-primary)] whitespace-nowrap">
