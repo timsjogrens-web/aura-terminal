@@ -91,6 +91,16 @@ const statements = [
     cusip TEXT PRIMARY KEY,
     ticker TEXT
   )`,
+  `CREATE TABLE IF NOT EXISTS paper_trades (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticker TEXT NOT NULL,
+    action TEXT NOT NULL,
+    shares REAL NOT NULL,
+    price REAL NOT NULL,
+    timestamp TEXT NOT NULL,
+    reason TEXT
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_paper_trades_ticker ON paper_trades(ticker, timestamp)`,
 ];
 
 for (const sql of statements) {

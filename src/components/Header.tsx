@@ -94,6 +94,26 @@ export default function Header() {
           >
             Investors
           </Link>
+          <Link
+            href="/heatmap"
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+              pathname === "/heatmap"
+                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Heatmap
+          </Link>
+          <Link
+            href="/paper"
+            className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+              pathname === "/paper"
+                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Paper
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -179,6 +199,22 @@ export default function Header() {
           }`}
         >
           Investors
+        </Link>
+        <Link
+          href="/heatmap"
+          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+            pathname === "/heatmap" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+          }`}
+        >
+          Heatmap
+        </Link>
+        <Link
+          href="/paper"
+          className={`px-3 py-1.5 rounded-md text-xs font-medium ${
+            pathname === "/paper" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+          }`}
+        >
+          Paper
         </Link>
       </nav>
     </header>

@@ -4,6 +4,7 @@ import { getQuote, getEarningsCalendar, getCompanyNews, FinnhubError } from "./f
 import { getDailyCandles, YahooError } from "./yahoo";
 import { filterRelevantNews } from "./newsFilter";
 import { sma, rsi, computeScore } from "./scoring";
+import { maybeTrade } from "./paperTrading";
 
 const UPSERT_SQL = `
   INSERT INTO quote_cache (
@@ -143,6 +144,7 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
         sql: INSERT_HISTORY_SQL,
         args: [ticker, breakdown.score, breakdown.signal, quote.c, now],
       });
+      await maybeTrade(ticker, breakdown.signal, quote.c, now);
     }
   } catch (e) {
     const message = e instanceof FinnhubError ? e.message : "Unknown error fetching data.";

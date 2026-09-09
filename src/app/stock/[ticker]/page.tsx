@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignalBadge from "@/components/SignalBadge";
 import WatchlistButton from "@/components/WatchlistButton";
+import ShareButton from "@/components/ShareButton";
 import NewsList from "@/components/NewsList";
 import PriceChart from "@/components/PriceChart";
 import SignalHistoryTable, { HistoryEntry } from "@/components/SignalHistoryTable";
@@ -115,6 +116,7 @@ export default function StockDetailPage({
                 sector={quote?.sector ?? undefined}
               />
               {quote && <SignalBadge signal={quote.signal} score={quote.score} />}
+              <ShareButton ticker={ticker} />
             </div>
             {quote?.signal &&
               history &&
