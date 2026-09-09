@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { DEFAULT_UNIVERSE } from "@/lib/universe";
+import { formatValue, initials, MANAGERS_BY_SLUG } from "@/lib/investors";
 
 interface TopHolding {
   ticker: string;
@@ -29,19 +30,31 @@ interface ManagerData {
   newPositions: NewPosition[];
 }
 
-function formatValue(n: number): string {
-  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  return `$${n.toFixed(0)}`;
-}
+function ManagerAvatar({ slug, name, size }: { slug: string; name: string; size: number }) {
+  const [failed, setFailed] = useState(false);
+  const photoUrl = MANAGERS_BY_SLUG.get(slug)?.photoUrl;
+  const px = `${size}px`;
 
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  if (photoUrl && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={photoUrl}
+        alt={name}
+        onError={() => setFailed(true)}
+        style={{ height: px, width: px }}
+        className="rounded-full object-cover border border-[var(--surface-border)] shrink-0"
+      />
+    );
+  }
+  return (
+    <div
+      style={{ height: px, width: px }}
+      className="rounded-full bg-[rgba(245,165,36,0.12)] border border-[rgba(245,165,36,0.3)] flex items-center justify-center text-[var(--gold)] font-mono font-bold text-sm shrink-0"
+    >
+      {initials(name)}
+    </div>
+  );
 }
 
 export default function InvestorsPage() {
@@ -146,14 +159,13 @@ export default function InvestorsPage() {
         {managers && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {managers.map((m) => (
-              <div
+              <Link
                 key={m.slug}
-                className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5"
+                href={`/investors/${m.slug}`}
+                className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 hover:border-[var(--gold-dim)] transition-colors"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="h-11 w-11 rounded-full bg-[rgba(245,165,36,0.12)] border border-[rgba(245,165,36,0.3)] flex items-center justify-center text-[var(--gold)] font-mono font-bold text-sm shrink-0">
-                    {initials(m.name)}
-                  </div>
+                  <ManagerAvatar slug={m.slug} name={m.name} size={44} />
                   <div className="min-w-0">
                     <p className="font-sans font-bold text-[var(--text-primary)] truncate">{m.name}</p>
                     <p className="text-xs text-[var(--text-secondary)] truncate">{m.fund}</p>
@@ -184,7 +196,7 @@ export default function InvestorsPage() {
                 ) : (
                   <p className="text-sm text-[var(--text-muted)]">No filing data yet.</p>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         )}
