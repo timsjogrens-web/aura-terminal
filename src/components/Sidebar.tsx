@@ -7,6 +7,7 @@ import { SIDEBAR_GROUPS } from "@/lib/navConfig";
 
 const WIDTH = 208; // px, matches the 13rem body padding in globals.css
 const COLLAPSED_KEY = "aura_sidebar_collapsed";
+const HINT_DISMISSED_KEY = "aura_sidebar_hint_dismissed";
 
 // Fixed full-height, rendered as a sibling of <header> from inside Header.tsx
 // so every page that already includes <Header /> gets it automatically —
@@ -19,6 +20,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [transitionsEnabled, setTransitionsEnabled] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   // Sidebar remounts fresh on every navigation (it isn't in a shared root
   // layout), always starting collapsed=false. This corrects it in a
@@ -34,6 +36,7 @@ export default function Sidebar() {
   // keeps the animation for actual user-initiated toggles only.
   useLayoutEffect(() => {
     setCollapsed(localStorage.getItem(COLLAPSED_KEY) === "1");
+    setShowHint(localStorage.getItem(HINT_DISMISSED_KEY) !== "1");
   }, []);
 
   useEffect(() => {
@@ -44,6 +47,14 @@ export default function Sidebar() {
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem(COLLAPSED_KEY, next ? "1" : "0");
+    // The hint's whole job is done the first time someone actually uses
+    // the arrow to hide the sidebar — dismiss it for good right then,
+    // rather than on a timer or a separate "got it" button. The arrow
+    // itself keeps working exactly the same either way.
+    if (next && showHint) {
+      setShowHint(false);
+      localStorage.setItem(HINT_DISMISSED_KEY, "1");
+    }
   }
 
   return (
@@ -56,6 +67,11 @@ export default function Sidebar() {
         }`}
       >
         <div className="overflow-y-auto px-3 flex flex-col gap-6" style={{ width: WIDTH }}>
+          {showHint && (
+            <p className="text-[11px] leading-snug text-[var(--text-secondary)] bg-black/20 border border-[var(--surface-border)] rounded-md px-3 py-2">
+              Pilen döljer och visar menyn — klicka när du vill.
+            </p>
+          )}
           {SIDEBAR_GROUPS.map((group) => (
             <div key={group.label}>
               <p className="text-[11px] font-mono font-bold tracking-widest text-[var(--gold)] px-3 mb-2 whitespace-nowrap">
