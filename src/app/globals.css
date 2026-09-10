@@ -62,10 +62,16 @@ body {
    no per-page layout change — this just makes room for it. Scoped to the
    same breakpoint the sidebar itself appears at (sm:, see Sidebar.tsx),
    and :has() means pages that never render Header (login, the public
-   /share cards) are untouched since .app-sidebar won't exist in them. */
+   /share cards) are untouched since .app-sidebar won't exist in them.
+   The extra :not() drops the padding back to 0 while the sidebar carries
+   data-collapsed="true" (its user-toggled collapsed state). */
 @media (min-width: 640px) {
   body:has(.app-sidebar) {
     padding-left: 13rem;
+    transition: padding-left 0.2s ease-in-out;
+  }
+  body:has(.app-sidebar[data-collapsed="true"]) {
+    padding-left: 0;
   }
 }
 
