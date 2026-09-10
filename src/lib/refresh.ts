@@ -4,7 +4,7 @@ import { getQuote, getEarningsCalendar, getCompanyNews, getProfile, FinnhubError
 import { getDailyCandles, YahooError } from "./yahoo";
 import { filterRelevantNews } from "./newsFilter";
 import { sma, rsi, computeScore } from "./scoring";
-import { maybeTrade } from "./paperTrading";
+import { maybeTrade, checkRiskExits } from "./paperTrading";
 import { sendStrongBuyAlert } from "./discordAlert";
 
 const UPSERT_SQL = `
@@ -168,6 +168,10 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
         await sendStrongBuyAlert(ticker, quote.c, breakdown.score);
       }
     }
+
+    // Stop-loss/trailing-stop react to price, not to the score, so this
+    // runs every cycle rather than only on a signal transition.
+    await checkRiskExits(ticker, quote.c, now);
   } catch (e) {
     const message = e instanceof FinnhubError ? e.message : "Unknown error fetching data.";
     await db.execute({ sql: ERROR_ONLY_SQL, args: { ticker, error: message, updated_at: now } });

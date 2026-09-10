@@ -101,6 +101,11 @@ export const SCHEMA_STATEMENTS = [
     reason TEXT
   )`,
   `CREATE INDEX IF NOT EXISTS idx_manual_trades_ticker ON manual_trades(ticker, timestamp)`,
+  `CREATE TABLE IF NOT EXISTS paper_position_peaks (
+    ticker TEXT PRIMARY KEY,
+    peak_price REAL NOT NULL,
+    updated_at TEXT NOT NULL
+  )`,
 ];
 
 export async function getMeta(key: string): Promise<string | null> {

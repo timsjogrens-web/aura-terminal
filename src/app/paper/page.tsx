@@ -68,7 +68,9 @@ export default function PaperTradingPage() {
           A fictional {data ? formatMoney(data.startingCash) : "$100,000"} account that automatically
           buys the instant a stock reaches BUY or STRONG BUY, and sells the instant it drops off —
           no manual entry, no hindsight. This is the signal engine&rsquo;s own track record, priced
-          in dollars instead of a hit rate.
+          in dollars instead of a hit rate. Two safety nets sit on top of the signal: an 8% stop-loss
+          from entry, and a trailing stop that locks in gains once a position is up 15%+ (selling if
+          it then gives back 10% from its peak) — both shown as the reason in the trade log below.
         </p>
 
         {!data && <p className="text-[var(--text-muted)]">Loading…</p>}
