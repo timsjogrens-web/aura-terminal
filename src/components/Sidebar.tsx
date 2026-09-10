@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SIDEBAR_GROUPS } from "@/lib/navConfig";
@@ -20,7 +20,13 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => {
+  // useLayoutEffect (not useEffect) runs before the browser paints, not
+  // after. Since Sidebar remounts fresh on every navigation (it isn't in a
+  // shared root layout), it always starts collapsed=false — with a plain
+  // effect the browser would actually paint that wrong expanded frame,
+  // then snap to the real saved state a moment later, i.e. exactly the
+  // "pops out" flash. This corrects it before anything is ever drawn.
+  useLayoutEffect(() => {
     setCollapsed(localStorage.getItem(COLLAPSED_KEY) === "1");
     setHydrated(true);
   }, []);
