@@ -16,6 +16,13 @@ export default function Footer() {
           financial advice. Always spread risk across multiple holdings and
           never invest more than you can afford to lose.
         </p>
+        <p>
+          Run by Tim Sjögren as a personal project &mdash; not a registered
+          financial firm.{" "}
+          <a href="mailto:timsjogrens.jobb@gmail.com" className="underline hover:text-[var(--text-secondary)]">
+            timsjogrens.jobb@gmail.com
+          </a>
+        </p>
       </div>
     </footer>
   );

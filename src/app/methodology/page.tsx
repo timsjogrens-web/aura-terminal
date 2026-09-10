@@ -139,10 +139,14 @@ export default function MethodologyPage() {
 
         <Section title="Vem ligger bakom sajten">
           <p>
-            Aura Terminal drivs som ett personligt projekt, inte av ett registrerat
+            Aura Terminal drivs av Tim Sjögren som ett personligt projekt, inte av ett registrerat
             finansföretag. Sajten är inte en licensierad investeringsrådgivare och lämnar ingen
             personlig rådgivning. Allt innehåll är automatiskt genererat från offentlig marknadsdata
-            och tillhandahålls i informationssyfte.
+            och tillhandahålls i informationssyfte. Frågor om sajten kan skickas till{" "}
+            <a href="mailto:timsjogrens.jobb@gmail.com" className="underline hover:text-[var(--text-primary)]">
+              timsjogrens.jobb@gmail.com
+            </a>
+            .
           </p>
         </Section>
       </section>
