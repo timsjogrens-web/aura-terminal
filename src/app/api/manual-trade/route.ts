@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getManualPortfolioState, executeManualTrade, ManualTradeError, STARTING_CASH } from "@/lib/manualTrading";
-import { getQuote, FinnhubError } from "@/lib/finnhub";
+import { getQuote, getProfile, FinnhubError } from "@/lib/finnhub";
 import { getSession } from "@/lib/session";
 
 async function resolvePrice(ticker: string): Promise<number | null> {
@@ -16,8 +16,45 @@ async function resolvePrice(ticker: string): Promise<number | null> {
   }
 }
 
+// Self-trade allows any ticker, not just the tracked universe, so the
+// quote_cache (only populated for that universe) won't always have a
+// logo — falls back to a live Finnhub profile lookup for anything it
+// hasn't already cached, same fallback shape as resolvePrice above.
+async function resolveLogos(tickers: string[]): Promise<Map<string, string | null>> {
+  const result = new Map<string, string | null>();
+  if (tickers.length === 0) return result;
+
+  const placeholders = tickers.map(() => "?").join(",");
+  const cached = await db.execute({
+    sql: `SELECT ticker, logo FROM quote_cache WHERE ticker IN (${placeholders})`,
+    args: tickers,
+  });
+  for (const row of cached.rows as unknown as { ticker: string; logo: string | null }[]) {
+    result.set(row.ticker, row.logo);
+  }
+
+  const missing = tickers.filter((t) => !result.has(t));
+  await Promise.all(
+    missing.map(async (t) => {
+      try {
+        const profile = await getProfile(t);
+        result.set(t, profile.logo || null);
+      } catch {
+        result.set(t, null);
+      }
+    })
+  );
+
+  return result;
+}
+
 export async function GET() {
   const state = await getManualPortfolioState();
+
+  const tickers = Array.from(
+    new Set([...state.openPositions.map((p) => p.ticker), ...state.trades.map((t) => t.ticker)])
+  );
+  const logoByTicker = await resolveLogos(tickers);
 
   const positions = await Promise.all(
     state.openPositions.map(async (p) => {
@@ -29,9 +66,12 @@ export async function GET() {
         currentPrice,
         value,
         returnPct: costBasis > 0 ? ((value - costBasis) / costBasis) * 100 : 0,
+        logo: logoByTicker.get(p.ticker) ?? null,
       };
     })
   );
+
+  const trades = state.trades.map((t) => ({ ...t, logo: logoByTicker.get(t.ticker) ?? null }));
 
   const holdingsValue = positions.reduce((a, p) => a + p.value, 0);
   const totalValue = state.cash + holdingsValue;
@@ -44,7 +84,7 @@ export async function GET() {
     totalReturnPct,
     startedAt: state.startedAt,
     positions,
-    trades: state.trades,
+    trades,
   });
 }
 

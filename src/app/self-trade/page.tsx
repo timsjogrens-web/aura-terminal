@@ -30,6 +30,7 @@ interface Position {
   currentPrice: number;
   value: number;
   returnPct: number;
+  logo?: string | null;
 }
 
 interface Trade {
@@ -39,6 +40,7 @@ interface Trade {
   shares: number;
   price: number;
   timestamp: string;
+  logo?: string | null;
 }
 
 interface PortfolioData {
@@ -307,7 +309,12 @@ export default function SelfTradePage() {
                     <tbody>
                       {portfolio.positions.map((p) => (
                         <tr key={p.ticker} className="border-b border-[var(--surface-border)] last:border-0">
-                          <td className="px-2.5 sm:px-4 py-3 font-mono font-semibold text-[var(--gold)]">{p.ticker}</td>
+                          <td className="px-2.5 sm:px-4 py-3">
+                            <Link href={`/stock/${p.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline">
+                              <CompanyLogo ticker={p.ticker} logoUrl={p.logo} size={20} />
+                              {p.ticker}
+                            </Link>
+                          </td>
                           <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             {p.shares.toFixed(4)}
                           </td>
@@ -369,7 +376,12 @@ export default function SelfTradePage() {
                               {t.action}
                             </span>
                           </td>
-                          <td className="px-2.5 sm:px-4 py-3 font-mono font-semibold text-[var(--text-primary)]">{t.ticker}</td>
+                          <td className="px-2.5 sm:px-4 py-3">
+                            <Link href={`/stock/${t.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]">
+                              <CompanyLogo ticker={t.ticker} logoUrl={t.logo} size={20} />
+                              {t.ticker}
+                            </Link>
+                          </td>
                           <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             {t.shares.toFixed(4)}
                           </td>

@@ -24,9 +24,17 @@ const MIN_CASH_TO_TRADE = 100;
 // are standard swing-trading defaults (the same shape as classic
 // trend-following stop rules), not values backtested specifically for
 // this signal engine.
-const STOP_LOSS_PCT = 8;
-const TRAILING_ARM_PCT = 15;
-const TRAILING_STOP_PCT = 10;
+export const STOP_LOSS_PCT = 8;
+export const TRAILING_ARM_PCT = 15;
+export const TRAILING_STOP_PCT = 10;
+
+export async function getPeakPrice(ticker: string): Promise<number | null> {
+  const res = await db.execute({
+    sql: "SELECT peak_price FROM paper_position_peaks WHERE ticker = ?",
+    args: [ticker],
+  });
+  return (res.rows[0] as { peak_price: number } | undefined)?.peak_price ?? null;
+}
 
 async function sellAutoPosition(
   ticker: string,
@@ -90,11 +98,7 @@ export async function checkRiskExits(ticker: string, price: number, timestamp: s
   }
 
   const now = timestamp;
-  const peakRes = await db.execute({
-    sql: "SELECT peak_price FROM paper_position_peaks WHERE ticker = ?",
-    args: [ticker],
-  });
-  const storedPeak = (peakRes.rows[0] as { peak_price: number } | undefined)?.peak_price ?? null;
+  const storedPeak = await getPeakPrice(ticker);
   const peak = Math.max(storedPeak ?? position.entryPrice, price);
 
   if (peak !== storedPeak) {

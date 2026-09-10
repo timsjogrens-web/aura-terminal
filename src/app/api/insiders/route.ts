@@ -20,7 +20,25 @@ export async function GET() {
   const res = await db.execute(
     "SELECT id, ticker, owner_name, owner_title, transaction_code, shares, price, value, transaction_date, filing_date FROM insider_trades ORDER BY transaction_date DESC, id DESC LIMIT 200"
   );
-  const trades = res.rows as unknown as InsiderRow[];
+  const rows = res.rows as unknown as InsiderRow[];
+
+  // Every ticker here comes from the tracked universe (refreshInsiders.ts
+  // only ever checks DEFAULT_UNIVERSE), so quote_cache always has a logo
+  // for it — no extra API calls needed, unlike self-trade's arbitrary tickers.
+  const tickers = Array.from(new Set(rows.map((r) => r.ticker)));
+  let logoByTicker = new Map<string, string | null>();
+  if (tickers.length > 0) {
+    const placeholders = tickers.map(() => "?").join(",");
+    const logoRes = await db.execute({
+      sql: `SELECT ticker, logo FROM quote_cache WHERE ticker IN (${placeholders})`,
+      args: tickers,
+    });
+    logoByTicker = new Map(
+      (logoRes.rows as unknown as { ticker: string; logo: string | null }[]).map((r) => [r.ticker, r.logo])
+    );
+  }
+
+  const trades = rows.map((r) => ({ ...r, logo: logoByTicker.get(r.ticker) ?? null }));
   return NextResponse.json({ trades });
 }
 

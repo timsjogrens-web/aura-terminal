@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CompanyLogo from "@/components/CompanyLogo";
 import { formatPct, formatPrice, timeAgo } from "@/lib/format";
 
 interface Position {
@@ -14,6 +15,11 @@ interface Position {
   currentPrice: number;
   value: number;
   returnPct: number;
+  stopLossPrice: number;
+  trailingArmed: boolean;
+  trailingStopPrice: number | null;
+  peakPrice: number;
+  logo?: string | null;
 }
 
 interface Trade {
@@ -24,6 +30,7 @@ interface Trade {
   price: number;
   timestamp: string;
   reason: string;
+  logo?: string | null;
 }
 
 interface PaperData {
@@ -159,13 +166,16 @@ export default function PaperTradingPage() {
                         <th className="px-2.5 sm:px-4 py-3 font-medium text-right">CURRENT</th>
                         <th className="px-2.5 sm:px-4 py-3 font-medium text-right">RETURN</th>
                         <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VALUE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">STOP LOSS</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">TRAILING STOP</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.positions.map((p) => (
                         <tr key={p.ticker} className="border-b border-[var(--surface-border)] last:border-0">
                           <td className="px-2.5 sm:px-4 py-3">
-                            <Link href={`/stock/${p.ticker}`} className="font-mono font-semibold text-[var(--gold)] hover:underline">
+                            <Link href={`/stock/${p.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline">
+                              <CompanyLogo ticker={p.ticker} logoUrl={p.logo} size={20} />
                               {p.ticker}
                             </Link>
                           </td>
@@ -187,6 +197,18 @@ export default function PaperTradingPage() {
                           </td>
                           <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                             {formatMoney(p.value)}
+                          </td>
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--red)] whitespace-nowrap">
+                            ${formatPrice(p.stopLossPrice)}
+                          </td>
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap">
+                            {p.trailingArmed && p.trailingStopPrice !== null ? (
+                              <span className="text-[var(--gold)]">${formatPrice(p.trailingStopPrice)}</span>
+                            ) : (
+                              <span className="text-[var(--text-muted)]" title="Arms once the position is up 15%+ from entry">
+                                arms at +15%
+                              </span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -232,8 +254,11 @@ export default function PaperTradingPage() {
                               {t.action}
                             </span>
                           </td>
-                          <td className="px-2.5 sm:px-4 py-3 font-mono font-semibold text-[var(--text-primary)]">
-                            {t.ticker}
+                          <td className="px-2.5 sm:px-4 py-3">
+                            <Link href={`/stock/${t.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]">
+                              <CompanyLogo ticker={t.ticker} logoUrl={t.logo} size={20} />
+                              {t.ticker}
+                            </Link>
                           </td>
                           <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             {t.shares.toFixed(2)}

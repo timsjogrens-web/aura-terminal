@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getPaperPortfolioState, STARTING_CASH } from "@/lib/paperTrading";
+import {
+  getPaperPortfolioState,
+  getPeakPrice,
+  STARTING_CASH,
+  STOP_LOSS_PCT,
+  TRAILING_ARM_PCT,
+  TRAILING_STOP_PCT,
+} from "@/lib/paperTrading";
 import { getChartSeries } from "@/lib/yahoo";
 
 function pickRange(startedAt: string): string {
@@ -40,33 +47,49 @@ async function getSpyComparison(startedAt: string) {
 export async function GET() {
   const state = await getPaperPortfolioState();
 
-  const tickers = state.openPositions.map((p) => p.ticker);
+  const tickers = Array.from(
+    new Set([...state.openPositions.map((p) => p.ticker), ...state.trades.map((t) => t.ticker)])
+  );
   let priceByTicker = new Map<string, number>();
+  let logoByTicker = new Map<string, string | null>();
   if (tickers.length > 0) {
     const placeholders = tickers.map(() => "?").join(",");
     const res = await db.execute({
-      sql: `SELECT ticker, price FROM quote_cache WHERE ticker IN (${placeholders})`,
+      sql: `SELECT ticker, price, logo FROM quote_cache WHERE ticker IN (${placeholders})`,
       args: tickers,
     });
-    priceByTicker = new Map(
-      (res.rows as unknown as { ticker: string; price: number | null }[]).map((r) => [
-        r.ticker,
-        Number(r.price ?? 0),
-      ])
-    );
+    const rows = res.rows as unknown as { ticker: string; price: number | null; logo: string | null }[];
+    priceByTicker = new Map(rows.map((r) => [r.ticker, Number(r.price ?? 0)]));
+    logoByTicker = new Map(rows.map((r) => [r.ticker, r.logo]));
   }
 
-  const positions = state.openPositions.map((p) => {
-    const currentPrice = priceByTicker.get(p.ticker) ?? p.entryPrice;
-    const value = p.shares * currentPrice;
-    const costBasis = p.shares * p.entryPrice;
-    return {
-      ...p,
-      currentPrice,
-      value,
-      returnPct: costBasis > 0 ? ((value - costBasis) / costBasis) * 100 : 0,
-    };
-  });
+  const positions = await Promise.all(
+    state.openPositions.map(async (p) => {
+      const currentPrice = priceByTicker.get(p.ticker) ?? p.entryPrice;
+      const value = p.shares * currentPrice;
+      const costBasis = p.shares * p.entryPrice;
+
+      const stopLossPrice = p.entryPrice * (1 - STOP_LOSS_PCT / 100);
+      const peak = (await getPeakPrice(p.ticker)) ?? p.entryPrice;
+      const gainFromEntry = ((peak - p.entryPrice) / p.entryPrice) * 100;
+      const trailingArmed = gainFromEntry >= TRAILING_ARM_PCT;
+      const trailingStopPrice = trailingArmed ? peak * (1 - TRAILING_STOP_PCT / 100) : null;
+
+      return {
+        ...p,
+        currentPrice,
+        value,
+        returnPct: costBasis > 0 ? ((value - costBasis) / costBasis) * 100 : 0,
+        stopLossPrice,
+        trailingArmed,
+        trailingStopPrice,
+        peakPrice: peak,
+        logo: logoByTicker.get(p.ticker) ?? null,
+      };
+    })
+  );
+
+  const trades = state.trades.map((t) => ({ ...t, logo: logoByTicker.get(t.ticker) ?? null }));
 
   const holdingsValue = positions.reduce((a, p) => a + p.value, 0);
   const totalValue = state.cash + holdingsValue;
@@ -88,7 +111,7 @@ export async function GET() {
     totalReturnPct,
     startedAt: state.startedAt,
     positions,
-    trades: state.trades,
+    trades,
     spyComparison,
   });
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CompanyLogo from "@/components/CompanyLogo";
 import { timeAgo } from "@/lib/format";
 
 interface InsiderTrade {
@@ -17,6 +18,7 @@ interface InsiderTrade {
   value: number;
   transaction_date: string;
   filing_date: string;
+  logo?: string | null;
 }
 
 function formatValue(n: number): string {
@@ -135,7 +137,8 @@ export default function InsidersPage() {
                 {visible.map((t) => (
                   <tr key={t.id} className="border-b border-[var(--surface-border)] last:border-0 hover:bg-black/20 transition-colors">
                     <td className="px-2.5 sm:px-4 py-3">
-                      <Link href={`/stock/${t.ticker}`} className="font-mono font-semibold text-[var(--gold)] hover:underline">
+                      <Link href={`/stock/${t.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline">
+                        <CompanyLogo ticker={t.ticker} logoUrl={t.logo} size={20} />
                         {t.ticker}
                       </Link>
                     </td>
