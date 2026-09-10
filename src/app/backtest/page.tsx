@@ -8,7 +8,9 @@ import { formatPct } from "@/lib/format";
 
 interface BacktestRow {
   date: string;
-  price: number;
+  execDate: string | null;
+  signalPrice: number;
+  execPrice: number | null;
   score: number;
   signal: string;
   outcome: "hit" | "miss" | null;
@@ -70,11 +72,29 @@ export default function BacktestPage() {
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
           Backtest Strategy Builder
         </h1>
-        <p className="text-[var(--text-secondary)] mb-8 max-w-2xl">
+        <p className="text-[var(--text-secondary)] mb-4 max-w-2xl">
           Re-weight trend, momentum, and volume and see how the hit rate would have changed over
           real historical price data — compared side by side with the live 40/30/30 weighting.
           Weights are relative to each other, not required to sum to 100.
         </p>
+
+        <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+          <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">METOD OCH BEGRÄNSNINGAR</p>
+          <p className="mb-1.5">
+            Varje signal &ldquo;handlas&rdquo; till nästa handelsdags öppningskurs, aldrig samma
+            stängningskurs signalen räknades från — annars mäter man ett resultat man aldrig hade
+            kunnat få i verkligheten. Kurserna är utdelningsjusterade så en aktie inte straffas för
+            att den delar ut pengar, och en uppskattad kostnad (courtage, växlingsavgift, spread)
+            dras av på varje affär.
+          </p>
+          <p>
+            Aktieurvalet är dagens 40 spårade bolag — inte ett historiskt korrekt urval som även
+            innehåller aktier som gått i konkurs eller avnoterats sedan dess. Det gör att resultatet
+            sannolikt ser bättre ut här än vad en riktig, fristående strategi skulle prestera
+            (survivorship bias). Gratis data med den bristen är ett känt, accepterat avsteg för det
+            här verktyget just nu — inte något vi gömmer.
+          </p>
+        </div>
 
         <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
@@ -197,10 +217,11 @@ export default function BacktestPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                    <th className="px-2.5 sm:px-4 py-3 font-medium">DATE</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium">SIGNAL DATE</th>
                     <th className="px-2.5 sm:px-4 py-3 font-medium">SIGNAL</th>
                     <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SCORE</th>
-                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRICE</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium">TRADED</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">AT PRICE</th>
                     <th className="px-2.5 sm:px-4 py-3 font-medium text-right">OUTCOME</th>
                   </tr>
                 </thead>
@@ -210,8 +231,11 @@ export default function BacktestPage() {
                       <td className="px-2.5 sm:px-4 py-3 font-mono text-[var(--text-secondary)] whitespace-nowrap">{r.date}</td>
                       <td className="px-2.5 sm:px-4 py-3 font-mono text-[var(--text-primary)] whitespace-nowrap">{r.signal}</td>
                       <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)]">{r.score}</td>
+                      <td className="px-2.5 sm:px-4 py-3 font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                        {r.execDate ?? "not yet"}
+                      </td>
                       <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
-                        ${r.price.toFixed(2)}
+                        {r.execPrice !== null ? `$${r.execPrice.toFixed(2)}` : "—"}
                       </td>
                       <td className="px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap">
                         {r.outcome === "hit" && <span className="text-[var(--green)]">HIT</span>}

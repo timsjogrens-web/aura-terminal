@@ -8,7 +8,7 @@ import {
   TRAILING_ARM_PCT,
   TRAILING_STOP_PCT,
 } from "@/lib/paperTrading";
-import { getChartSeries } from "@/lib/yahoo";
+import { getTotalReturnSeries } from "@/lib/yahoo";
 
 function pickRange(startedAt: string): string {
   const days = (Date.now() - new Date(startedAt).getTime()) / 86_400_000;
@@ -28,7 +28,7 @@ function pickRange(startedAt: string): string {
 // actual first trade to anchor the window to.
 async function getSpyComparison(startedAt: string) {
   const range = pickRange(startedAt);
-  const series = await getChartSeries("SPY", range);
+  const series = await getTotalReturnSeries("SPY", range);
   const startMs = new Date(startedAt).getTime();
   let entryIdx = 0;
   for (let i = 0; i < series.timestamps.length; i++) {

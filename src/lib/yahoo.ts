@@ -12,8 +12,10 @@ interface YahooChartResponse {
       indicators: {
         quote: Array<{
           close: (number | null)[];
+          open: (number | null)[];
           volume: (number | null)[];
         }>;
+        adjclose?: Array<{ adjclose: (number | null)[] }>;
       };
     }> | null;
     error: { code: string; description: string } | null;
@@ -21,7 +23,9 @@ interface YahooChartResponse {
 }
 
 export interface DailyCandles {
-  closes: number[];
+  closes: number[]; // raw close — the actual quoted market price
+  adjCloses: number[]; // dividend-adjusted close — for indicators/returns, so a stock isn't penalized for paying a dividend
+  opens: number[]; // raw open — for modeling next-day-open execution instead of same-day-close
   volumes: number[];
   timestamps: number[]; // unix seconds, same length/order as closes
 }
@@ -35,7 +39,11 @@ async function fetchYahooChart(
   symbol: string,
   range: string,
   interval: string
-): Promise<{ timestamp: number[]; quote: { close: (number | null)[]; volume: (number | null)[] } }> {
+): Promise<{
+  timestamp: number[];
+  quote: { close: (number | null)[]; open: (number | null)[]; volume: (number | null)[] };
+  adjclose: (number | null)[] | null;
+}> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
     symbol
   )}?range=${range}&interval=${interval}`;
@@ -62,19 +70,31 @@ async function fetchYahooChart(
   if (!result) {
     throw new YahooError(`No historical data returned for ${symbol}.`);
   }
-  return { timestamp: result.timestamp, quote: result.indicators.quote[0] };
+  return {
+    timestamp: result.timestamp,
+    quote: result.indicators.quote[0],
+    adjclose: result.indicators.adjclose?.[0]?.adjclose ?? null,
+  };
 }
 
 export async function getDailyCandles(symbol: string, range = "6mo"): Promise<DailyCandles> {
-  const { timestamp, quote } = await fetchYahooChart(symbol, range, "1d");
+  const { timestamp, quote, adjclose } = await fetchYahooChart(symbol, range, "1d");
   const closes: number[] = [];
+  const adjCloses: number[] = [];
+  const opens: number[] = [];
   const volumes: number[] = [];
   const timestamps: number[] = [];
   for (let i = 0; i < timestamp.length; i++) {
     const c = quote.close[i];
+    const o = quote.open[i];
     const v = quote.volume[i];
     if (c !== null && c !== undefined) {
       closes.push(c);
+      // Yahoo omits the adjclose series entirely for some symbols (e.g.
+      // indices like SPY behave fine, but fall back to raw close rather
+      // than silently misaligning arrays if it's ever missing).
+      adjCloses.push(adjclose?.[i] ?? c);
+      opens.push(o ?? c);
       volumes.push(v ?? 0);
       timestamps.push(timestamp[i]);
     }
@@ -84,7 +104,7 @@ export async function getDailyCandles(symbol: string, range = "6mo"): Promise<Da
     throw new YahooError(`Not enough historical data points for ${symbol}.`);
   }
 
-  return { closes, volumes, timestamps };
+  return { closes, adjCloses, opens, volumes, timestamps };
 }
 
 const RANGE_PRESETS: Record<string, { range: string; interval: string }> = {
@@ -116,6 +136,33 @@ export async function getChartSeries(symbol: string, rangeKey: string): Promise<
     if (c !== null && c !== undefined) {
       timestamps.push(timestamp[i]);
       closes.push(c);
+    }
+  }
+
+  if (closes.length < 2) {
+    throw new YahooError(`Not enough chart data for ${symbol} at range ${rangeKey}.`);
+  }
+
+  return { timestamps, closes };
+}
+
+// For honest performance comparisons (backtests, paper portfolio vs. index)
+// — not for the visual price chart, which intentionally shows the real
+// quoted price. adjclose bakes dividends into the price series (the
+// standard total-return convention), so a return computed from it already
+// includes reinvested dividends without a separate dividend-history fetch.
+export async function getTotalReturnSeries(symbol: string, rangeKey: string): Promise<ChartSeries> {
+  const preset = RANGE_PRESETS[rangeKey];
+  if (!preset) throw new YahooError(`Unsupported chart range: ${rangeKey}`);
+
+  const { timestamp, quote, adjclose } = await fetchYahooChart(symbol, preset.range, preset.interval);
+  const timestamps: number[] = [];
+  const closes: number[] = [];
+  for (let i = 0; i < timestamp.length; i++) {
+    const c = quote.close[i];
+    if (c !== null && c !== undefined) {
+      timestamps.push(timestamp[i]);
+      closes.push(adjclose?.[i] ?? c);
     }
   }
 

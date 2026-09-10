@@ -58,8 +58,8 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
 
     try {
       const candles = await getDailyCandles(ticker, "6mo");
-      sma50 = sma(candles.closes, 50);
-      rsi14 = rsi(candles.closes, 14);
+      sma50 = sma(candles.adjCloses, 50);
+      rsi14 = rsi(candles.adjCloses, 14);
       // Compare the most recent session's volume against the prior 20-day average.
       latestVolume = candles.volumes[candles.volumes.length - 1] ?? null;
       const priorVolumes = candles.volumes.slice(-21, -1);
