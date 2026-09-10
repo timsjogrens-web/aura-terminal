@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PriceChart from "@/components/PriceChart";
@@ -58,6 +59,7 @@ function formatMoney(n: number): string {
 }
 
 export default function SelfTradePage() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -308,9 +310,17 @@ export default function SelfTradePage() {
                     </thead>
                     <tbody>
                       {portfolio.positions.map((p) => (
-                        <tr key={p.ticker} className="border-b border-[var(--surface-border)] last:border-0">
+                        <tr
+                          key={p.ticker}
+                          onClick={() => router.push(`/stock/${p.ticker}`)}
+                          className="border-b border-[var(--surface-border)] last:border-0 hover:bg-black/20 cursor-pointer transition-colors"
+                        >
                           <td className="px-2.5 sm:px-4 py-3">
-                            <Link href={`/stock/${p.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline">
+                            <Link
+                              href={`/stock/${p.ticker}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline"
+                            >
                               <CompanyLogo ticker={p.ticker} logoUrl={p.logo} size={20} />
                               {p.ticker}
                             </Link>
@@ -332,7 +342,10 @@ export default function SelfTradePage() {
                           </td>
                           <td className="px-2.5 sm:px-4 py-3 text-right">
                             <button
-                              onClick={() => selectTicker(p.ticker, "SELL")}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                selectTicker(p.ticker, "SELL");
+                              }}
                               className="text-xs font-mono border border-[var(--surface-border)] rounded px-2 py-1 text-[var(--text-secondary)] hover:text-[var(--red)] hover:border-[var(--red)]"
                             >
                               Sell
@@ -366,7 +379,11 @@ export default function SelfTradePage() {
                     </thead>
                     <tbody>
                       {portfolio.trades.map((t) => (
-                        <tr key={t.id} className="border-b border-[var(--surface-border)] last:border-0">
+                        <tr
+                          key={t.id}
+                          onClick={() => router.push(`/stock/${t.ticker}`)}
+                          className="border-b border-[var(--surface-border)] last:border-0 hover:bg-black/20 cursor-pointer transition-colors"
+                        >
                           <td className="px-2.5 sm:px-4 py-3">
                             <span
                               className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
@@ -377,7 +394,11 @@ export default function SelfTradePage() {
                             </span>
                           </td>
                           <td className="px-2.5 sm:px-4 py-3">
-                            <Link href={`/stock/${t.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]">
+                            <Link
+                              href={`/stock/${t.ticker}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]"
+                            >
                               <CompanyLogo ticker={t.ticker} logoUrl={t.logo} size={20} />
                               {t.ticker}
                             </Link>

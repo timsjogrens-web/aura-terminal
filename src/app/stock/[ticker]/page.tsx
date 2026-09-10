@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignalBadge from "@/components/SignalBadge";
@@ -60,6 +61,7 @@ export default function StockDetailPage({
 }) {
   const { ticker: rawTicker } = use(params);
   const ticker = rawTicker.toUpperCase();
+  const router = useRouter();
 
   const { data } = useQuotes();
   const quote = data?.quotes.find((q) => q.ticker === ticker) ?? null;
@@ -95,12 +97,12 @@ export default function StockDetailPage({
       <Header />
 
       <section className="mx-auto max-w-4xl w-full px-4 sm:px-6 pt-10 pb-16 flex-1">
-        <Link
-          href="/"
+        <button
+          onClick={() => router.back()}
           className="text-sm text-[var(--text-secondary)] hover:text-[var(--gold)] inline-flex items-center gap-1 mb-6"
         >
-          ← Back to Markets
-        </Link>
+          ← Back
+        </button>
 
         <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
           <div className="flex items-center gap-3">

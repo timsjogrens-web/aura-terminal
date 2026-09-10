@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CompanyLogo from "@/components/CompanyLogo";
@@ -49,6 +50,7 @@ function formatMoney(n: number): string {
 }
 
 export default function PaperTradingPage() {
+  const router = useRouter();
   const [data, setData] = useState<PaperData | null>(null);
 
   useEffect(() => {
@@ -166,52 +168,70 @@ export default function PaperTradingPage() {
                         <th className="px-2.5 sm:px-4 py-3 font-medium text-right">CURRENT</th>
                         <th className="px-2.5 sm:px-4 py-3 font-medium text-right">RETURN</th>
                         <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VALUE</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">STOP LOSS</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">TRAILING STOP</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SELLS AT</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {data.positions.map((p) => (
-                        <tr key={p.ticker} className="border-b border-[var(--surface-border)] last:border-0">
-                          <td className="px-2.5 sm:px-4 py-3">
-                            <Link href={`/stock/${p.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline">
-                              <CompanyLogo ticker={p.ticker} logoUrl={p.logo} size={20} />
-                              {p.ticker}
-                            </Link>
-                          </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
-                            {p.shares.toFixed(2)}
-                          </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
-                            ${formatPrice(p.entryPrice)}
-                          </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
-                            ${formatPrice(p.currentPrice)}
-                          </td>
-                          <td
-                            className={`px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap ${
-                              p.returnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
-                            }`}
+                      {data.positions.map((p) => {
+                        // Once the trailing stop is armed it's always the tighter,
+                        // more protective level (it requires +15% gain first, so
+                        // it's mathematically always above the entry-based
+                        // stop-loss) — showing both side by side made the static
+                        // stop-loss number look stale/wrong once price had moved
+                        // well past it. This shows whichever one is actually the
+                        // live sell trigger right now, with the other as a tooltip.
+                        const usingTrailing = p.trailingArmed && p.trailingStopPrice !== null;
+                        const sellsAt = usingTrailing ? p.trailingStopPrice! : p.stopLossPrice;
+                        return (
+                          <tr
+                            key={p.ticker}
+                            onClick={() => router.push(`/stock/${p.ticker}`)}
+                            className="border-b border-[var(--surface-border)] last:border-0 hover:bg-black/20 cursor-pointer transition-colors"
                           >
-                            {formatPct(p.returnPct)}
-                          </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
-                            {formatMoney(p.value)}
-                          </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--red)] whitespace-nowrap">
-                            ${formatPrice(p.stopLossPrice)}
-                          </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap">
-                            {p.trailingArmed && p.trailingStopPrice !== null ? (
-                              <span className="text-[var(--gold)]">${formatPrice(p.trailingStopPrice)}</span>
-                            ) : (
-                              <span className="text-[var(--text-muted)]" title="Arms once the position is up 15%+ from entry">
-                                arms at +15%
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                            <td className="px-2.5 sm:px-4 py-3">
+                              <Link
+                                href={`/stock/${p.ticker}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline"
+                              >
+                                <CompanyLogo ticker={p.ticker} logoUrl={p.logo} size={20} />
+                                {p.ticker}
+                              </Link>
+                            </td>
+                            <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                              {p.shares.toFixed(2)}
+                            </td>
+                            <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                              ${formatPrice(p.entryPrice)}
+                            </td>
+                            <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                              ${formatPrice(p.currentPrice)}
+                            </td>
+                            <td
+                              className={`px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap ${
+                                p.returnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
+                              }`}
+                            >
+                              {formatPct(p.returnPct)}
+                            </td>
+                            <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                              {formatMoney(p.value)}
+                            </td>
+                            <td
+                              className={`px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap ${
+                                usingTrailing ? "text-[var(--gold)]" : "text-[var(--red)]"
+                              }`}
+                              title={
+                                usingTrailing
+                                  ? `Trailing stop, locked in once up 15%+. Entry-based stop-loss floor: $${formatPrice(p.stopLossPrice)}`
+                                  : "Hard stop-loss, 8% below entry. Trailing stop takes over once up 15%+."
+                              }
+                            >
+                              ${formatPrice(sellsAt)} <span className="text-[10px] opacity-70">{usingTrailing ? "trail" : "stop"}</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                   </div>
@@ -242,7 +262,11 @@ export default function PaperTradingPage() {
                     </thead>
                     <tbody>
                       {data.trades.map((t) => (
-                        <tr key={t.id} className="border-b border-[var(--surface-border)] last:border-0">
+                        <tr
+                          key={t.id}
+                          onClick={() => router.push(`/stock/${t.ticker}`)}
+                          className="border-b border-[var(--surface-border)] last:border-0 hover:bg-black/20 cursor-pointer transition-colors"
+                        >
                           <td className="px-2.5 sm:px-4 py-3">
                             <span
                               className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
@@ -255,7 +279,11 @@ export default function PaperTradingPage() {
                             </span>
                           </td>
                           <td className="px-2.5 sm:px-4 py-3">
-                            <Link href={`/stock/${t.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]">
+                            <Link
+                              href={`/stock/${t.ticker}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]"
+                            >
                               <CompanyLogo ticker={t.ticker} logoUrl={t.logo} size={20} />
                               {t.ticker}
                             </Link>
