@@ -199,45 +199,50 @@ export default function SelfTradePage() {
                       <p className="text-xs text-[var(--text-secondary)]">{live.name}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-mono text-2xl font-bold text-[var(--text-primary)]">
-                      ${formatPrice(live.price)}
-                    </p>
-                    <p className={`font-mono text-sm ${live.changePct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
-                      {formatPct(live.changePct)}
-                    </p>
-                  </div>
+                  <p className={`font-mono text-sm ${live.changePct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
+                    {formatPct(live.changePct)} idag
+                  </p>
                 </div>
 
                 <div className="mb-5">
                   <PriceChart ticker={live.ticker} changePct={live.changePct} />
                 </div>
 
-                <div className="flex gap-1 bg-black/30 rounded-md p-1 border border-[var(--surface-border)] w-fit mb-3">
-                  <button
-                    onClick={() => setSide("BUY")}
-                    className={`px-6 py-1.5 rounded text-sm font-mono font-semibold ${
-                      side === "BUY" ? "bg-[rgba(34,197,94,0.15)] text-[var(--green)]" : "text-[var(--text-secondary)]"
-                    }`}
-                  >
-                    BUY
-                  </button>
+                {/* Same live price shown on both sides — Finnhub's free tier gives
+                    a single last-traded price, not a real bid/ask spread, so
+                    showing two different numbers here would fabricate a spread
+                    we don't actually have data for. */}
+                <div className="grid grid-cols-2 gap-3 mb-2">
                   <button
                     onClick={() => setSide("SELL")}
-                    className={`px-6 py-1.5 rounded text-sm font-mono font-semibold ${
-                      side === "SELL" ? "bg-[rgba(239,68,68,0.15)] text-[var(--red)]" : "text-[var(--text-secondary)]"
+                    className={`rounded-lg border-2 py-4 text-center transition ${
+                      side === "SELL"
+                        ? "border-[var(--red)] bg-[rgba(239,68,68,0.12)]"
+                        : "border-[var(--surface-border)] hover:border-[rgba(239,68,68,0.4)]"
                     }`}
                   >
-                    SELL
+                    <p className="text-xs font-mono font-bold tracking-widest text-[var(--red)] mb-1.5">SÄLJ</p>
+                    <p className="font-mono text-2xl font-bold text-[var(--text-primary)]">${formatPrice(live.price)}</p>
                   </button>
-                  {side === "SELL" && (
-                    <span className="self-center text-xs font-mono text-[var(--text-muted)] pl-2 pr-3">
-                      Du äger {heldShares.toFixed(4)}
-                    </span>
-                  )}
+                  <button
+                    onClick={() => setSide("BUY")}
+                    className={`rounded-lg border-2 py-4 text-center transition ${
+                      side === "BUY"
+                        ? "border-[var(--green)] bg-[rgba(34,197,94,0.12)]"
+                        : "border-[var(--surface-border)] hover:border-[rgba(34,197,94,0.4)]"
+                    }`}
+                  >
+                    <p className="text-xs font-mono font-bold tracking-widest text-[var(--green)] mb-1.5">KÖP</p>
+                    <p className="font-mono text-2xl font-bold text-[var(--text-primary)]">${formatPrice(live.price)}</p>
+                  </button>
                 </div>
+                {side === "SELL" && (
+                  <p className="text-xs font-mono text-[var(--text-muted)] mb-3">
+                    Du äger {heldShares.toFixed(4)} st
+                  </p>
+                )}
 
-                <div className="flex items-end gap-3 flex-wrap">
+                <div className="flex items-end gap-3 flex-wrap mt-4">
                   <div>
                     <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
                       ANTAL
@@ -259,7 +264,7 @@ export default function SelfTradePage() {
                       side === "BUY" ? "bg-[var(--green)] text-black" : "bg-[var(--red)] text-black"
                     }`}
                   >
-                    {submitting ? "Skickar…" : `${side} ${live.ticker}`}
+                    {submitting ? "Skickar…" : side === "BUY" ? `Köp ${live.ticker}` : `Sälj ${live.ticker}`}
                   </button>
                 </div>
                 {tradeError && <p className="text-sm text-[var(--red)] mt-3">{tradeError}</p>}
