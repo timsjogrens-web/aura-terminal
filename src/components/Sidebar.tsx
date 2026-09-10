@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SIDEBAR_GROUPS } from "@/lib/navConfig";
@@ -18,17 +18,26 @@ const COLLAPSED_KEY = "aura_sidebar_collapsed";
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const [transitionsEnabled, setTransitionsEnabled] = useState(false);
 
-  // useLayoutEffect (not useEffect) runs before the browser paints, not
-  // after. Since Sidebar remounts fresh on every navigation (it isn't in a
-  // shared root layout), it always starts collapsed=false — with a plain
-  // effect the browser would actually paint that wrong expanded frame,
-  // then snap to the real saved state a moment later, i.e. exactly the
-  // "pops out" flash. This corrects it before anything is ever drawn.
+  // Sidebar remounts fresh on every navigation (it isn't in a shared root
+  // layout), always starting collapsed=false. This corrects it in a
+  // useLayoutEffect (runs before paint, unlike useEffect) so the wrong
+  // expanded frame is never actually drawn — but that alone isn't enough:
+  // a CSS transition fires off a value change between two style states
+  // regardless of whether either was painted, so flipping the "enable
+  // transitions" class on in the very same update as the correction still
+  // animates from the default width to the real one. Splitting these into
+  // two separate updates — snap to the correct width first with no
+  // transition class present at all, then arm transitions afterwards, once
+  // that width has already painted — makes the correction instant and
+  // keeps the animation for actual user-initiated toggles only.
   useLayoutEffect(() => {
     setCollapsed(localStorage.getItem(COLLAPSED_KEY) === "1");
-    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    setTransitionsEnabled(true);
   }, []);
 
   function toggle() {
@@ -43,7 +52,7 @@ export default function Sidebar() {
         data-collapsed={collapsed}
         style={{ width: collapsed ? 0 : WIDTH }}
         className={`app-sidebar hidden sm:flex flex-col fixed left-0 top-0 bottom-0 border-r border-[var(--surface-border)] bg-[var(--surface)]/80 backdrop-blur overflow-hidden z-20 pt-20 pb-6 gap-6 ${
-          hydrated ? "transition-[width] duration-200 ease-in-out" : ""
+          transitionsEnabled ? "transition-[width] duration-200 ease-in-out" : ""
         }`}
       >
         <div className="overflow-y-auto px-3 flex flex-col gap-6" style={{ width: WIDTH }}>
@@ -80,7 +89,7 @@ export default function Sidebar() {
         title={collapsed ? "Show sidebar" : "Hide sidebar"}
         style={{ left: collapsed ? 8 : WIDTH - 28 }}
         className={`hidden sm:flex items-center justify-center h-6 w-6 rounded-md border border-[var(--surface-border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] fixed top-[18px] z-40 ${
-          hydrated ? "transition-[left] duration-200 ease-in-out" : ""
+          transitionsEnabled ? "transition-[left] duration-200 ease-in-out" : ""
         }`}
       >
         <svg
