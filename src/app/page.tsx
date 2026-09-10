@@ -33,13 +33,20 @@ export default function MarketsPage() {
             NYTT
           </span>
           <p className="text-sm text-[var(--text-secondary)] flex-1">
-            En riskkalkylator för att storleksbestämma dina positioner säkert, och en
-            metodik-sida som visar exakt vad vi testat och vad vi ännu inte bevisat.
+            Se en fullständig historisk simulering av att följa varje signal — inklusive de
+            sämsta perioderna — plus en riskkalkylator och en metodik-sida som visar exakt vad
+            vi testat och vad vi ännu inte bevisat.
           </p>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 flex-wrap">
+            <Link
+              href="/track-record"
+              className="text-xs font-medium text-black bg-[var(--gold)] hover:brightness-110 rounded-md px-3 py-1.5 transition whitespace-nowrap"
+            >
+              Track record
+            </Link>
             <Link
               href="/risk-calculator"
-              className="text-xs font-medium text-black bg-[var(--gold)] hover:brightness-110 rounded-md px-3 py-1.5 transition whitespace-nowrap"
+              className="text-xs font-medium text-[var(--text-primary)] border border-[var(--surface-border)] hover:border-[var(--gold-dim)] rounded-md px-3 py-1.5 transition whitespace-nowrap"
             >
               Riskkalkylator
             </Link>
