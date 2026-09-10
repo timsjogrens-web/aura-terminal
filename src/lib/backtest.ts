@@ -1,4 +1,4 @@
-import { getDailyCandles, YahooError } from "./yahoo";
+import { getDailyCandles, YahooError, DailyCandles } from "./yahoo";
 import { sma, rsi, computeScore, ScoreWeights, Signal } from "./scoring";
 import { oneWayCostFraction } from "./tradingCosts";
 
@@ -37,14 +37,27 @@ export async function runBacktest(
   weights: ScoreWeights,
   range: string
 ): Promise<BacktestResult> {
-  const displayDays = DISPLAY_DAYS[range] ?? DISPLAY_DAYS["1Y"];
-
-  let candles;
+  let candles: DailyCandles;
   try {
     candles = await getDailyCandles(ticker, LOOKBACK_RANGE);
   } catch (e) {
     throw e instanceof YahooError ? e : new YahooError("Failed to fetch historical data.");
   }
+  return runBacktestFromCandles(ticker, candles, weights, range);
+}
+
+// The actual backtest logic, separated from the network fetch above so
+// tests can feed it synthetic candles directly — no live data, no
+// flakiness, and it makes the look-ahead test below possible to write at
+// all (you can't hand-construct "what Yahoo returns" any other way).
+export function runBacktestFromCandles(
+  ticker: string,
+  candles: DailyCandles,
+  weights: ScoreWeights,
+  range: string
+): BacktestResult {
+  const displayDays = DISPLAY_DAYS[range] ?? DISPLAY_DAYS["1Y"];
+
   // Indicators (SMA/RSI) run on dividend-adjusted close, same as the live
   // signal engine — otherwise a stock's own dividends would look like
   // price weakness and distort the trend/momentum components. Execution

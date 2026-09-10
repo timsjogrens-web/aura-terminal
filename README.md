@@ -29,6 +29,25 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Running the test suite
+
+Unit tests use [Vitest](https://vitest.dev) and require no network access or database — they run against synthetic, hand-calculated data.
+
+```bash
+npm test
+```
+
+This covers, among other things, a look-ahead-bias regression test for the backtest engine (`src/lib/backtest.test.ts`): it proves that a signal computed on day N never changes depending on data that only becomes available after day N.
+
+## Running a backtest
+
+The backtest engine (`src/lib/backtest.ts`) can be exercised two ways:
+
+- **Via the site**: start the dev server (below) and open `/backtest`, pick a ticker and score weights.
+- **Via the API directly**: `GET /api/backtest?ticker=AAPL&range=1Y&trend=40&momentum=30&volume=30` (requires an authenticated session cookie, same as the rest of the app).
+
+Execution is modeled at the next trading day's open (never the same close a signal was computed from), on dividend-adjusted prices, with an estimated round-trip cost (commission + FX fee + liquidity-tiered slippage, see `src/lib/tradingCosts.ts`) applied to every simulated trade.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
