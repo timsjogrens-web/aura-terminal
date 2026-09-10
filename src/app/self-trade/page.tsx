@@ -7,7 +7,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PriceChart from "@/components/PriceChart";
 import CompanyLogo from "@/components/CompanyLogo";
+import SignalBadge from "@/components/SignalBadge";
 import { formatPct, formatPrice } from "@/lib/format";
+import { useQuotes } from "@/lib/useQuotes";
 
 interface SearchResult {
   symbol: string;
@@ -60,6 +62,10 @@ function formatMoney(n: number): string {
 
 export default function SelfTradePage() {
   const router = useRouter();
+  const { data: quotesData } = useQuotes();
+  const buySignals = (quotesData?.quotes ?? [])
+    .filter((q) => q.signal === "STRONG BUY" || q.signal === "BUY")
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -185,6 +191,34 @@ export default function SelfTradePage() {
             </div>
           )}
         </div>
+
+        {buySignals.length > 0 && (
+          <div className="mb-8">
+            <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
+              AKTUELLA KÖPSIGNALER — VÄLJ DIREKT
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {buySignals.map((q) => (
+                <button
+                  key={q.ticker}
+                  onClick={() => selectTicker(q.ticker, "BUY")}
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 transition ${
+                    selected === q.ticker
+                      ? "border-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
+                      : "border-[var(--surface-border)] bg-[var(--surface)] hover:border-[var(--gold-dim)]"
+                  }`}
+                >
+                  <CompanyLogo ticker={q.ticker} logoUrl={q.logo} size={20} />
+                  <span className="font-mono font-semibold text-sm text-[var(--text-primary)]">{q.ticker}</span>
+                  <SignalBadge signal={q.signal} score={q.score} />
+                  <span className="font-mono text-sm text-[var(--text-secondary)]">
+                    {q.price !== null ? `$${formatPrice(q.price)}` : "—"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {selected && (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-8">
