@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Header from "@/components/Header";
 import TickerBar from "@/components/TickerBar";
 import Hero from "@/components/Hero";
@@ -25,6 +26,33 @@ export default function MarketsPage() {
       <Header />
       <TickerBar quotes={quotes} />
       <Hero tickerCount={DEFAULT_UNIVERSE.length} />
+
+      <section className="mx-auto max-w-7xl w-full px-4 sm:px-6 pb-8">
+        <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+          <span className="text-xs font-mono font-semibold tracking-widest text-[var(--gold)] shrink-0">
+            NEW
+          </span>
+          <p className="text-sm text-[var(--text-secondary)] flex-1">
+            A risk calculator to size your positions safely, and a methodology page laying out
+            exactly what we&rsquo;ve tested and what we haven&rsquo;t proven yet.
+          </p>
+          <div className="flex gap-2 shrink-0">
+            <Link
+              href="/risk-calculator"
+              className="text-xs font-medium text-black bg-[var(--gold)] hover:brightness-110 rounded-md px-3 py-1.5 transition whitespace-nowrap"
+            >
+              Risk Calculator
+            </Link>
+            <Link
+              href="/methodology"
+              className="text-xs font-medium text-[var(--text-primary)] border border-[var(--surface-border)] hover:border-[var(--gold-dim)] rounded-md px-3 py-1.5 transition whitespace-nowrap"
+            >
+              Methodology
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <HowItWorks />
       <StatCards quotes={quotes} />
       <StatusBanner data={data} fetchError={fetchError} onRefresh={reload} />
