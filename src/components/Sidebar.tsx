@@ -3,31 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const GROUPS: { label: string; links: { href: string; label: string }[] }[] = [
-  {
-    label: "RESEARCH",
-    links: [
-      { href: "/investors", label: "Investors" },
-      { href: "/insiders", label: "Insiders" },
-      { href: "/leaderboard", label: "Leaderboard" },
-    ],
-  },
-  {
-    label: "TOOLS",
-    links: [
-      { href: "/heatmap", label: "Heatmap" },
-      { href: "/backtest", label: "Backtest" },
-    ],
-  },
-  {
-    label: "TRADING",
-    links: [
-      { href: "/paper", label: "Paper" },
-      { href: "/self-trade", label: "Self Trade" },
-    ],
-  },
-];
+import { SIDEBAR_GROUPS } from "@/lib/navConfig";
 
 const WIDTH = 208; // px, matches the 13rem body padding in globals.css
 const COLLAPSED_KEY = "aura_sidebar_collapsed";
@@ -65,7 +41,7 @@ export default function Sidebar() {
         }`}
       >
         <div className="overflow-y-auto px-3 flex flex-col gap-6" style={{ width: WIDTH }}>
-          {GROUPS.map((group) => (
+          {SIDEBAR_GROUPS.map((group) => (
             <div key={group.label}>
               <p className="text-[11px] font-mono font-bold tracking-widest text-[var(--gold)] px-3 mb-2 whitespace-nowrap">
                 {group.label}

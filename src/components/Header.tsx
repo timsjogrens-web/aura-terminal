@@ -6,6 +6,7 @@ import { useQuotes } from "@/lib/useQuotes";
 import { useNotificationPermission, useStrongBuyAlerts } from "@/lib/useAlerts";
 import { useWatchlist } from "@/lib/WatchlistContext";
 import Sidebar from "./Sidebar";
+import MobileNavDrawer from "./MobileNavDrawer";
 
 export default function Header() {
   const pathname = usePathname();
@@ -90,6 +91,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
+          <MobileNavDrawer watchlistCount={watchlistCount} />
           {permission !== "unsupported" && (
             <button
               onClick={requestPermission}
@@ -131,97 +133,6 @@ export default function Header() {
           </button>
         </div>
       </div>
-
-      <nav className="sm:hidden flex items-center gap-1 px-4 pb-3 -mt-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <Link
-          href="/"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Markets
-        </Link>
-        <Link
-          href="/watchlist"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/watchlist" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Watchlist {watchlistCount !== null && `(${watchlistCount})`}
-        </Link>
-        <Link
-          href="/history"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/history" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          History
-        </Link>
-        <Link
-          href="/news"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/news" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          News
-        </Link>
-        <Link
-          href="/investors"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/investors" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Investors
-        </Link>
-        <Link
-          href="/heatmap"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/heatmap" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Heatmap
-        </Link>
-        <Link
-          href="/paper"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/paper" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Paper
-        </Link>
-        <Link
-          href="/self-trade"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/self-trade" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Self Trade
-        </Link>
-        <Link
-          href="/insiders"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/insiders" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Insiders
-        </Link>
-        <Link
-          href="/backtest"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/backtest" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Backtest
-        </Link>
-        <Link
-          href="/leaderboard"
-          className={`px-3 py-1.5 rounded-md text-xs font-medium shrink-0 whitespace-nowrap ${
-            pathname === "/leaderboard" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Leaderboard
-        </Link>
-      </nav>
     </header>
     </>
   );

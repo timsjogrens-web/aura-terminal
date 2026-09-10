@@ -149,48 +149,50 @@ export default function PaperTradingPage() {
               <div className="mb-8">
                 <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">OPEN POSITIONS</p>
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
+                  <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                        <th className="px-4 py-3 font-medium">TICKER</th>
-                        <th className="px-4 py-3 font-medium text-right">SHARES</th>
-                        <th className="px-4 py-3 font-medium text-right">ENTRY</th>
-                        <th className="px-4 py-3 font-medium text-right">CURRENT</th>
-                        <th className="px-4 py-3 font-medium text-right">RETURN</th>
-                        <th className="px-4 py-3 font-medium text-right">VALUE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ENTRY</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">CURRENT</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">RETURN</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VALUE</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.positions.map((p) => (
                         <tr key={p.ticker} className="border-b border-[var(--surface-border)] last:border-0">
-                          <td className="px-4 py-3">
+                          <td className="px-2.5 sm:px-4 py-3">
                             <Link href={`/stock/${p.ticker}`} className="font-mono font-semibold text-[var(--gold)] hover:underline">
                               {p.ticker}
                             </Link>
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             {p.shares.toFixed(2)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             ${formatPrice(p.entryPrice)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                             ${formatPrice(p.currentPrice)}
                           </td>
                           <td
-                            className={`px-4 py-3 text-right font-mono whitespace-nowrap ${
+                            className={`px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap ${
                               p.returnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
                             }`}
                           >
                             {formatPct(p.returnPct)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                             {formatMoney(p.value)}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -204,21 +206,22 @@ export default function PaperTradingPage() {
                 </p>
               ) : (
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
+                  <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                        <th className="px-4 py-3 font-medium">ACTION</th>
-                        <th className="px-4 py-3 font-medium">TICKER</th>
-                        <th className="px-4 py-3 font-medium text-right">SHARES</th>
-                        <th className="px-4 py-3 font-medium text-right">PRICE</th>
-                        <th className="px-4 py-3 font-medium">REASON</th>
-                        <th className="px-4 py-3 font-medium text-right">WHEN</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">ACTION</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRICE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">REASON</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">WHEN</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.trades.map((t) => (
                         <tr key={t.id} className="border-b border-[var(--surface-border)] last:border-0">
-                          <td className="px-4 py-3">
+                          <td className="px-2.5 sm:px-4 py-3">
                             <span
                               className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
                                 t.action === "BUY"
@@ -229,25 +232,26 @@ export default function PaperTradingPage() {
                               {t.action}
                             </span>
                           </td>
-                          <td className="px-4 py-3 font-mono font-semibold text-[var(--text-primary)]">
+                          <td className="px-2.5 sm:px-4 py-3 font-mono font-semibold text-[var(--text-primary)]">
                             {t.ticker}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             {t.shares.toFixed(2)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             ${formatPrice(t.price)}
                           </td>
-                          <td className="px-4 py-3 text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
                             {t.reason}
                           </td>
-                          <td className="px-4 py-3 text-right text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
                             {timeAgo(t.timestamp)}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               )}
             </div>

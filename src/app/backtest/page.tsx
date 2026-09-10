@@ -149,7 +149,7 @@ export default function BacktestPage() {
         </div>
 
         {error && (
-          <div className="rounded-lg border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.08)] px-4 py-3 text-sm text-[var(--red)] mb-8">
+          <div className="rounded-lg border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.08)] px-2.5 sm:px-4 py-3 text-sm text-[var(--red)] mb-8">
             {error}
           </div>
         )}
@@ -193,26 +193,27 @@ export default function BacktestPage() {
               SIGNALS UNDER YOUR WEIGHTS
             </p>
             <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                    <th className="px-4 py-3 font-medium">DATE</th>
-                    <th className="px-4 py-3 font-medium">SIGNAL</th>
-                    <th className="px-4 py-3 font-medium text-right">SCORE</th>
-                    <th className="px-4 py-3 font-medium text-right">PRICE</th>
-                    <th className="px-4 py-3 font-medium text-right">OUTCOME</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium">DATE</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium">SIGNAL</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SCORE</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRICE</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">OUTCOME</th>
                   </tr>
                 </thead>
                 <tbody>
                   {custom.rows.map((r, i) => (
                     <tr key={i} className="border-b border-[var(--surface-border)] last:border-0">
-                      <td className="px-4 py-3 font-mono text-[var(--text-secondary)] whitespace-nowrap">{r.date}</td>
-                      <td className="px-4 py-3 font-mono text-[var(--text-primary)] whitespace-nowrap">{r.signal}</td>
-                      <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)]">{r.score}</td>
-                      <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                      <td className="px-2.5 sm:px-4 py-3 font-mono text-[var(--text-secondary)] whitespace-nowrap">{r.date}</td>
+                      <td className="px-2.5 sm:px-4 py-3 font-mono text-[var(--text-primary)] whitespace-nowrap">{r.signal}</td>
+                      <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)]">{r.score}</td>
+                      <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                         ${r.price.toFixed(2)}
                       </td>
-                      <td className="px-4 py-3 text-right font-mono whitespace-nowrap">
+                      <td className="px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap">
                         {r.outcome === "hit" && <span className="text-[var(--green)]">HIT</span>}
                         {r.outcome === "miss" && <span className="text-[var(--red)]">MISS</span>}
                         {!r.outcome && <span className="text-[var(--text-muted)]">—</span>}
@@ -221,6 +222,7 @@ export default function BacktestPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}

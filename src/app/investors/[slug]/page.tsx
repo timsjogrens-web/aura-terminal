@@ -60,7 +60,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
         </Link>
 
         {error && (
-          <div className="rounded-lg border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.08)] px-4 py-3 text-sm text-[var(--red)] mt-6">
+          <div className="rounded-lg border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.08)] px-2.5 sm:px-4 py-3 text-sm text-[var(--red)] mt-6">
             {error}
           </div>
         )}
@@ -113,13 +113,14 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                 </div>
 
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden mb-8">
+                  <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                        <th className="px-4 py-3 font-medium">ISSUER</th>
-                        <th className="px-4 py-3 font-medium text-right">% PORTFOLIO</th>
-                        <th className="px-4 py-3 font-medium text-right">VALUE</th>
-                        <th className="px-4 py-3 font-medium text-right">SHARES</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">ISSUER</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">% PORTFOLIO</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VALUE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -128,7 +129,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                           key={h.cusip}
                           className="border-b border-[var(--surface-border)] last:border-0 hover:bg-black/20 transition-colors"
                         >
-                          <td className="px-4 py-3">
+                          <td className="px-2.5 sm:px-4 py-3">
                             <div className="flex items-center gap-2 whitespace-nowrap">
                               {h.ticker ? (
                                 <Link
@@ -148,19 +149,20 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                               )}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                             {h.pct.toFixed(1)}%
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                             {formatValue(h.value)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             {h.shares.toLocaleString()}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
 
                 {data.closedPositions.length > 0 && (

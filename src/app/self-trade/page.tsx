@@ -164,7 +164,7 @@ export default function SelfTradePage() {
             value={query}
             onChange={(e) => setQuery(e.target.value.toUpperCase())}
             placeholder="Search any stock (e.g. NFLX)"
-            className="w-full rounded-md border border-[var(--surface-border)] bg-black/30 px-4 py-3 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
+            className="w-full rounded-md border border-[var(--surface-border)] bg-black/30 px-2.5 sm:px-4 py-3 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
           />
           {results.length > 0 && (
             <div className="absolute z-10 mt-1 w-full rounded-md border border-[var(--surface-border)] bg-[var(--surface)] shadow-lg overflow-hidden">
@@ -291,38 +291,39 @@ export default function SelfTradePage() {
               <div className="mb-8">
                 <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">OPEN POSITIONS</p>
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
+                  <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                        <th className="px-4 py-3 font-medium">TICKER</th>
-                        <th className="px-4 py-3 font-medium text-right">SHARES</th>
-                        <th className="px-4 py-3 font-medium text-right">AVG COST</th>
-                        <th className="px-4 py-3 font-medium text-right">CURRENT</th>
-                        <th className="px-4 py-3 font-medium text-right">RETURN</th>
-                        <th className="px-4 py-3 font-medium text-right">VALUE</th>
-                        <th className="px-4 py-3 font-medium"></th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">AVG COST</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">CURRENT</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">RETURN</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VALUE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio.positions.map((p) => (
                         <tr key={p.ticker} className="border-b border-[var(--surface-border)] last:border-0">
-                          <td className="px-4 py-3 font-mono font-semibold text-[var(--gold)]">{p.ticker}</td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 font-mono font-semibold text-[var(--gold)]">{p.ticker}</td>
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             {p.shares.toFixed(4)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             ${formatPrice(p.entryPrice)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                             ${formatPrice(p.currentPrice)}
                           </td>
-                          <td className={`px-4 py-3 text-right font-mono whitespace-nowrap ${p.returnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
+                          <td className={`px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap ${p.returnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
                             {formatPct(p.returnPct)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                             {formatMoney(p.value)}
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-2.5 sm:px-4 py-3 text-right">
                             <button
                               onClick={() => selectTicker(p.ticker, "SELL")}
                               className="text-xs font-mono border border-[var(--surface-border)] rounded px-2 py-1 text-[var(--text-secondary)] hover:text-[var(--red)] hover:border-[var(--red)]"
@@ -334,6 +335,7 @@ export default function SelfTradePage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -344,20 +346,21 @@ export default function SelfTradePage() {
                 <p className="text-[var(--text-muted)] text-sm">No trades yet — search a stock above and place your first one.</p>
               ) : (
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
+                  <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                        <th className="px-4 py-3 font-medium">ACTION</th>
-                        <th className="px-4 py-3 font-medium">TICKER</th>
-                        <th className="px-4 py-3 font-medium text-right">SHARES</th>
-                        <th className="px-4 py-3 font-medium text-right">PRICE</th>
-                        <th className="px-4 py-3 font-medium text-right">WHEN</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">ACTION</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRICE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">WHEN</th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio.trades.map((t) => (
                         <tr key={t.id} className="border-b border-[var(--surface-border)] last:border-0">
-                          <td className="px-4 py-3">
+                          <td className="px-2.5 sm:px-4 py-3">
                             <span
                               className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
                                 t.action === "BUY" ? "bg-[rgba(34,197,94,0.12)] text-[var(--green)]" : "bg-[rgba(239,68,68,0.12)] text-[var(--red)]"
@@ -366,20 +369,21 @@ export default function SelfTradePage() {
                               {t.action}
                             </span>
                           </td>
-                          <td className="px-4 py-3 font-mono font-semibold text-[var(--text-primary)]">{t.ticker}</td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 font-mono font-semibold text-[var(--text-primary)]">{t.ticker}</td>
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             {t.shares.toFixed(4)}
                           </td>
-                          <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             ${formatPrice(t.price)}
                           </td>
-                          <td className="px-4 py-3 text-right text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
+                          <td className="px-2.5 sm:px-4 py-3 text-right text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
                             {new Date(t.timestamp).toLocaleString()}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               )}
             </div>

@@ -87,7 +87,40 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="sm:hidden divide-y divide-[var(--surface-border)]">
+        {filtered.map((q) => (
+          <Link
+            key={q.ticker}
+            href={`/stock/${q.ticker}`}
+            className="flex items-center gap-3 px-4 py-3 active:bg-black/20"
+          >
+            <CompanyLogo ticker={q.ticker} logoUrl={q.logo} size={32} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono font-semibold text-[var(--text-primary)]">{q.ticker}</span>
+                <span className="font-mono text-[var(--text-primary)] whitespace-nowrap">
+                  {q.price !== null ? `$${formatPrice(q.price)}` : "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-2 mt-1">
+                <SignalBadge signal={q.signal} score={q.score} />
+                <span
+                  className={`font-mono text-xs whitespace-nowrap ${
+                    (q.change_pct ?? 0) >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
+                  }`}
+                >
+                  {formatPct(q.change_pct)}
+                </span>
+              </div>
+            </div>
+          </Link>
+        ))}
+        {filtered.length === 0 && (
+          <p className="px-4 py-10 text-center text-[var(--text-secondary)]">No tickers match these filters.</p>
+        )}
+      </div>
+
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs font-mono tracking-widest text-[var(--text-secondary)] border-b border-[var(--surface-border)]">
