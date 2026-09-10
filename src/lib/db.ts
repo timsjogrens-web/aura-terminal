@@ -56,6 +56,19 @@ export const SCHEMA_STATEMENTS = [
     timestamp TEXT NOT NULL
   )`,
   `CREATE INDEX IF NOT EXISTS idx_signal_history_ticker ON signal_history(ticker, timestamp)`,
+  `CREATE TABLE IF NOT EXISTS signal_ledger (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticker TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    signal TEXT NOT NULL,
+    price REAL NOT NULL,
+    model_version TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    prev_hash TEXT NOT NULL,
+    row_hash TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_signal_ledger_ticker ON signal_ledger(ticker, timestamp)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_signal_ledger_row_hash ON signal_ledger(row_hash)`,
   `CREATE TABLE IF NOT EXISTS watchlist (
     ticker TEXT PRIMARY KEY,
     company_name TEXT,

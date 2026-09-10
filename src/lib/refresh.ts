@@ -6,6 +6,7 @@ import { filterRelevantNews } from "./newsFilter";
 import { sma, rsi, computeScore } from "./scoring";
 import { maybeTrade, checkRiskExits } from "./paperTrading";
 import { sendStrongBuyAlert } from "./discordAlert";
+import { appendSignalToLedger } from "./ledger";
 
 const UPSERT_SQL = `
   INSERT INTO quote_cache (
@@ -163,6 +164,10 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
         sql: INSERT_HISTORY_SQL,
         args: [ticker, breakdown.score, breakdown.signal, quote.c, now],
       });
+      // Tamper-evident, append-only record of the same signal — separate
+      // from signal_history above (which stays as-is for existing
+      // readers), see src/lib/ledger.ts for what this protects against.
+      await appendSignalToLedger({ ticker, score: breakdown.score, signal: breakdown.signal, price: quote.c, timestamp: now });
       await maybeTrade(ticker, breakdown.signal, quote.c, now);
       if (breakdown.signal === "STRONG BUY") {
         await sendStrongBuyAlert(ticker, quote.c, breakdown.score);

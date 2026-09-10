@@ -3,9 +3,12 @@
 // using ONLY the research period to decide anything, then report both
 // periods' stats honestly — including the hold-out, whatever it shows.
 //
-// Run with: npx tsx src/research/runResearch.ts
+// Run with: npx tsx src/research/runResearch.ts [default|sp500]
+// "sp500" uses the full current S&P 500 constituent list instead of the
+// site's hand-picked 39 tickers — see sp500Universe.ts for why that's a
+// fairer (though still not survivorship-bias-free) starting universe.
 
-import { fetchUniverseMonthlyHistory, BENCHMARK_TICKER } from "./fetchHistory";
+import { fetchUniverseMonthlyHistory, BENCHMARK_TICKER, UniverseChoice } from "./fetchHistory";
 import {
   momentumScorer,
   lowVolScorer,
@@ -24,8 +27,19 @@ import {
 } from "./stats";
 
 const HOLDOUT_MONTHS = 24; // locked, never used to pick a strategy or tune parameters
-const TOP_N = 12; // fixed by convention (roughly the brief's 20-30, scaled to our smaller universe), NOT tuned on this data
 const NUM_TRIALS = 3; // momentum, low-vol, composite — the strategy variants actually being compared
+
+const universeArg = (process.argv[2] as UniverseChoice) ?? "default";
+if (universeArg !== "default" && universeArg !== "sp500") {
+  console.error(`Unknown universe "${universeArg}" — use "default" or "sp500".`);
+  process.exit(1);
+}
+// The brief specifies 20-30 stock portfolios; with only 37 eligible names
+// in the hand-picked universe that would barely be a "top N" at all, so it
+// stays smaller there. With the ~460-name S&P 500 universe, 25 matches the
+// brief directly. Fixed BEFORE looking at either universe's results — not
+// tuned to flatter one over the other.
+const TOP_N = universeArg === "sp500" ? 25 : 12;
 
 function statsFor(monthlyReturns: number[], portfolioValue: number[], benchReturns: number[]) {
   const ab = alphaBeta(monthlyReturns, benchReturns);
@@ -75,8 +89,9 @@ function splitReturns(result: StrategyResult, cutMonth: string) {
 }
 
 async function main() {
+  console.log(`Universe: ${universeArg}`);
   console.log("Fetching / loading cached monthly history for the universe + SPY...\n");
-  const panel = await fetchUniverseMonthlyHistory();
+  const panel = await fetchUniverseMonthlyHistory({ universe: universeArg });
   console.log(`Panel: ${panel.months.length} common months, ${Object.keys(panel.prices).length - 1} tickers + SPY.`);
   if (panel.excludedTickers.length > 0) {
     console.log("Excluded from research panel:");
@@ -153,7 +168,11 @@ async function main() {
   console.log("=".repeat(70));
   console.log("HONESTY NOTES");
   console.log("=".repeat(70));
-  console.log(`- Universe is the site's hand-picked 39 tickers, NOT survivorship-bias-free (no delisted/failed companies included).`);
+  console.log(
+    universeArg === "sp500"
+      ? `- Universe is the CURRENT S&P 500 constituent list — fairer than a hand-picked list, but still NOT survivorship-bias-free (companies removed from the index before today aren't included).`
+      : `- Universe is the site's hand-picked 39 tickers, NOT survivorship-bias-free (no delisted/failed companies included).`
+  );
   console.log(`- Only price-based factors tested — quality/value/PEAD need fundamentals data not yet integrated (point-in-time issue, unresolved).`);
   console.log(`- No trading costs applied in this research pass (that's modeled separately in the live backtest tool, not here yet).`);
   console.log(`- Deflated Sharpe Ratio is an approximation (see stats.ts) — a rigorous estimate, not a guarantee.`);

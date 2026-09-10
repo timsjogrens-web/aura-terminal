@@ -6,9 +6,9 @@ import fs from "fs";
 import path from "path";
 import { getTotalReturnSeriesRaw } from "../lib/yahoo";
 import { DEFAULT_UNIVERSE } from "../lib/universe";
+import { getSp500Universe } from "./sp500Universe";
 
 const CACHE_DIR = path.join(process.cwd(), "src/research/.cache");
-const CACHE_PATH = path.join(CACHE_DIR, "monthly-history.json");
 const RANGE = "10y";
 const INTERVAL = "1mo";
 export const BENCHMARK_TICKER = "SPY";
@@ -44,36 +44,51 @@ async function fetchOneMonthly(ticker: string): Promise<{ months: string[]; pric
   return { months, prices: months.map((m) => byMonth.get(m)!) };
 }
 
-export async function fetchUniverseMonthlyHistory(opts?: { useCache?: boolean }): Promise<MonthlySeries> {
+export type UniverseChoice = "default" | "sp500";
+
+function resolveUniverse(choice: UniverseChoice): { ticker: string; yahooSymbol: string }[] {
+  if (choice === "sp500") {
+    return getSp500Universe().map((e) => ({ ticker: e.ticker, yahooSymbol: e.yahooSymbol }));
+  }
+  return DEFAULT_UNIVERSE.map((e) => ({ ticker: e.ticker, yahooSymbol: e.ticker }));
+}
+
+export async function fetchUniverseMonthlyHistory(opts?: {
+  useCache?: boolean;
+  universe?: UniverseChoice;
+}): Promise<MonthlySeries> {
   const useCache = opts?.useCache ?? true;
-  if (useCache && fs.existsSync(CACHE_PATH)) {
-    return JSON.parse(fs.readFileSync(CACHE_PATH, "utf8"));
+  const universeChoice = opts?.universe ?? "default";
+  const cachePath = path.join(CACHE_DIR, `monthly-history.${universeChoice}.json`);
+
+  if (useCache && fs.existsSync(cachePath)) {
+    return JSON.parse(fs.readFileSync(cachePath, "utf8"));
   }
 
-  const tickers = [...DEFAULT_UNIVERSE.map((e) => e.ticker), BENCHMARK_TICKER];
+  const entries = [...resolveUniverse(universeChoice), { ticker: BENCHMARK_TICKER, yahooSymbol: BENCHMARK_TICKER }];
   const perTicker: Record<string, { months: string[]; prices: number[] }> = {};
   const excludedTickers: { ticker: string; reason: string }[] = [];
 
-  for (const ticker of tickers) {
+  for (const entry of entries) {
     try {
-      const data = await fetchOneMonthly(ticker);
-      if (ticker !== BENCHMARK_TICKER && data.months.length < MIN_HISTORY_MONTHS) {
+      const data = await fetchOneMonthly(entry.yahooSymbol);
+      if (entry.ticker !== BENCHMARK_TICKER && data.months.length < MIN_HISTORY_MONTHS) {
         console.error(
-          `EXCLUDED ${ticker}: only ${data.months.length} months of history (< ${MIN_HISTORY_MONTHS} required) — likely a recent IPO/listing`
+          `EXCLUDED ${entry.ticker}: only ${data.months.length} months of history (< ${MIN_HISTORY_MONTHS} required) — likely a recent IPO/listing`
         );
         excludedTickers.push({
-          ticker,
+          ticker: entry.ticker,
           reason: `only ${data.months.length} months of history available (recent listing)`,
         });
         continue;
       }
-      perTicker[ticker] = data;
-      console.error(`fetched ${ticker}: ${data.months.length} months`);
+      perTicker[entry.ticker] = data;
+      console.error(`fetched ${entry.ticker}: ${data.months.length} months`);
     } catch (e) {
-      console.error(`EXCLUDED ${ticker}: ${(e as Error).message}`);
-      excludedTickers.push({ ticker, reason: (e as Error).message });
+      console.error(`EXCLUDED ${entry.ticker}: ${(e as Error).message}`);
+      excludedTickers.push({ ticker: entry.ticker, reason: (e as Error).message });
     }
-    await new Promise((r) => setTimeout(r, 250)); // stay polite to Yahoo's free, unauthenticated endpoint
+    await new Promise((r) => setTimeout(r, 150)); // stay polite to Yahoo's free, unauthenticated endpoint
   }
 
   const okTickers = Object.keys(perTicker);
@@ -99,6 +114,6 @@ export async function fetchUniverseMonthlyHistory(opts?: { useCache?: boolean })
   };
 
   fs.mkdirSync(CACHE_DIR, { recursive: true });
-  fs.writeFileSync(CACHE_PATH, JSON.stringify(result));
+  fs.writeFileSync(cachePath, JSON.stringify(result));
   return result;
 }

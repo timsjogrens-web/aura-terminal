@@ -58,6 +58,16 @@ npx tsx src/research/runResearch.ts
 
 The first run fetches ~10 years of monthly history from Yahoo Finance and caches it under `src/research/.cache/` (gitignored); delete that file to refetch. Recently-listed tickers (too little history) are automatically excluded from this panel with a stated reason, so one young IPO doesn't silently shrink the whole panel's usable history down to its own short track record.
 
+Pass `sp500` as an argument to run the same research against the full current S&P 500 constituent list instead of the site's hand-picked 39 tickers — a fairer, though still not survivorship-bias-free, starting universe:
+
+```bash
+npx tsx src/research/runResearch.ts sp500
+```
+
+## Signal ledger
+
+Every signal the site generates is recorded in an append-only, hash-chained ledger (`src/lib/ledger.ts`, table `signal_ledger`) — each row's hash depends on the previous row's, so editing or deleting a past entry breaks the chain and is detectable. Check integrity anytime at `GET /api/ledger/verify` (requires login, same as the rest of the app).
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
