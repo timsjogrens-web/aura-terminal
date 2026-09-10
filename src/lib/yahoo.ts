@@ -154,8 +154,19 @@ export async function getChartSeries(symbol: string, rangeKey: string): Promise<
 export async function getTotalReturnSeries(symbol: string, rangeKey: string): Promise<ChartSeries> {
   const preset = RANGE_PRESETS[rangeKey];
   if (!preset) throw new YahooError(`Unsupported chart range: ${rangeKey}`);
+  return getTotalReturnSeriesRaw(symbol, preset.range, preset.interval);
+}
 
-  const { timestamp, quote, adjclose } = await fetchYahooChart(symbol, preset.range, preset.interval);
+// Same as getTotalReturnSeries, but takes raw Yahoo range/interval strings
+// instead of one of the app's display presets — used by the offline
+// research scripts (src/research/), which need longer history and monthly
+// bars that RANGE_PRESETS doesn't expose (e.g. "10y" / "1mo").
+export async function getTotalReturnSeriesRaw(
+  symbol: string,
+  range: string,
+  interval: string
+): Promise<ChartSeries> {
+  const { timestamp, quote, adjclose } = await fetchYahooChart(symbol, range, interval);
   const timestamps: number[] = [];
   const closes: number[] = [];
   for (let i = 0; i < timestamp.length; i++) {
@@ -167,7 +178,7 @@ export async function getTotalReturnSeries(symbol: string, rangeKey: string): Pr
   }
 
   if (closes.length < 2) {
-    throw new YahooError(`Not enough chart data for ${symbol} at range ${rangeKey}.`);
+    throw new YahooError(`Not enough chart data for ${symbol} at range ${range}.`);
   }
 
   return { timestamps, closes };

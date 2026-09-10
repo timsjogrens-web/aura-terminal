@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 data/
+
+# offline research tooling — cached market data, regenerate with npx tsx src/research/runResearch.ts
+/src/research/.cache/

@@ -1,0 +1,166 @@
+// Orchestrates the Fas 2 strategy research: fetch history, split into a
+// research period and a LOCKED hold-out period, run each factor strategy
+// using ONLY the research period to decide anything, then report both
+// periods' stats honestly — including the hold-out, whatever it shows.
+//
+// Run with: npx tsx src/research/runResearch.ts
+
+import { fetchUniverseMonthlyHistory, BENCHMARK_TICKER } from "./fetchHistory";
+import {
+  momentumScorer,
+  lowVolScorer,
+  runFactorStrategy,
+  runEqualWeightUniverse,
+  runCompositeRankStrategy,
+  StrategyResult,
+} from "./strategies";
+import {
+  cagr,
+  annualizedVol,
+  sharpeRatio,
+  maxDrawdown,
+  alphaBeta,
+  deflatedSharpeRatio,
+} from "./stats";
+
+const HOLDOUT_MONTHS = 24; // locked, never used to pick a strategy or tune parameters
+const TOP_N = 12; // fixed by convention (roughly the brief's 20-30, scaled to our smaller universe), NOT tuned on this data
+const NUM_TRIALS = 3; // momentum, low-vol, composite — the strategy variants actually being compared
+
+function statsFor(monthlyReturns: number[], portfolioValue: number[], benchReturns: number[]) {
+  const ab = alphaBeta(monthlyReturns, benchReturns);
+  return {
+    months: monthlyReturns.length,
+    cagr: cagr(portfolioValue),
+    vol: annualizedVol(monthlyReturns),
+    sharpe: sharpeRatio(monthlyReturns),
+    maxDrawdown: maxDrawdown(portfolioValue),
+    alphaAnnual: ab.alphaAnnual,
+    beta: ab.beta,
+    tStatAlpha: ab.tStatAlpha,
+  };
+}
+
+function pct(x: number): string {
+  return `${(x * 100).toFixed(2)}%`;
+}
+
+function printStats(label: string, s: ReturnType<typeof statsFor>, dsr?: number) {
+  console.log(`  ${label}`);
+  console.log(`    Months evaluated:  ${s.months}`);
+  console.log(`    CAGR:              ${pct(s.cagr)}`);
+  console.log(`    Volatility (ann.): ${pct(s.vol)}`);
+  console.log(`    Sharpe ratio:      ${s.sharpe.toFixed(2)}`);
+  console.log(`    Max drawdown:      ${pct(s.maxDrawdown)}`);
+  console.log(`    Alpha (ann.):      ${pct(s.alphaAnnual)}  (t-stat: ${s.tStatAlpha.toFixed(2)})`);
+  console.log(`    Beta vs SPY:       ${s.beta.toFixed(2)}`);
+  if (dsr !== undefined) {
+    console.log(`    Deflated Sharpe:   ${dsr.toFixed(3)}  (probability this Sharpe beats ${NUM_TRIALS} trials' worth of luck)`);
+  }
+}
+
+function splitReturns(result: StrategyResult, cutMonth: string) {
+  const cutIdx = result.months.findIndex((m) => m >= cutMonth);
+  const idx = cutIdx === -1 ? result.months.length : cutIdx;
+  return {
+    research: {
+      monthlyReturns: result.monthlyReturns.slice(0, idx),
+      portfolioValue: result.portfolioValue.slice(0, idx + 1),
+    },
+    holdout: {
+      monthlyReturns: result.monthlyReturns.slice(idx),
+      portfolioValue: result.portfolioValue.slice(idx),
+    },
+  };
+}
+
+async function main() {
+  console.log("Fetching / loading cached monthly history for the universe + SPY...\n");
+  const panel = await fetchUniverseMonthlyHistory();
+  console.log(`Panel: ${panel.months.length} common months, ${Object.keys(panel.prices).length - 1} tickers + SPY.`);
+  if (panel.excludedTickers.length > 0) {
+    console.log("Excluded from research panel:");
+    for (const x of panel.excludedTickers) console.log(`  - ${x.ticker}: ${x.reason}`);
+  }
+  console.log(`Range: ${panel.months[0]} to ${panel.months[panel.months.length - 1]}\n`);
+
+  const cutIdx = panel.months.length - HOLDOUT_MONTHS;
+  const cutMonth = panel.months[cutIdx];
+  console.log(`Locked hold-out period: ${cutMonth} onward (${HOLDOUT_MONTHS} months, never used to pick or tune anything above).\n`);
+
+  const startIdx = 12; // first month with enough history for a 12-month lookback
+  const endIdxExclusive = panel.months.length;
+
+  const strategies: { label: string; result: StrategyResult }[] = [
+    { label: "Momentum (12-1)", result: runFactorStrategy(panel, momentumScorer, TOP_N, startIdx, endIdxExclusive) },
+    { label: "Low-volatility", result: runFactorStrategy(panel, lowVolScorer, TOP_N, startIdx, endIdxExclusive) },
+    {
+      label: "Composite (momentum + low-vol)",
+      result: runCompositeRankStrategy(panel, [momentumScorer, lowVolScorer], TOP_N, startIdx, endIdxExclusive),
+    },
+  ];
+  const benchmarks: { label: string; result: StrategyResult }[] = [
+    { label: "Equal-weight universe (all tickers)", result: runEqualWeightUniverse(panel, startIdx, endIdxExclusive) },
+  ];
+
+  // SPY as its own "strategy" (buy and hold, monthly-sampled) purely to get its monthlyReturns/portfolioValue in the same shape.
+  const spyPrices = panel.prices[BENCHMARK_TICKER].slice(startIdx);
+  const spyMonths = panel.months.slice(startIdx);
+  const spyMonthlyReturns: number[] = [];
+  const spyPortfolioValue = [1.0];
+  for (let i = 1; i < spyPrices.length; i++) {
+    const r = spyPrices[i] / spyPrices[i - 1] - 1;
+    spyMonthlyReturns.push(r);
+    spyPortfolioValue.push(spyPortfolioValue[spyPortfolioValue.length - 1] * (1 + r));
+  }
+  const spyResult: StrategyResult = {
+    months: spyMonths.slice(1),
+    monthlyReturns: spyMonthlyReturns,
+    portfolioValue: spyPortfolioValue,
+    holdings: [],
+  };
+
+  const spySplit = splitReturns(spyResult, cutMonth);
+
+  console.log("=".repeat(70));
+  console.log("BENCHMARK: S&P 500 (SPY), total return");
+  console.log("=".repeat(70));
+  printStats("Research period", statsFor(spySplit.research.monthlyReturns, spySplit.research.portfolioValue, spySplit.research.monthlyReturns));
+  printStats("Hold-out period (locked)", statsFor(spySplit.holdout.monthlyReturns, spySplit.holdout.portfolioValue, spySplit.holdout.monthlyReturns));
+  console.log();
+
+  for (const b of benchmarks) {
+    const split = splitReturns(b.result, cutMonth);
+    console.log("=".repeat(70));
+    console.log(`BENCHMARK: ${b.label}`);
+    console.log("=".repeat(70));
+    printStats("Research period", statsFor(split.research.monthlyReturns, split.research.portfolioValue, spySplit.research.monthlyReturns));
+    printStats("Hold-out period (locked)", statsFor(split.holdout.monthlyReturns, split.holdout.portfolioValue, spySplit.holdout.monthlyReturns));
+    console.log();
+  }
+
+  for (const s of strategies) {
+    const split = splitReturns(s.result, cutMonth);
+    const dsrResearch = deflatedSharpeRatio(split.research.monthlyReturns, NUM_TRIALS);
+    console.log("=".repeat(70));
+    console.log(`STRATEGY: ${s.label}  (top ${TOP_N}, equal-weighted, monthly rebalance)`);
+    console.log("=".repeat(70));
+    printStats("Research period", statsFor(split.research.monthlyReturns, split.research.portfolioValue, spySplit.research.monthlyReturns), dsrResearch);
+    printStats("Hold-out period (locked)", statsFor(split.holdout.monthlyReturns, split.holdout.portfolioValue, spySplit.holdout.monthlyReturns));
+    console.log();
+  }
+
+  console.log("=".repeat(70));
+  console.log("HONESTY NOTES");
+  console.log("=".repeat(70));
+  console.log(`- Universe is the site's hand-picked 39 tickers, NOT survivorship-bias-free (no delisted/failed companies included).`);
+  console.log(`- Only price-based factors tested — quality/value/PEAD need fundamentals data not yet integrated (point-in-time issue, unresolved).`);
+  console.log(`- No trading costs applied in this research pass (that's modeled separately in the live backtest tool, not here yet).`);
+  console.log(`- Deflated Sharpe Ratio is an approximation (see stats.ts) — a rigorous estimate, not a guarantee.`);
+  console.log(`- Hold-out numbers above were computed in this same run as the research numbers — parameters (TOP_N, lookback windows) were fixed by academic convention BEFORE looking at this data, not tuned on it.`);
+}
+
+main().catch((e) => {
+  console.error("Research run failed:", e);
+  process.exit(1);
+});

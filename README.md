@@ -48,6 +48,16 @@ The backtest engine (`src/lib/backtest.ts`) can be exercised two ways:
 
 Execution is modeled at the next trading day's open (never the same close a signal was computed from), on dividend-adjusted prices, with an estimated round-trip cost (commission + FX fee + liquidity-tiered slippage, see `src/lib/tradingCosts.ts`) applied to every simulated trade.
 
+## Strategy research (offline, not part of the live site)
+
+`src/research/` tests long-only, monthly-rebalanced factor strategies (momentum, low-volatility, and an equal-weighted composite of the two) against the tracked universe and the S&P 500, with a locked hold-out period that's never used to pick a strategy or tune a parameter:
+
+```bash
+npx tsx src/research/runResearch.ts
+```
+
+The first run fetches ~10 years of monthly history from Yahoo Finance and caches it under `src/research/.cache/` (gitignored); delete that file to refetch. Recently-listed tickers (too little history) are automatically excluded from this panel with a stated reason, so one young IPO doesn't silently shrink the whole panel's usable history down to its own short track record.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

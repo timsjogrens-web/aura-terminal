@@ -1,0 +1,162 @@
+// Long-only, monthly-rebalanced factor strategies, built only from price
+// history (no fundamentals — point-in-time fundamentals data isn't
+// available from our free sources, see the research report). Each scorer
+// looks only at prices[0..idx], never anything after idx — that's the
+// look-ahead-safety property this module depends on and that
+// runFactorStrategy's tests check for.
+
+import type { MonthlySeries } from "./fetchHistory";
+
+export type FactorScorer = (prices: number[], idx: number) => number | null;
+
+// Classic 12-1 momentum: total return from 12 months ago to 1 month ago,
+// deliberately skipping the most recent month (the "1" in "12-1") because
+// short-horizon returns tend to mean-revert rather than continue —
+// including them would mix two opposite effects into one signal.
+export const momentumScorer: FactorScorer = (prices, idx) => {
+  if (idx < 12) return null;
+  const p12 = prices[idx - 12];
+  const p1 = prices[idx - 1];
+  if (!p12 || !p1) return null;
+  return p1 / p12 - 1;
+};
+
+// Low-volatility: negative trailing 12-month return std dev, so "higher
+// score" consistently means "more attractive" across every scorer, same as
+// momentum above.
+export const lowVolScorer: FactorScorer = (prices, idx) => {
+  if (idx < 12) return null;
+  const rets: number[] = [];
+  for (let i = idx - 11; i <= idx; i++) {
+    if (!prices[i - 1] || !prices[i]) return null;
+    rets.push(prices[i] / prices[i - 1] - 1);
+  }
+  const m = rets.reduce((a, b) => a + b, 0) / rets.length;
+  const variance = rets.reduce((a, b) => a + (b - m) ** 2, 0) / (rets.length - 1);
+  return -Math.sqrt(variance);
+};
+
+export interface StrategyResult {
+  months: string[]; // one per rebalance-to-rebalance step (length = panel.months.length - startIdx - 1)
+  portfolioValue: number[]; // starts at 1.0, length = months.length + 1
+  monthlyReturns: number[]; // length = months.length
+  holdings: { month: string; tickers: string[] }[];
+}
+
+// Ranks every eligible ticker by `scorer` at each month, holds the top
+// `topN` equal-weighted for that month, then re-ranks and rebalances. Only
+// ever looks at prices[0..idx] for the month it's deciding — no future data
+// used, which is what the look-ahead test in strategies.test.ts checks.
+export function runFactorStrategy(
+  panel: MonthlySeries,
+  scorer: FactorScorer,
+  topN: number,
+  startIdx: number,
+  endIdxExclusive: number // panel index to stop before (for splitting research/holdout)
+): StrategyResult {
+  const tickers = Object.keys(panel.prices);
+  const months: string[] = [];
+  const monthlyReturns: number[] = [];
+  const holdings: { month: string; tickers: string[] }[] = [];
+  const portfolioValue: number[] = [1.0];
+
+  for (let idx = startIdx; idx < endIdxExclusive - 1; idx++) {
+    const scored = tickers
+      .map((t) => ({ t, score: scorer(panel.prices[t], idx) }))
+      .filter((x): x is { t: string; score: number } => x.score !== null)
+      .sort((a, b) => b.score - a.score);
+
+    const picked = scored.slice(0, topN).map((x) => x.t);
+    holdings.push({ month: panel.months[idx], tickers: picked });
+
+    if (picked.length === 0) {
+      months.push(panel.months[idx + 1]);
+      monthlyReturns.push(0);
+      portfolioValue.push(portfolioValue[portfolioValue.length - 1]);
+      continue;
+    }
+
+    const rets = picked.map((t) => panel.prices[t][idx + 1] / panel.prices[t][idx] - 1);
+    const portRet = rets.reduce((a, b) => a + b, 0) / rets.length;
+
+    months.push(panel.months[idx + 1]);
+    monthlyReturns.push(portRet);
+    portfolioValue.push(portfolioValue[portfolioValue.length - 1] * (1 + portRet));
+  }
+
+  return { months, portfolioValue, monthlyReturns, holdings };
+}
+
+// Benchmark: hold every ticker with data at that month, equal-weighted,
+// rebalanced monthly. This is the "equal-weighted version of the universe"
+// comparison the brief asked for, distinct from SPY.
+export function runEqualWeightUniverse(
+  panel: MonthlySeries,
+  startIdx: number,
+  endIdxExclusive: number
+): StrategyResult {
+  return runFactorStrategy(panel, () => 1, Object.keys(panel.prices).length, startIdx, endIdxExclusive);
+}
+
+// Equal-weighted composite of momentum + low-vol: momentum is a return
+// (e.g. 0.15) and low-vol is a negative std dev (e.g. -0.05) — averaging
+// those raw numbers directly would let momentum's larger scale dominate.
+// Instead this cross-sectionally RANKS every ticker on each factor at each
+// month, averages the two ranks, and picks the top `topN` by that average —
+// the standard way to combine factors on different scales.
+export function runCompositeRankStrategy(
+  panel: MonthlySeries,
+  scorers: FactorScorer[],
+  topN: number,
+  startIdx: number,
+  endIdxExclusive: number
+): StrategyResult {
+  const tickers = Object.keys(panel.prices);
+  const months: string[] = [];
+  const monthlyReturns: number[] = [];
+  const holdings: { month: string; tickers: string[] }[] = [];
+  const portfolioValue: number[] = [1.0];
+
+  for (let idx = startIdx; idx < endIdxExclusive - 1; idx++) {
+    // Rank tickers 1..N per factor (1 = best), only among tickers that have
+    // a score for that factor; average each ticker's ranks across factors
+    // it was scored on, and require it be scored on every factor to be
+    // eligible (keeps the composite comparable, no partial-data shortcuts).
+    const perFactorRanks: Map<string, number>[] = scorers.map((scorer) => {
+      const ranked = tickers
+        .map((t) => ({ t, score: scorer(panel.prices[t], idx) }))
+        .filter((x): x is { t: string; score: number } => x.score !== null)
+        .sort((a, b) => b.score - a.score);
+      return new Map(ranked.map((x, i) => [x.t, i + 1]));
+    });
+
+    const avgRank = tickers
+      .map((t) => {
+        const ranks = perFactorRanks.map((m) => m.get(t));
+        if (ranks.some((r) => r === undefined)) return null;
+        const avg = (ranks as number[]).reduce((a, b) => a + b, 0) / ranks.length;
+        return { t, avg };
+      })
+      .filter((x): x is { t: string; avg: number } => x !== null)
+      .sort((a, b) => a.avg - b.avg); // lower average rank = better
+
+    const picked = avgRank.slice(0, topN).map((x) => x.t);
+    holdings.push({ month: panel.months[idx], tickers: picked });
+
+    if (picked.length === 0) {
+      months.push(panel.months[idx + 1]);
+      monthlyReturns.push(0);
+      portfolioValue.push(portfolioValue[portfolioValue.length - 1]);
+      continue;
+    }
+
+    const rets = picked.map((t) => panel.prices[t][idx + 1] / panel.prices[t][idx] - 1);
+    const portRet = rets.reduce((a, b) => a + b, 0) / rets.length;
+
+    months.push(panel.months[idx + 1]);
+    monthlyReturns.push(portRet);
+    portfolioValue.push(portfolioValue[portfolioValue.length - 1] * (1 + portRet));
+  }
+
+  return { months, portfolioValue, monthlyReturns, holdings };
+}
