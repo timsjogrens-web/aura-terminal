@@ -10,8 +10,20 @@ import SignalBadge from "./SignalBadge";
 import WatchlistButton from "./WatchlistButton";
 import CompanyLogo from "./CompanyLogo";
 
+// Underlying values stay in English — they match the Sector type in
+// universe.ts and the sector column stored in the database. Only the
+// button labels shown to the user are translated.
 const SECTORS = ["ALL", "Technology", "Financials", "Healthcare", "Energy", "Consumer"];
+const SECTOR_LABELS: Record<string, string> = {
+  ALL: "ALLA",
+  Technology: "Teknik",
+  Financials: "Finans",
+  Healthcare: "Hälsovård",
+  Energy: "Energi",
+  Consumer: "Konsument",
+};
 const SIGNALS = ["ALL", "STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"];
+const SIGNAL_LABELS: Record<string, string> = { ALL: "ALLA" };
 
 export default function Screener({ quotes }: { quotes: Quote[] }) {
   const router = useRouter();
@@ -45,12 +57,12 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
               <circle cx="11" cy="11" r="7" />
               <path d="M21 21l-4-4" strokeLinecap="round" />
             </svg>
-            Market Screener
+            Aktiescreener
           </h2>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search ticker or company"
+            placeholder="Sök ticker eller bolag"
             className="w-full sm:w-64 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
           />
         </div>
@@ -66,7 +78,7 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
                   : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
-              {s}
+              {SECTOR_LABELS[s] ?? s}
             </button>
           ))}
         </div>
@@ -81,7 +93,7 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
                   : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
-              {s}
+              {SIGNAL_LABELS[s] ?? s}
             </button>
           ))}
         </div>
@@ -116,7 +128,7 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
           </Link>
         ))}
         {filtered.length === 0 && (
-          <p className="px-4 py-10 text-center text-[var(--text-secondary)]">No tickers match these filters.</p>
+          <p className="px-4 py-10 text-center text-[var(--text-secondary)]">Inga aktier matchar dessa filter.</p>
         )}
       </div>
 
@@ -125,10 +137,10 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
           <thead>
             <tr className="text-left text-xs font-mono tracking-widest text-[var(--text-secondary)] border-b border-[var(--surface-border)]">
               <th className="px-5 py-3 font-medium">Ticker</th>
-              <th className="px-5 py-3 font-medium">Price</th>
-              <th className="px-5 py-3 font-medium">Change</th>
+              <th className="px-5 py-3 font-medium">Pris</th>
+              <th className="px-5 py-3 font-medium">Förändring</th>
               <th className="px-5 py-3 font-medium hidden md:table-cell">30D</th>
-              <th className="px-5 py-3 font-medium">Score</th>
+              <th className="px-5 py-3 font-medium">Poäng</th>
               <th className="px-5 py-3 font-medium">Signal</th>
               <th className="px-5 py-3 font-medium"></th>
             </tr>
@@ -198,7 +210,7 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-5 py-10 text-center text-[var(--text-secondary)]">
-                  No tickers match these filters.
+                  Inga aktier matchar dessa filter.
                 </td>
               </tr>
             )}

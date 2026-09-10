@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuotes } from "@/lib/useQuotes";
 import { useNotificationPermission, useStrongBuyAlerts } from "@/lib/useAlerts";
 import { useWatchlist } from "@/lib/WatchlistContext";
+import { MAIN_LINKS } from "@/lib/navConfig";
 import Sidebar from "./Sidebar";
 import MobileNavDrawer from "./MobileNavDrawer";
 
@@ -43,51 +44,24 @@ export default function Header() {
         </Link>
 
         <nav className="hidden sm:flex items-center gap-1 bg-black/30 rounded-lg p-1 border border-[var(--surface-border)]">
-          <Link
-            href="/"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Markets
-          </Link>
-          <Link
-            href="/watchlist"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition flex items-center gap-2 shrink-0 whitespace-nowrap ${
-              pathname === "/watchlist"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Watchlist
-            {watchlistCount !== null && (
-              <span className="text-xs font-mono bg-[var(--gold)]/15 text-[var(--gold)] rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
-                {watchlistCount}
-              </span>
-            )}
-          </Link>
-          <Link
-            href="/history"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/history"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            History
-          </Link>
-          <Link
-            href="/news"
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition shrink-0 whitespace-nowrap ${
-              pathname === "/news"
-                ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            News
-          </Link>
+          {MAIN_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition flex items-center gap-2 shrink-0 whitespace-nowrap ${
+                pathname === link.href
+                  ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              }`}
+            >
+              {link.label}
+              {link.href === "/watchlist" && watchlistCount !== null && (
+                <span className="text-xs font-mono bg-[var(--gold)]/15 text-[var(--gold)] rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+                  {watchlistCount}
+                </span>
+              )}
+            </Link>
+          ))}
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -98,10 +72,10 @@ export default function Header() {
               disabled={permission !== "default"}
               title={
                 permission === "granted"
-                  ? "STRONG BUY alerts are on"
+                  ? "STRONG BUY-aviseringar är på"
                   : permission === "denied"
-                  ? "Notifications blocked in your browser settings"
-                  : "Enable STRONG BUY alerts"
+                  ? "Aviseringar blockerade i din webbläsare"
+                  : "Aktivera STRONG BUY-aviseringar"
               }
               className={`h-8 w-8 rounded-md border flex items-center justify-center transition ${
                 permission === "granted"
@@ -122,14 +96,14 @@ export default function Header() {
               }`}
             />
             <span className={isLive ? "text-[var(--text-secondary)]" : "text-[var(--red)]"}>
-              {isLive ? "Market Live" : "Data Delayed"}
+              {isLive ? "Marknad live" : "Fördröjd data"}
             </span>
           </div>
           <button
             onClick={handleLogout}
             className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
           >
-            Log out
+            Logga ut
           </button>
         </div>
       </div>

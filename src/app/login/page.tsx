@@ -21,14 +21,14 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Login failed.");
+        setError(data.error ?? "Inloggning misslyckades.");
         setLoading(false);
         return;
       }
       router.push("/");
       router.refresh();
     } catch {
-      setError("Could not reach the server.");
+      setError("Kunde inte nå servern.");
       setLoading(false);
     }
   }
@@ -55,13 +55,13 @@ export default function LoginPage() {
           </span>
         </div>
 
-        <h1 className="font-serif text-2xl text-[var(--text-primary)] mb-1">Access Restricted</h1>
+        <h1 className="font-serif text-2xl text-[var(--text-primary)] mb-1">Åtkomst begränsad</h1>
         <p className="text-sm text-[var(--text-secondary)] mb-6">
-          Enter the password to reach the terminal.
+          Ange lösenordet för att nå terminalen.
         </p>
 
         <label className="block text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-2">
-          Password
+          Lösenord
         </label>
         <input
           type="password"
@@ -81,7 +81,7 @@ export default function LoginPage() {
           disabled={loading}
           className="mt-6 w-full rounded-md bg-[var(--gold)] py-2.5 font-sans font-bold text-black tracking-wide hover:brightness-110 transition disabled:opacity-50"
         >
-          {loading ? "Verifying..." : "Enter"}
+          {loading ? "Verifierar..." : "Logga in"}
         </button>
       </form>
     </div>

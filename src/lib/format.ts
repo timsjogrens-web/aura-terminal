@@ -16,19 +16,19 @@ export function formatNumber(n: number | null | undefined): string {
 }
 
 export function timeAgo(iso: string | null): string {
-  if (!iso) return "never";
+  if (!iso) return "aldrig";
   const diffMs = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return "just nu";
+  if (mins < 60) return `${mins}m sedan`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${hours}h sedan`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${days}d sedan`;
 }
 
 export function formatClock(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
-  return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return d.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }

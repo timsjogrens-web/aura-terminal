@@ -35,7 +35,7 @@ export default function WatchlistButton({
     <button
       onClick={handleClick}
       disabled={busy}
-      title={isWatched ? `Remove ${ticker} from watchlist` : `Add ${ticker} to watchlist`}
+      title={isWatched ? `Ta bort ${ticker} från bevakningslistan` : `Lägg till ${ticker} i bevakningslistan`}
       className={`h-7 w-7 shrink-0 rounded-md border flex items-center justify-center transition disabled:opacity-50 ${
         isWatched
           ? "border-[rgba(245,165,36,0.4)] bg-[rgba(245,165,36,0.1)] text-[var(--gold)]"

@@ -21,7 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Aura Terminal",
-  description: "Signal engine for US equities — what to buy, and when to buy it.",
+  description: "Signalmotor för amerikanska aktier — poängsatt, testad och redovisad ärligt.",
   // Automatic browser translation was mangling numbers and range labels
   // (e.g. "1M" -> "1 miljon", "I ÅR" -> "Jag ÅR") in ways no amount of
   // rewording fixed. This is a financial dashboard where every figure
@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" translate="no" className="notranslate">
+    <html lang="sv" translate="no" className="notranslate">
       <body
         className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} antialiased`}
       >

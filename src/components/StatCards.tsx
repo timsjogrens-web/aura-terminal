@@ -39,10 +39,10 @@ export default function StatCards({ quotes }: { quotes: Quote[] }) {
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-4 pb-10">
-      <Card label="ADVANCING" value={String(advancing)} color="var(--green)" />
-      <Card label="DECLINING" value={String(declining)} color="var(--red)" />
-      <Card label="AVG SCORE" value={avgScore !== null ? String(avgScore) : "—"} />
-      <Card label="BUY SIGNALS" value={String(buySignals)} color="var(--gold)" />
+      <Card label="STIGER" value={String(advancing)} color="var(--green)" />
+      <Card label="FALLER" value={String(declining)} color="var(--red)" />
+      <Card label="SNITTPOÄNG" value={avgScore !== null ? String(avgScore) : "—"} />
+      <Card label="KÖPSIGNALER" value={String(buySignals)} color="var(--gold)" />
     </section>
   );
 }

@@ -91,14 +91,14 @@ export default function PriceChart({
       .then(([medium, long]) => {
         if (cancelled) return;
         if (!medium && !long) {
-          setError("Could not load chart data.");
+          setError("Kunde inte ladda diagramdata.");
         } else {
           setMediumSeries(medium);
           setLongSeries(long);
         }
       })
       .catch(() => {
-        if (!cancelled) setError("Could not load chart data.");
+        if (!cancelled) setError("Kunde inte ladda diagramdata.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -118,7 +118,7 @@ export default function PriceChart({
         setIntradaySeries(series);
         setIntradayRange(range);
       } else {
-        setError("Could not load chart data for this range.");
+        setError("Kunde inte ladda diagramdata för denna period.");
       }
     });
     return () => {
@@ -185,7 +185,7 @@ export default function PriceChart({
   if (loading && !mediumSeries && !longSeries) {
     return (
       <div className="h-[280px] flex items-center justify-center text-[var(--text-secondary)] text-sm">
-        Loading chart…
+        Laddar diagram…
       </div>
     );
   }
@@ -198,7 +198,7 @@ export default function PriceChart({
     return (
       <div>
         <div className="h-[240px] flex items-center justify-center text-[var(--text-secondary)] text-sm">
-          Loading…
+          Laddar…
         </div>
         <RangeSelector range={range} onChange={setRange} percents={rangePercents} />
       </div>
@@ -251,8 +251,8 @@ export default function PriceChart({
     const first = sorted[0];
     const dateStr = first ? new Date(first.timestamp * 1000).toLocaleString() : "";
     const priceStr = first?.price != null ? `$${formatPrice(first.price)}` : "";
-    const extra = sorted.length > 1 ? ` (+${sorted.length - 1} more time${sorted.length > 2 ? "s" : ""} since)` : "";
-    return `STRONG BUY called ${dateStr} at ${priceStr}${extra}`;
+    const extra = sorted.length > 1 ? ` (+${sorted.length - 1} gång${sorted.length > 2 ? "er" : ""} till sedan dess)` : "";
+    return `STRONG BUY gavs ${dateStr} vid ${priceStr}${extra}`;
   }
 
   return (
@@ -294,11 +294,11 @@ export default function PriceChart({
         <div className="text-xs font-mono text-[var(--text-secondary)] mt-2 mb-1 space-y-1">
           <p className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-[var(--gold)] inline-block" />
-            {visibleMarkers.length} STRONG BUY signal{visibleMarkers.length > 1 ? "s" : ""} in this range
-            <span className="hidden sm:inline text-[var(--text-muted)]">— hover a gold dot for the exact time</span>
+            {visibleMarkers.length} STRONG BUY-signal{visibleMarkers.length > 1 ? "er" : ""} i denna period
+            <span className="hidden sm:inline text-[var(--text-muted)]">— hovra över en guldprick för exakt tid</span>
           </p>
           <p className="text-[var(--text-muted)]">
-            Most recent:{" "}
+            Senaste:{" "}
             <span className="text-[var(--text-secondary)]">
               {new Date(
                 Math.max(...visibleMarkers.map((m) => m.timestamp)) * 1000

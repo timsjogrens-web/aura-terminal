@@ -46,7 +46,7 @@ export default function InvestorsPage() {
         if (json.error) setError(json.error);
         else setManagers(json.managers);
       })
-      .catch(() => setError("Could not load investor data."));
+      .catch(() => setError("Kunde inte ladda investerardata."));
   }
 
   useEffect(() => {
@@ -77,20 +77,21 @@ export default function InvestorsPage() {
       <section className="mx-auto max-w-6xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
           <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)]">
-            Institutional Investors
+            Institutionella investerare
           </h1>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
             className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
           >
-            {refreshing ? "Checking SEC…" : "Check for new filings"}
+            {refreshing ? "Kontrollerar SEC…" : "Kontrollera nya anmälningar"}
           </button>
         </div>
         <p className="text-[var(--text-secondary)] mb-8 max-w-2xl">
-          Tracks the public SEC 13F filings of 12 well-known fund managers — what they hold and
-          what changed since their last filing. 13F reports are filed quarterly, up to 45 days
-          after quarter-end, so this is never live — it&rsquo;s the most recent disclosed snapshot.
+          Spårar de offentliga SEC 13F-anmälningarna från 12 kända fondförvaltare — vad de
+          äger och vad som ändrats sedan senaste anmälan. 13F-rapporter lämnas kvartalsvis, upp
+          till 45 dagar efter kvartalets slut, så detta är aldrig live — det är den senast
+          redovisade ögonblicksbilden.
         </p>
 
         {error && (
@@ -101,15 +102,16 @@ export default function InvestorsPage() {
 
         {managers && !hasAnyData && (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 text-center text-[var(--text-secondary)] mb-8">
-            No filings loaded yet. Click &ldquo;Check for new filings&rdquo; above to pull the
-            latest 13F data from SEC EDGAR (takes a minute or two — 12 filings plus ticker lookups).
+            Inga anmälningar laddade ännu. Klicka på &ldquo;Kontrollera nya anmälningar&rdquo; ovan
+            för att hämta senaste 13F-datan från SEC EDGAR (tar en minut eller två — 12
+            anmälningar plus tickeruppslag).
           </div>
         )}
 
         {notableMoves.length > 0 && (
           <div className="rounded-lg border border-[rgba(245,165,36,0.3)] bg-[rgba(245,165,36,0.05)] p-5 mb-8">
             <p className="text-xs font-mono tracking-widest text-[var(--gold)] mb-4">
-              NEW POSITIONS IN STOCKS YOU TRACK
+              NYA POSITIONER I AKTIER DU SPÅRAR
             </p>
             <div className="flex flex-col gap-2">
               {notableMoves.map((move, i) => (
@@ -119,8 +121,8 @@ export default function InvestorsPage() {
                   className="flex items-center justify-between gap-3 rounded-md px-3 py-2 hover:bg-black/20 transition-colors"
                 >
                   <span className="text-sm text-[var(--text-primary)]">
-                    <span className="font-mono font-semibold">{move.managerName}</span> opened a
-                    new position in <span className="font-mono font-semibold text-[var(--gold)]">{move.ticker}</span>
+                    <span className="font-mono font-semibold">{move.managerName}</span> öppnade en
+                    ny position i <span className="font-mono font-semibold text-[var(--gold)]">{move.ticker}</span>
                   </span>
                   <span className="text-xs font-mono text-[var(--text-secondary)] whitespace-nowrap">
                     {formatValue(move.value)}
@@ -154,7 +156,7 @@ export default function InvestorsPage() {
                         {formatValue(m.totalValue)}
                       </span>
                       <span className="text-xs font-mono text-[var(--text-secondary)]">
-                        {m.holdingsCount} holdings
+                        {m.holdingsCount} innehav
                       </span>
                     </div>
                     {m.topHoldings.length > 0 && (
@@ -165,11 +167,11 @@ export default function InvestorsPage() {
                       </p>
                     )}
                     <p className="text-xs font-mono text-[var(--text-muted)]">
-                      Filed {new Date(m.filingDate).toLocaleDateString()}
+                      Anmäld {new Date(m.filingDate).toLocaleDateString("sv-SE")}
                     </p>
                   </>
                 ) : (
-                  <p className="text-sm text-[var(--text-muted)]">No filing data yet.</p>
+                  <p className="text-sm text-[var(--text-muted)]">Ingen anmälningsdata ännu.</p>
                 )}
               </Link>
             ))}

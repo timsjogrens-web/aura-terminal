@@ -30,24 +30,24 @@ export default function MarketsPage() {
       <section className="mx-auto max-w-7xl w-full px-4 sm:px-6 pb-8">
         <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
           <span className="text-xs font-mono font-semibold tracking-widest text-[var(--gold)] shrink-0">
-            NEW
+            NYTT
           </span>
           <p className="text-sm text-[var(--text-secondary)] flex-1">
-            A risk calculator to size your positions safely, and a methodology page laying out
-            exactly what we&rsquo;ve tested and what we haven&rsquo;t proven yet.
+            En riskkalkylator för att storleksbestämma dina positioner säkert, och en
+            metodik-sida som visar exakt vad vi testat och vad vi ännu inte bevisat.
           </p>
           <div className="flex gap-2 shrink-0">
             <Link
               href="/risk-calculator"
               className="text-xs font-medium text-black bg-[var(--gold)] hover:brightness-110 rounded-md px-3 py-1.5 transition whitespace-nowrap"
             >
-              Risk Calculator
+              Riskkalkylator
             </Link>
             <Link
               href="/methodology"
               className="text-xs font-medium text-[var(--text-primary)] border border-[var(--surface-border)] hover:border-[var(--gold-dim)] rounded-md px-3 py-1.5 transition whitespace-nowrap"
             >
-              Methodology
+              Metodik
             </Link>
           </div>
         </div>
@@ -64,7 +64,7 @@ export default function MarketsPage() {
               <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M17 7h4v4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Top Buy Signals Today
+            Dagens köpsignaler
           </h2>
           <div className="flex flex-col gap-4">
             {topBuys.length > 0 ? (
@@ -72,8 +72,8 @@ export default function MarketsPage() {
             ) : (
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-6 text-sm text-[var(--text-secondary)]">
                 {data?.apiKeyConfigured
-                  ? "No strong buy signals right now."
-                  : "Waiting on FINNHUB_API_KEY to compute signals."}
+                  ? "Inga starka köpsignaler just nu."
+                  : "Väntar på FINNHUB_API_KEY för att beräkna signaler."}
               </div>
             )}
           </div>

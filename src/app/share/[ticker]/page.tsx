@@ -40,8 +40,8 @@ export default async function SharePage({ params }: Props) {
         style={{ maxWidth: "100%", width: 640, borderRadius: 12, border: "1px solid #2a2620" }}
       />
       <p style={{ color: "#5c584d", fontSize: 13, fontFamily: "monospace", textAlign: "center", maxWidth: 480 }}>
-        Aura Terminal is not a licensed investment adviser. Signals are generated automatically
-        from public market data and are not financial advice.
+        Aura Terminal är inte en licensierad investeringsrådgivare. Signaler genereras automatiskt
+        från offentlig marknadsdata och är inte finansiell rådgivning.
       </p>
     </div>
   );

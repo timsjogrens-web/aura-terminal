@@ -3,9 +3,9 @@ import { NewsItem } from "@/lib/types";
 function timeAgoShort(unixSeconds: number): string {
   const diffMs = Date.now() - unixSeconds * 1000;
   const hours = Math.floor(diffMs / 3600000);
-  if (hours < 1) return "just now";
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 1) return "just nu";
+  if (hours < 24) return `${hours}h sedan`;
+  return `${Math.floor(hours / 24)}d sedan`;
 }
 
 export default function NewsList({ news }: { news: NewsItem[] }) {
@@ -14,7 +14,7 @@ export default function NewsList({ news }: { news: NewsItem[] }) {
   return (
     <div className="border-t border-[var(--surface-border)] pt-3 flex flex-col gap-2">
       <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)]">
-        RECENT NEWS
+        SENASTE NYHETERNA
       </p>
       {news.map((n, i) => (
         <a

@@ -63,13 +63,13 @@ export default function HistoryPage() {
 
       <section className="mx-auto max-w-5xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
-          Signal History
+          Signalhistorik
         </h1>
         <p className="text-[var(--text-secondary)] mb-8">
-          Every score is logged with a timestamp. A call only counts as a
-          &ldquo;hit&rdquo; or &ldquo;miss&rdquo; once the price has moved at
-          least 5% at least 4 hours later — smaller or too-soon moves are
-          left unscored rather than counted as noise.
+          Varje poäng loggas med en tidsstämpel. En signal räknas bara som
+          &ldquo;träff&rdquo; eller &ldquo;miss&rdquo; när priset rört sig
+          minst 5% minst 4 timmar senare — mindre eller för tidiga rörelser
+          lämnas obedömda istället för att räknas som brus.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -79,28 +79,28 @@ export default function HistoryPage() {
           >
             <div className="flex items-center justify-between">
               <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-2">
-                STRONG BUY HIT RATE
+                TRÄFFSÄKERHET STRONG BUY
               </p>
               <span className="text-xs font-mono text-[var(--green)]">
-                {showCurrentPicks ? "Hide picks ▲" : "See current picks ▼"}
+                {showCurrentPicks ? "Dölj val ▲" : "Se nuvarande val ▼"}
               </span>
             </div>
             <p className="text-4xl font-mono font-bold text-[var(--green)]">
               {strongBuyHitRate !== null ? `${strongBuyHitRate}%` : "—"}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
-              {strongBuyEvaluated} STRONG BUY calls evaluated across every stock tracked.
+              {strongBuyEvaluated} STRONG BUY-signaler utvärderade över samtliga spårade aktier.
             </p>
           </button>
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5">
             <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-2">
-              OVERALL HIT RATE
+              TOTAL TRÄFFSÄKERHET
             </p>
             <p className="text-4xl font-mono font-bold text-[var(--gold)]">
               {overallHitRate !== null ? `${overallHitRate}%` : "—"}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
-              {overallEvaluated} scored calls across every signal type, not just STRONG BUY.
+              {overallEvaluated} utvärderade signaler över alla signaltyper, inte bara STRONG BUY.
             </p>
           </div>
         </div>
@@ -108,11 +108,11 @@ export default function HistoryPage() {
         {showCurrentPicks && (
           <div className="rounded-lg border border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.04)] p-5 mb-8">
             <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-4">
-              CURRENT STRONG BUY PICKS
+              NUVARANDE STRONG BUY-VAL
             </p>
             {currentStrongBuys.length === 0 ? (
               <p className="text-sm text-[var(--text-secondary)]">
-                Nothing is scoring STRONG BUY right now.
+                Inget poängsätts som STRONG BUY just nu.
               </p>
             ) : (
               <div className="flex flex-col gap-2">
@@ -143,7 +143,7 @@ export default function HistoryPage() {
 
         {tickers.length === 0 ? (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 text-center text-[var(--text-secondary)]">
-            No history yet — snapshots are recorded every refresh cycle.
+            Ingen historik ännu — ögonblicksbilder loggas varje uppdateringscykel.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
@@ -159,12 +159,12 @@ export default function HistoryPage() {
                     }`}
                   >
                     <span className="font-mono font-semibold text-[var(--text-primary)]">{t.ticker}</span>
-                    <span className="text-xs text-[var(--text-secondary)] ml-2">{t.entries} entries</span>
+                    <span className="text-xs text-[var(--text-secondary)] ml-2">{t.entries} poster</span>
                   </button>
                   <Link
                     href={`/stock/${t.ticker}`}
                     className="text-xs text-[var(--text-muted)] hover:text-[var(--gold)] px-2"
-                    title={`View ${t.ticker} detail page`}
+                    title={`Visa detaljsidan för ${t.ticker}`}
                   >
                     ↗
                   </Link>
@@ -175,10 +175,10 @@ export default function HistoryPage() {
             <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
               {!selected ? (
                 <div className="p-8 text-center text-[var(--text-secondary)] text-sm">
-                  Select a ticker to see its history.
+                  Välj en aktie för att se dess historik.
                 </div>
               ) : !detail ? (
-                <div className="p-8 text-center text-[var(--text-secondary)] text-sm">Loading…</div>
+                <div className="p-8 text-center text-[var(--text-secondary)] text-sm">Laddar…</div>
               ) : (
                 <SignalHistoryTable
                   rows={detail.rows}

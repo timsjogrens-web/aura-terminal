@@ -8,11 +8,11 @@ import { MarketNewsItem } from "@/app/api/market-news/route";
 function timeAgo(unixSeconds: number): string {
   const diffMs = Date.now() - unixSeconds * 1000;
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return "just nu";
+  if (mins < 60) return `${mins}m sedan`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 24) return `${hours}h sedan`;
+  return `${Math.floor(hours / 24)}d sedan`;
 }
 
 export default function NewsPage() {
@@ -26,7 +26,7 @@ export default function NewsPage() {
         if (json.error) setError(json.error);
         else setNews(json.news);
       })
-      .catch(() => setError("Could not load market news."));
+      .catch(() => setError("Kunde inte ladda marknadsnyheter."));
   }, []);
 
   return (
@@ -35,10 +35,10 @@ export default function NewsPage() {
 
       <section className="mx-auto max-w-3xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
-          Market News
+          Marknadsnyheter
         </h1>
         <p className="text-[var(--text-secondary)] mb-8">
-          Top current financial and business headlines, pulled live.
+          Aktuella finans- och näringslivsrubriker, hämtade live.
         </p>
 
         {error && (
@@ -49,13 +49,13 @@ export default function NewsPage() {
 
         {!error && !news && (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 text-center text-[var(--text-secondary)]">
-            Loading…
+            Laddar…
           </div>
         )}
 
         {news && news.length === 0 && (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 text-center text-[var(--text-secondary)]">
-            No news available right now.
+            Inga nyheter tillgängliga just nu.
           </div>
         )}
 

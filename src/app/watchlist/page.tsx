@@ -49,7 +49,7 @@ async function addTicker(ticker: string, description?: string) {
     try {
       const result = await add(ticker, description);
       if (!result.ok) {
-        setError(result.error ?? "Could not add ticker.");
+        setError(result.error ?? "Kunde inte lägga till aktien.");
         return;
       }
       setQuery("");
@@ -67,17 +67,17 @@ async function addTicker(ticker: string, description?: string) {
 
       <section className="mx-auto max-w-4xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
-          Your Watchlist
+          Din bevakningslista
         </h1>
         <p className="text-[var(--text-secondary)] mb-8">
-          Add any US equity by symbol. Saved to your account, not just this browser.
+          Lägg till valfri amerikansk aktie via ticker. Sparas på ditt konto, inte bara i webbläsaren.
         </p>
 
         <div className="relative mb-10">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value.toUpperCase())}
-            placeholder="Search ticker or company (e.g. NFLX)"
+            placeholder="Sök ticker eller bolag (t.ex. NFLX)"
             className="w-full rounded-md border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-3 font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
           />
           {results.length > 0 && (
@@ -101,7 +101,7 @@ async function addTicker(ticker: string, description?: string) {
 
         {watchlist.length === 0 ? (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 text-center text-[var(--text-secondary)]">
-            Nothing on your watchlist yet. Search for a symbol above to add one.
+            Inget på din bevakningslista ännu. Sök efter en ticker ovan för att lägga till en.
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -131,7 +131,7 @@ async function addTicker(ticker: string, description?: string) {
                         onClick={() => remove(w.ticker)}
                         className="text-xs text-[var(--text-muted)] hover:text-[var(--red)] border border-[var(--surface-border)] rounded px-2 py-1"
                       >
-                        Remove
+                        Ta bort
                       </button>
                     </div>
                   </div>
@@ -160,7 +160,7 @@ async function addTicker(ticker: string, description?: string) {
                       </p>
                       {q.next_earnings && (
                         <p className="text-xs font-mono text-[var(--text-muted)] mt-3 border-t border-[var(--surface-border)] pt-3">
-                          Next earnings:{" "}
+                          Nästa rapport:{" "}
                           <span className="text-[var(--text-secondary)]">{q.next_earnings}</span>
                         </p>
                       )}
@@ -169,7 +169,7 @@ async function addTicker(ticker: string, description?: string) {
                       </div>
                     </>
                   ) : (
-                    <p className="text-sm text-[var(--text-muted)]">Fetching live data…</p>
+                    <p className="text-sm text-[var(--text-muted)]">Hämtar livedata…</p>
                   )}
                 </div>
               );

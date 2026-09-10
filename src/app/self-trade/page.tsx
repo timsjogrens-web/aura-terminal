@@ -111,7 +111,7 @@ export default function SelfTradePage() {
         if (json.error) setLiveError(json.error);
         else setLive(json);
       })
-      .catch(() => setLiveError("Could not load a live price."));
+      .catch(() => setLiveError("Kunde inte ladda ett livepris."));
   }, []);
 
   async function submitTrade() {
@@ -126,7 +126,7 @@ export default function SelfTradePage() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setTradeError(json.error ?? "Trade failed.");
+        setTradeError(json.error ?? "Affären misslyckades.");
         return;
       }
       setShares("");
@@ -147,27 +147,27 @@ export default function SelfTradePage() {
       <section className="mx-auto max-w-5xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
           <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)]">
-            Self Trade
+            Egen handel
           </h1>
           <span className="text-[10px] font-mono tracking-widest bg-[rgba(239,68,68,0.12)] text-[var(--red)] border border-[rgba(239,68,68,0.35)] rounded px-2 py-1 self-start">
-            SIMULATED · NOT REAL MONEY
+            SIMULERAT · INGA RIKTIGA PENGAR
           </span>
         </div>
         <p className="text-[var(--text-secondary)] mb-8 max-w-2xl">
-          Your own {portfolio ? formatMoney(portfolio.startingCash) : "$100,000"} account — search any
-          stock and trade it yourself, separate from the signal engine&rsquo;s auto-trading paper
-          portfolio. See how your own picks stack up against the bot on the{" "}
+          Ditt eget {portfolio ? formatMoney(portfolio.startingCash) : "$100,000"}-konto — sök
+          valfri aktie och handla den själv, separat från signalmotorns egna auto-handlande
+          papperskonto. Se hur dina egna val står sig mot boten på{" "}
           <Link href="/paper" className="text-[var(--gold)] hover:underline">
-            Paper Portfolio
-          </Link>{" "}
-          page.
+            Papperskonto
+          </Link>
+          -sidan.
         </p>
 
         <div className="relative mb-6">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value.toUpperCase())}
-            placeholder="Search any stock (e.g. NFLX)"
+            placeholder="Sök valfri aktie (t.ex. NFLX)"
             className="w-full rounded-md border border-[var(--surface-border)] bg-black/30 px-2.5 sm:px-4 py-3 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
           />
           {results.length > 0 && (
@@ -232,7 +232,7 @@ export default function SelfTradePage() {
                   </button>
                   {side === "SELL" && (
                     <span className="self-center text-xs font-mono text-[var(--text-muted)] pl-2 pr-3">
-                      You hold {heldShares.toFixed(4)}
+                      Du äger {heldShares.toFixed(4)}
                     </span>
                   )}
                 </div>
@@ -240,7 +240,7 @@ export default function SelfTradePage() {
                 <div className="flex items-end gap-3 flex-wrap">
                   <div>
                     <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                      SHARES
+                      ANTAL
                     </label>
                     <input
                       value={shares}
@@ -250,7 +250,7 @@ export default function SelfTradePage() {
                     />
                   </div>
                   <p className="text-sm font-mono text-[var(--text-secondary)] pb-2.5">
-                    {side === "BUY" ? "Cost" : "Proceeds"}: ${cost.toFixed(2)}
+                    {side === "BUY" ? "Kostnad" : "Intäkt"}: ${cost.toFixed(2)}
                   </p>
                   <button
                     onClick={submitTrade}
@@ -259,7 +259,7 @@ export default function SelfTradePage() {
                       side === "BUY" ? "bg-[var(--green)] text-black" : "bg-[var(--red)] text-black"
                     }`}
                   >
-                    {submitting ? "Submitting…" : `${side} ${live.ticker}`}
+                    {submitting ? "Skickar…" : `${side} ${live.ticker}`}
                   </button>
                 </div>
                 {tradeError && <p className="text-sm text-[var(--red)] mt-3">{tradeError}</p>}
@@ -272,39 +272,39 @@ export default function SelfTradePage() {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">TOTAL VALUE</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">TOTALT VÄRDE</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">{formatMoney(portfolio.totalValue)}</p>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">RETURN</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">AVKASTNING</p>
                 <p className={`font-mono text-xl font-bold ${portfolio.totalReturnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
                   {formatPct(portfolio.totalReturnPct)}
                 </p>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">CASH</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">KONTANTER</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">{formatMoney(portfolio.cash)}</p>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">OPEN POSITIONS</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">ÖPPNA POSITIONER</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">{portfolio.positions.length}</p>
               </div>
             </div>
 
             {portfolio.positions.length > 0 && (
               <div className="mb-8">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">OPEN POSITIONS</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">ÖPPNA POSITIONER</p>
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
                   <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
                         <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">AVG COST</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">CURRENT</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">RETURN</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VALUE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ANTAL</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SNITTKOSTNAD</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">NUVARANDE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">AVKASTNING</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VÄRDE</th>
                         <th className="px-2.5 sm:px-4 py-3 font-medium"></th>
                       </tr>
                     </thead>
@@ -348,7 +348,7 @@ export default function SelfTradePage() {
                               }}
                               className="text-xs font-mono border border-[var(--surface-border)] rounded px-2 py-1 text-[var(--text-secondary)] hover:text-[var(--red)] hover:border-[var(--red)]"
                             >
-                              Sell
+                              Sälj
                             </button>
                           </td>
                         </tr>
@@ -361,20 +361,20 @@ export default function SelfTradePage() {
             )}
 
             <div>
-              <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">TRADE LOG</p>
+              <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">HANDELSLOGG</p>
               {portfolio.trades.length === 0 ? (
-                <p className="text-[var(--text-muted)] text-sm">No trades yet — search a stock above and place your first one.</p>
+                <p className="text-[var(--text-muted)] text-sm">Inga affärer ännu — sök en aktie ovan och gör din första.</p>
               ) : (
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
                   <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                        <th className="px-2.5 sm:px-4 py-3 font-medium">ACTION</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">ÅTGÄRD</th>
                         <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRICE</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">WHEN</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ANTAL</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRIS</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">NÄR</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -410,7 +410,7 @@ export default function SelfTradePage() {
                             ${formatPrice(t.price)}
                           </td>
                           <td className="px-2.5 sm:px-4 py-3 text-right text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
-                            {new Date(t.timestamp).toLocaleString()}
+                            {new Date(t.timestamp).toLocaleString("sv-SE")}
                           </td>
                         </tr>
                       ))}

@@ -56,7 +56,7 @@ export default function BacktestPage() {
         setCustom(customRes);
       }
     } catch {
-      setError("Backtest request failed.");
+      setError("Backtest-förfrågan misslyckades.");
     } finally {
       setLoading(false);
     }
@@ -70,12 +70,12 @@ export default function BacktestPage() {
 
       <section className="mx-auto max-w-4xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
-          Backtest Strategy Builder
+          Backtest-verktyg
         </h1>
         <p className="text-[var(--text-secondary)] mb-4 max-w-2xl">
-          Re-weight trend, momentum, and volume and see how the hit rate would have changed over
-          real historical price data — compared side by side with the live 40/30/30 weighting.
-          Weights are relative to each other, not required to sum to 100.
+          Vikta om trend, momentum och volym och se hur träffsäkerheten hade förändrats över
+          riktig historisk prisdata — jämförd sida vid sida med den live 40/30/30-viktningen.
+          Vikterna är relativa till varandra, behöver inte summera till 100.
         </p>
 
         <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
@@ -116,7 +116,7 @@ export default function BacktestPage() {
             </div>
             <div>
               <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                RANGE
+                PERIOD
               </label>
               <div className="flex gap-1 bg-black/30 rounded-md p-1 border border-[var(--surface-border)]">
                 {RANGES.map((r) => (
@@ -138,9 +138,9 @@ export default function BacktestPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
             {[
-              { label: "TREND (vs 50-day avg)", value: trend, set: setTrend },
+              { label: "TREND (vs 50-dagars snitt)", value: trend, set: setTrend },
               { label: "MOMENTUM (RSI)", value: momentum, set: setMomentum },
-              { label: "VOLUME", value: volume, set: setVolume },
+              { label: "VOLYM", value: volume, set: setVolume },
             ].map((w) => (
               <div key={w.label}>
                 <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
@@ -157,14 +157,14 @@ export default function BacktestPage() {
               </div>
             ))}
           </div>
-          <p className="text-xs font-mono text-[var(--text-muted)] mb-5">Sum: {sum}</p>
+          <p className="text-xs font-mono text-[var(--text-muted)] mb-5">Summa: {sum}</p>
 
           <button
             onClick={run}
             disabled={loading}
             className="bg-[var(--gold)] text-black font-semibold text-sm rounded-md px-4 py-2 hover:opacity-90 transition disabled:opacity-50"
           >
-            {loading ? "Running…" : "Run Backtest"}
+            {loading ? "Kör…" : "Kör backtest"}
           </button>
         </div>
 
@@ -178,24 +178,24 @@ export default function BacktestPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5">
               <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
-                LIVE WEIGHTS (40 / 30 / 30)
+                LIVE-VIKTER (40 / 30 / 30)
               </p>
               <p className="font-mono text-3xl font-bold text-[var(--text-primary)] mb-1">
                 {live.hitRate !== null ? `${live.hitRate}%` : "—"}
               </p>
               <p className="text-xs text-[var(--text-secondary)]">
-                {live.hits}/{live.evaluated} calls evaluated · {live.buySignalCount} buy signals
+                {live.hits}/{live.evaluated} utvärderade signaler · {live.buySignalCount} köpsignaler
               </p>
             </div>
             <div className="rounded-lg border border-[rgba(245,165,36,0.3)] bg-[rgba(245,165,36,0.05)] p-5">
               <p className="text-xs font-mono tracking-widest text-[var(--gold)] mb-3">
-                YOUR WEIGHTS ({trend} / {momentum} / {volume})
+                DINA VIKTER ({trend} / {momentum} / {volume})
               </p>
               <p className="font-mono text-3xl font-bold text-[var(--text-primary)] mb-1">
                 {custom.hitRate !== null ? `${custom.hitRate}%` : "—"}
               </p>
               <p className="text-xs text-[var(--text-secondary)]">
-                {custom.hits}/{custom.evaluated} calls evaluated · {custom.buySignalCount} buy signals
+                {custom.hits}/{custom.evaluated} utvärderade signaler · {custom.buySignalCount} köpsignaler
                 {live.hitRate !== null && custom.hitRate !== null && (
                   <span className={custom.hitRate >= live.hitRate ? "text-[var(--green)]" : "text-[var(--red)]"}>
                     {" "}
@@ -210,19 +210,19 @@ export default function BacktestPage() {
         {custom && custom.rows.length > 0 && (
           <div className="mt-8">
             <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
-              SIGNALS UNDER YOUR WEIGHTS
+              SIGNALER MED DINA VIKTER
             </p>
             <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
               <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                    <th className="px-2.5 sm:px-4 py-3 font-medium">SIGNAL DATE</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium">SIGNALDATUM</th>
                     <th className="px-2.5 sm:px-4 py-3 font-medium">SIGNAL</th>
-                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SCORE</th>
-                    <th className="px-2.5 sm:px-4 py-3 font-medium">TRADED</th>
-                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">AT PRICE</th>
-                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">OUTCOME</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">POÄNG</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium">HANDLAD</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">TILL PRIS</th>
+                    <th className="px-2.5 sm:px-4 py-3 font-medium text-right">UTFALL</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -232,13 +232,13 @@ export default function BacktestPage() {
                       <td className="px-2.5 sm:px-4 py-3 font-mono text-[var(--text-primary)] whitespace-nowrap">{r.signal}</td>
                       <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)]">{r.score}</td>
                       <td className="px-2.5 sm:px-4 py-3 font-mono text-[var(--text-secondary)] whitespace-nowrap">
-                        {r.execDate ?? "not yet"}
+                        {r.execDate ?? "ännu inte"}
                       </td>
                       <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                         {r.execPrice !== null ? `$${r.execPrice.toFixed(2)}` : "—"}
                       </td>
                       <td className="px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap">
-                        {r.outcome === "hit" && <span className="text-[var(--green)]">HIT</span>}
+                        {r.outcome === "hit" && <span className="text-[var(--green)]">TRÄFF</span>}
                         {r.outcome === "miss" && <span className="text-[var(--red)]">MISS</span>}
                         {!r.outcome && <span className="text-[var(--text-muted)]">—</span>}
                       </td>

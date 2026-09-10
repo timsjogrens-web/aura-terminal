@@ -36,7 +36,7 @@ export default function MobileNavDrawer({ watchlistCount }: { watchlistCount: nu
     <>
       <button
         onClick={() => setOpen(true)}
-        aria-label="Open menu"
+        aria-label="Öppna meny"
         className="sm:hidden h-8 w-8 rounded-md border border-[var(--surface-border)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -55,7 +55,7 @@ export default function MobileNavDrawer({ watchlistCount }: { watchlistCount: nu
               </span>
               <button
                 onClick={() => setOpen(false)}
-                aria-label="Close menu"
+                aria-label="Stäng meny"
                 className="h-7 w-7 rounded-md flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               >
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">

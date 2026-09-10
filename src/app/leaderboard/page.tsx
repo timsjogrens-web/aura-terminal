@@ -32,7 +32,7 @@ export default function LeaderboardPage() {
           setCachedAt(json.cachedAt);
         }
       })
-      .catch(() => setError("Could not load the leaderboard."));
+      .catch(() => setError("Kunde inte ladda topplistan."));
   }, []);
 
   const ranked = (entries ?? [])
@@ -46,19 +46,19 @@ export default function LeaderboardPage() {
 
       <section className="mx-auto max-w-3xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
-          Leaderboard
+          Topplista
         </h1>
         <p className="text-[var(--text-secondary)] mb-1 max-w-2xl">
-          Aura&rsquo;s own paper portfolio against 12 famous fund managers &mdash; ranked by price
-          performance of their disclosed holdings since each one&rsquo;s last 13F filing date.
+          Auras egna papperskonto mot 12 kända fondförvaltare &mdash; rankat efter
+          kursutveckling på deras offentliga innehav sedan vars och ens senaste 13F-anmälan.
         </p>
         <p className="text-xs text-[var(--text-muted)] mb-8 max-w-2xl">
-          13F filings never disclose a cost basis, so this isn&rsquo;t their real trading return —
-          it&rsquo;s what the priced portion of their disclosed portfolio has done since it was
-          filed. &ldquo;Coverage&rdquo; shows how much of their reported portfolio value that
-          actually covers; a manager with lots of unresolved tickers gets thinner, less reliable
-          coverage.
-          {cachedAt && <> Updated {timeAgo(cachedAt)}.</>}
+          13F-anmälningar redovisar aldrig ett anskaffningsvärde, så det här är inte deras
+          verkliga handelsavkastning — det är vad den prissatta delen av deras redovisade
+          portfölj gjort sedan anmälan. &ldquo;Täckning&rdquo; visar hur stor andel av deras
+          rapporterade portföljvärde som faktiskt täcks; en förvaltare med många ospårade
+          innehav får tunnare, mindre tillförlitlig täckning.
+          {cachedAt && <> Uppdaterad {timeAgo(cachedAt)}.</>}
         </p>
 
         {error && (
@@ -67,7 +67,7 @@ export default function LeaderboardPage() {
           </div>
         )}
 
-        {!entries && !error && <p className="text-[var(--text-muted)]">Loading…</p>}
+        {!entries && !error && <p className="text-[var(--text-muted)]">Laddar…</p>}
 
         {ranked.length > 0 && (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden mb-6">
@@ -87,7 +87,7 @@ export default function LeaderboardPage() {
                   </p>
                   <p className="text-xs text-[var(--text-secondary)] truncate">
                     {e.fund}
-                    {!e.isAura && e.coveragePct !== null && ` · ${e.coveragePct.toFixed(0)}% coverage`}
+                    {!e.isAura && e.coveragePct !== null && ` · ${e.coveragePct.toFixed(0)}% täckning`}
                   </p>
                 </div>
                 <span
@@ -104,7 +104,7 @@ export default function LeaderboardPage() {
 
         {unranked.length > 0 && (
           <p className="text-xs text-[var(--text-muted)]">
-            No data yet for: {unranked.map((e) => e.name).join(", ")}.
+            Ingen data ännu för: {unranked.map((e) => e.name).join(", ")}.
           </p>
         )}
       </section>

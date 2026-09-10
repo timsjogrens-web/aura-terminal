@@ -39,7 +39,7 @@ export default function StockCard({ q }: { q: Quote }) {
 
         {q.next_earnings && (
           <p className="text-xs font-mono text-[var(--text-muted)] border-t border-[var(--surface-border)] pt-3">
-            Next earnings: <span className="text-[var(--text-secondary)]">{q.next_earnings}</span>
+            Nästa rapport: <span className="text-[var(--text-secondary)]">{q.next_earnings}</span>
           </p>
         )}
       </Link>

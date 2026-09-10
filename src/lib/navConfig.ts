@@ -1,32 +1,36 @@
 export const MAIN_LINKS = [
-  { href: "/", label: "Markets" },
-  { href: "/watchlist", label: "Watchlist" },
-  { href: "/history", label: "History" },
-  { href: "/news", label: "News" },
+  { href: "/", label: "Marknader" },
+  { href: "/watchlist", label: "Bevakningslista" },
+  { href: "/history", label: "Historik" },
+  { href: "/news", label: "Nyheter" },
 ];
 
 export const SIDEBAR_GROUPS: { label: string; links: { href: string; label: string }[] }[] = [
   {
     label: "RESEARCH",
     links: [
-      { href: "/investors", label: "Investors" },
+      { href: "/investors", label: "Investerare" },
       { href: "/insiders", label: "Insiders" },
-      { href: "/leaderboard", label: "Leaderboard" },
+      { href: "/leaderboard", label: "Topplista" },
     ],
   },
   {
-    label: "TOOLS",
+    label: "VERKTYG",
     links: [
-      { href: "/heatmap", label: "Heatmap" },
+      { href: "/heatmap", label: "Värmekarta" },
       { href: "/backtest", label: "Backtest" },
-      { href: "/risk-calculator", label: "Risk Calculator" },
+      { href: "/risk-calculator", label: "Riskkalkylator" },
     ],
   },
   {
-    label: "TRADING",
+    label: "HANDEL",
     links: [
-      { href: "/paper", label: "Paper" },
-      { href: "/self-trade", label: "Self Trade" },
+      { href: "/paper", label: "Papperskonto" },
+      { href: "/self-trade", label: "Egen handel" },
     ],
+  },
+  {
+    label: "OM SAJTEN",
+    links: [{ href: "/methodology", label: "Metodik & ärlighet" }],
   },
 ];

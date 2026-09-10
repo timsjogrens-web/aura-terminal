@@ -7,9 +7,9 @@ const CARDS = [
         <path d="M3 9h18M8 4v5M8 14h5M8 17h8" strokeLinecap="round" />
       </svg>
     ),
-    title: "Real news, not just a number",
+    title: "Riktiga nyheter, inte bara en siffra",
     description:
-      "Every stock is checked against live financial headlines, filtered so only articles that actually name the company make it through — never generic market noise dressed up as company-specific news.",
+      "Varje aktie stäms av mot live-nyheter, filtrerat så bara artiklar som faktiskt nämner bolaget släpps igenom — aldrig generellt marknadsbrus förklätt till bolagsspecifika nyheter.",
   },
   {
     number: "02",
@@ -19,9 +19,9 @@ const CARDS = [
         <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
-    title: "Every call is timestamped and checked",
+    title: "Varje signal loggas och kontrolleras",
     description:
-      "Every signal is logged the moment it's made. Later, the History page shows exactly what happened to the price afterward — with a real hit rate, not a claim you have to take on faith.",
+      "Varje signal loggas i samma stund den ges. Historik-sidan visar sedan exakt vad som hände med priset efteråt — en verklig träffsäkerhet, inte ett påstående du måste ta på tro.",
   },
   {
     number: "03",
@@ -31,9 +31,9 @@ const CARDS = [
         <path d="M3 21h18" strokeLinecap="round" />
       </svg>
     ),
-    title: "Nothing hidden behind the score",
+    title: "Inget gömt bakom poängen",
     description:
-      "Every score breaks down into the exact inputs behind it — trend vs. the 50-day average, RSI momentum, and volume vs. its average — so you can see why a call was made, not just trust the number.",
+      "Varje poäng bryts ner till exakt de faktorer som ligger bakom — trend mot 50-dagars snittet, RSI-momentum och volym mot sitt eget snitt — så du kan se varför en signal gavs, inte bara lita på siffran.",
   },
 ];
 

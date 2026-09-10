@@ -44,7 +44,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
         if (json.error) setError(json.error);
         else setData(json);
       })
-      .catch(() => setError("Could not load this manager's holdings."));
+      .catch(() => setError("Kunde inte ladda denna förvaltares innehav."));
   }, [slug]);
 
   return (
@@ -56,7 +56,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
           href="/investors"
           className="text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--gold)] transition"
         >
-          ← All investors
+          ← Alla investerare
         </Link>
 
         {error && (
@@ -93,21 +93,21 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
               <>
                 <div className="flex items-baseline gap-6 mb-6 mt-6 flex-wrap">
                   <div>
-                    <p className="text-xs font-mono tracking-widest text-[var(--text-muted)]">PORTFOLIO VALUE</p>
+                    <p className="text-xs font-mono tracking-widest text-[var(--text-muted)]">PORTFÖLJVÄRDE</p>
                     <p className="font-mono text-2xl font-bold text-[var(--text-primary)]">
                       {formatValue(data.totalValue)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-mono tracking-widest text-[var(--text-muted)]">HOLDINGS</p>
+                    <p className="text-xs font-mono tracking-widest text-[var(--text-muted)]">INNEHAV</p>
                     <p className="font-mono text-2xl font-bold text-[var(--text-primary)]">
                       {data.holdings.length}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-mono tracking-widest text-[var(--text-muted)]">FILED</p>
+                    <p className="text-xs font-mono tracking-widest text-[var(--text-muted)]">ANMÄLD</p>
                     <p className="font-mono text-2xl font-bold text-[var(--text-primary)]">
-                      {new Date(data.filingDate).toLocaleDateString()}
+                      {new Date(data.filingDate).toLocaleDateString("sv-SE")}
                     </p>
                   </div>
                 </div>
@@ -117,10 +117,10 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                        <th className="px-2.5 sm:px-4 py-3 font-medium">ISSUER</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">% PORTFOLIO</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VALUE</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">BOLAG</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">% PORTFÖLJ</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VÄRDE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ANTAL</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -144,7 +144,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                               <span className="text-[var(--text-secondary)] truncate">{h.issuer}</span>
                               {h.isNew && (
                                 <span className="text-[10px] font-mono tracking-wider bg-[rgba(245,165,36,0.15)] text-[var(--gold)] border border-[rgba(245,165,36,0.35)] rounded px-1.5 py-0.5 shrink-0">
-                                  NEW
+                                  NY
                                 </span>
                               )}
                             </div>
@@ -168,7 +168,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                 {data.closedPositions.length > 0 && (
                   <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5">
                     <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
-                      CLOSED SINCE {data.previousFilingDate && new Date(data.previousFilingDate).toLocaleDateString()}
+                      STÄNGDA SEDAN {data.previousFilingDate && new Date(data.previousFilingDate).toLocaleDateString("sv-SE")}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {data.closedPositions.map((p) => (
@@ -184,7 +184,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                 )}
               </>
             ) : (
-              <p className="text-[var(--text-muted)] mt-6">No filing data yet for this manager.</p>
+              <p className="text-[var(--text-muted)] mt-6">Ingen anmälningsdata ännu för denna förvaltare.</p>
             )}
           </>
         )}

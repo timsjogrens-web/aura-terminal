@@ -9,6 +9,14 @@ import { Quote } from "@/lib/types";
 import CompanyLogo from "@/components/CompanyLogo";
 
 const SECTOR_ORDER = ["Technology", "Financials", "Healthcare", "Energy", "Consumer"];
+const SECTOR_LABELS: Record<string, string> = {
+  Technology: "Teknik",
+  Financials: "Finans",
+  Healthcare: "Hälsovård",
+  Energy: "Energi",
+  Consumer: "Konsument",
+  Other: "Övrigt",
+};
 
 // Maps a change% to a background: brighter/more saturated the further
 // from zero, capped so a single outlier doesn't wash out the rest of the
@@ -69,24 +77,24 @@ export default function HeatmapPage() {
 
       <section className="mx-auto max-w-6xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
-          Market Heatmap
+          Värmekarta
         </h1>
         <p className="text-[var(--text-secondary)] mb-8 max-w-2xl">
-          Every tracked stock, grouped by sector and colored by today&rsquo;s % change. Click any
-          tile to open that stock.
+          Alla spårade aktier, grupperade per bransch och färgade efter dagens förändring i
+          procent. Klicka på en ruta för att öppna den aktien.
         </p>
 
-        {loading && <p className="text-[var(--text-muted)]">Loading…</p>}
+        {loading && <p className="text-[var(--text-muted)]">Laddar…</p>}
 
         {!loading && sectors.length === 0 && (
-          <p className="text-[var(--text-muted)]">No quote data available yet.</p>
+          <p className="text-[var(--text-muted)]">Ingen kursdata tillgänglig ännu.</p>
         )}
 
         <div className="flex flex-col gap-8">
           {sectors.map((sector) => (
             <div key={sector}>
               <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
-                {sector.toUpperCase()}
+                {(SECTOR_LABELS[sector] ?? sector).toUpperCase()}
               </p>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                 {bySector.get(sector)!.map((q) => (

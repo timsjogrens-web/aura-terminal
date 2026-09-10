@@ -102,7 +102,7 @@ export default function Sidebar() {
 
       <button
         onClick={toggle}
-        title={collapsed ? "Show sidebar" : "Hide sidebar"}
+        title={collapsed ? "Visa sidopanel" : "Dölj sidopanel"}
         style={{ left: collapsed ? 8 : WIDTH - 28 }}
         className={`hidden sm:flex items-center justify-center h-6 w-6 rounded-md border border-[var(--surface-border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] fixed top-[18px] z-40 ${
           transitionsEnabled ? "transition-[left] duration-200 ease-in-out" : ""

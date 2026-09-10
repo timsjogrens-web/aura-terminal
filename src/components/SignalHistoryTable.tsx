@@ -51,7 +51,7 @@ export default function SignalHistoryTable({
   if (rows.length === 0) {
     return (
       <div className="p-8 text-center text-[var(--text-secondary)] text-sm">
-        No signal history recorded yet for this ticker.
+        Ingen signalhistorik registrerad ännu för denna aktie.
       </div>
     );
   }
@@ -60,9 +60,9 @@ export default function SignalHistoryTable({
     <>
       <div className="p-4 border-b border-[var(--surface-border)]">
         <div className="flex items-center justify-between mb-3">
-          <p className="font-mono font-bold text-[var(--text-primary)]">{title ?? "History"}</p>
+          <p className="font-mono font-bold text-[var(--text-primary)]">{title ?? "Historik"}</p>
           <p className="text-sm font-mono text-[var(--text-secondary)]">
-            Hit rate: {displayHitRate !== null ? `${displayHitRate}%` : "—"} ({displayEvaluated} scored)
+            Träffsäkerhet: {displayHitRate !== null ? `${displayHitRate}%` : "—"} ({displayEvaluated} utvärderade)
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -83,19 +83,19 @@ export default function SignalHistoryTable({
       </div>
       {filteredRows.length === 0 ? (
         <div className="p-8 text-center text-[var(--text-secondary)] text-sm">
-          No {filter} calls recorded for this ticker yet.
+          Inga {filter}-signaler registrerade för denna aktie ännu.
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs font-mono tracking-widest text-[var(--text-secondary)] border-b border-[var(--surface-border)]">
-                <th className="px-4 py-2.5">Timestamp</th>
+                <th className="px-4 py-2.5">Tidpunkt</th>
                 <th className="px-4 py-2.5">Signal</th>
-                <th className="px-4 py-2.5">Score</th>
-                <th className="px-4 py-2.5">Price</th>
-                <th className="px-4 py-2.5">Next Price</th>
-                <th className="px-4 py-2.5">Outcome</th>
+                <th className="px-4 py-2.5">Poäng</th>
+                <th className="px-4 py-2.5">Pris</th>
+                <th className="px-4 py-2.5">Nästa pris</th>
+                <th className="px-4 py-2.5">Utfall</th>
               </tr>
             </thead>
             <tbody>
@@ -120,7 +120,7 @@ export default function SignalHistoryTable({
                     {r.nextPrice !== null ? `$${formatPrice(r.nextPrice)}` : "—"}
                   </td>
                   <td className="px-4 py-2.5 font-mono text-xs">
-                    {r.outcome === "hit" && <span className="text-[var(--green)]">HIT</span>}
+                    {r.outcome === "hit" && <span className="text-[var(--green)]">TRÄFF</span>}
                     {r.outcome === "miss" && <span className="text-[var(--red)]">MISS</span>}
                     {!r.outcome && <span className="text-[var(--text-muted)]">—</span>}
                   </td>

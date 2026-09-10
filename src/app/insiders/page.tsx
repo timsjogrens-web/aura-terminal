@@ -40,7 +40,7 @@ export default function InsidersPage() {
         if (json.error) setError(json.error);
         else setTrades(json.trades);
       })
-      .catch(() => setError("Could not load insider trades."));
+      .catch(() => setError("Kunde inte ladda insiderhandel."));
   }
 
   useEffect(() => {
@@ -66,20 +66,21 @@ export default function InsidersPage() {
       <section className="mx-auto max-w-5xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
           <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)]">
-            Insider Trading
+            Insiderhandel
           </h1>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
             className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
           >
-            {refreshing ? "Checking SEC…" : "Check for new filings"}
+            {refreshing ? "Kontrollerar SEC…" : "Kontrollera nya anmälningar"}
           </button>
         </div>
         <p className="text-[var(--text-secondary)] mb-6 max-w-2xl">
-          Open-market buys and sells by officers, directors, and 10%+ owners of every stock in the
-          tracked universe, from their public SEC Form 4 disclosures. Grants, tax-withholding, and
-          option exercises are left out — only actual discretionary purchases and sales.
+          Köp och sälj på öppna marknaden av direktörer, styrelseledamöter och ägare med 10%+
+          innehav i varje spårad aktie, hämtat från deras offentliga SEC Form 4-anmälningar.
+          Tilldelningar, skatteavdrag och optionsinlösen är exkluderade — bara faktiska,
+          frivilliga köp och försäljningar.
         </p>
 
         <div className="flex items-center gap-1 bg-black/30 rounded-lg p-1 border border-[var(--surface-border)] w-fit mb-6">
@@ -91,7 +92,7 @@ export default function InsidersPage() {
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            Buys only
+            Endast köp
           </button>
           <button
             onClick={() => setFilter("all")}
@@ -101,7 +102,7 @@ export default function InsidersPage() {
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            All trades
+            Alla affärer
           </button>
         </div>
 
@@ -113,8 +114,8 @@ export default function InsidersPage() {
 
         {trades && trades.length === 0 && (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 text-center text-[var(--text-secondary)] mb-8">
-            No filings loaded yet. Click &ldquo;Check for new filings&rdquo; above to pull the
-            latest Form 4 data from SEC EDGAR (30 tickers, takes a minute or two).
+            Inga anmälningar laddade ännu. Klicka på &ldquo;Kontrollera nya anmälningar&rdquo; ovan
+            för att hämta senaste Form 4-datan från SEC EDGAR (30 aktier, tar en minut eller två).
           </div>
         )}
 
@@ -126,11 +127,11 @@ export default function InsidersPage() {
                 <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
                   <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
                   <th className="px-2.5 sm:px-4 py-3 font-medium">INSIDER</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium">ACTION</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRICE</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VALUE</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">WHEN</th>
+                  <th className="px-2.5 sm:px-4 py-3 font-medium">ÅTGÄRD</th>
+                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ANTAL</th>
+                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRIS</th>
+                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VÄRDE</th>
+                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">NÄR</th>
                 </tr>
               </thead>
               <tbody>
@@ -156,7 +157,7 @@ export default function InsidersPage() {
                             : "bg-[rgba(239,68,68,0.12)] text-[var(--red)]"
                         }`}
                       >
-                        {t.transaction_code === "P" ? "BUY" : "SELL"}
+                        {t.transaction_code === "P" ? "KÖP" : "SÄLJ"}
                       </span>
                     </td>
                     <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
@@ -178,7 +179,7 @@ export default function InsidersPage() {
             </div>
             {visible.length === 0 && (
               <p className="text-center text-sm text-[var(--text-muted)] py-8">
-                No open-market buys in the loaded data yet.
+                Inga köp på öppna marknaden i den laddade datan ännu.
               </p>
             )}
           </div>

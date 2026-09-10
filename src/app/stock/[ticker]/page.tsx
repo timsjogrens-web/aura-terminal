@@ -42,14 +42,14 @@ function buildCompanySummary(ticker: string, profile: CompanyProfile): string {
   const parts: string[] = [];
   const name = profile.name ?? ticker;
   let sentence = name;
-  if (profile.finnhubIndustry) sentence += ` operates in the ${profile.finnhubIndustry} industry`;
-  if (profile.exchange) sentence += `${profile.finnhubIndustry ? " and" : ""} trades on ${profile.exchange}`;
+  if (profile.finnhubIndustry) sentence += ` verkar inom branschen ${profile.finnhubIndustry}`;
+  if (profile.exchange) sentence += `${profile.finnhubIndustry ? " och" : ""} handlas på ${profile.exchange}`;
   parts.push(sentence + ".");
   if (profile.marketCapitalization) {
-    parts.push(`Current market cap is ${formatMarketCap(profile.marketCapitalization)}.`);
+    parts.push(`Nuvarande börsvärde är ${formatMarketCap(profile.marketCapitalization)}.`);
   }
   if (profile.ipo) {
-    parts.push(`Listed since ${profile.ipo}.`);
+    parts.push(`Noterad sedan ${profile.ipo}.`);
   }
   return parts.join(" ");
 }
@@ -82,7 +82,7 @@ export default function StockDetailPage({
         if (json.error) setProfileError(json.error);
         else setProfile(json.profile);
       })
-      .catch(() => setProfileError("Could not load company info."));
+      .catch(() => setProfileError("Kunde inte ladda bolagsinformation."));
   }, [ticker]);
 
   useEffect(() => {
@@ -101,7 +101,7 @@ export default function StockDetailPage({
           onClick={() => router.back()}
           className="text-sm text-[var(--text-secondary)] hover:text-[var(--gold)] inline-flex items-center gap-1 mb-6"
         >
-          ← Back
+          ← Tillbaka
         </button>
 
         <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
@@ -110,7 +110,7 @@ export default function StockDetailPage({
             <div>
               <h1 className="font-serif font-bold text-4xl text-[var(--text-primary)]">{ticker}</h1>
               <p className="text-[var(--text-secondary)] mt-1">
-                {profile?.name ?? quote?.company_name ?? "Loading…"}
+                {profile?.name ?? quote?.company_name ?? "Laddar…"}
               </p>
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function StockDetailPage({
                 if (latest.signal !== quote.signal) return null;
                 return (
                   <span className="text-xs font-mono text-[var(--gold)] bg-[rgba(245,165,36,0.1)] border border-[rgba(245,165,36,0.3)] rounded px-2 py-1 whitespace-nowrap">
-                    ● Since {new Date(latest.timestamp).toLocaleString()}
+                    ● Sedan {new Date(latest.timestamp).toLocaleString("sv-SE")}
                   </span>
                 );
               })()}
@@ -163,7 +163,7 @@ export default function StockDetailPage({
         {quote && !quote.error && (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-6">
             <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-3">
-              WHY THIS SCORE
+              VARFÖR DENNA POÄNG
             </p>
             <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
               {buildComment(quote)}
@@ -172,25 +172,25 @@ export default function StockDetailPage({
               <div>
                 <p className="text-[var(--text-secondary)] mb-1">50D SMA</p>
                 <p className="text-[var(--text-primary)]">
-                  {quote.sma50 !== null ? `$${formatPrice(quote.sma50)}` : "N/A"}
+                  {quote.sma50 !== null ? `$${formatPrice(quote.sma50)}` : "–"}
                 </p>
               </div>
               <div>
                 <p className="text-[var(--text-secondary)] mb-1">RSI(14)</p>
                 <p className="text-[var(--text-primary)]">
-                  {quote.rsi14 !== null ? quote.rsi14.toFixed(1) : "N/A"}
+                  {quote.rsi14 !== null ? quote.rsi14.toFixed(1) : "–"}
                 </p>
               </div>
               <div>
-                <p className="text-[var(--text-secondary)] mb-1">Volume</p>
+                <p className="text-[var(--text-secondary)] mb-1">Volym</p>
                 <p className="text-[var(--text-primary)]">
-                  {quote.volume !== null ? Math.round(quote.volume).toLocaleString() : "N/A"}
+                  {quote.volume !== null ? Math.round(quote.volume).toLocaleString() : "–"}
                 </p>
               </div>
               <div>
-                <p className="text-[var(--text-secondary)] mb-1">Avg Volume (20D)</p>
+                <p className="text-[var(--text-secondary)] mb-1">Snittvolym (20D)</p>
                 <p className="text-[var(--text-primary)]">
-                  {quote.avg_volume !== null ? Math.round(quote.avg_volume).toLocaleString() : "N/A"}
+                  {quote.avg_volume !== null ? Math.round(quote.avg_volume).toLocaleString() : "–"}
                 </p>
               </div>
             </div>
@@ -199,12 +199,12 @@ export default function StockDetailPage({
 
         <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-6">
           <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-3">
-            ABOUT
+            OM BOLAGET
           </p>
           {profileError ? (
             <p className="text-sm text-[var(--red)]">{profileError}</p>
           ) : !profile ? (
-            <p className="text-sm text-[var(--text-secondary)]">Loading…</p>
+            <p className="text-sm text-[var(--text-secondary)]">Laddar…</p>
           ) : (
             <>
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-4">
@@ -212,30 +212,30 @@ export default function StockDetailPage({
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
                 <div>
-                  <p className="text-[var(--text-secondary)] mb-1">Sector</p>
-                  <p className="text-[var(--text-primary)]">{profile.finnhubIndustry ?? "N/A"}</p>
+                  <p className="text-[var(--text-secondary)] mb-1">Bransch</p>
+                  <p className="text-[var(--text-primary)]">{profile.finnhubIndustry ?? "–"}</p>
                 </div>
                 <div>
-                  <p className="text-[var(--text-secondary)] mb-1">Exchange</p>
-                  <p className="text-[var(--text-primary)]">{profile.exchange ?? "N/A"}</p>
+                  <p className="text-[var(--text-secondary)] mb-1">Börs</p>
+                  <p className="text-[var(--text-primary)]">{profile.exchange ?? "–"}</p>
                 </div>
                 <div>
-                  <p className="text-[var(--text-secondary)] mb-1">Market Cap</p>
+                  <p className="text-[var(--text-secondary)] mb-1">Börsvärde</p>
                   <p className="text-[var(--text-primary)]">
                     {formatMarketCap(profile.marketCapitalization)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[var(--text-secondary)] mb-1">IPO Date</p>
-                  <p className="text-[var(--text-primary)]">{profile.ipo ?? "N/A"}</p>
+                  <p className="text-[var(--text-secondary)] mb-1">Börsnoteringsdatum</p>
+                  <p className="text-[var(--text-primary)]">{profile.ipo ?? "–"}</p>
                 </div>
                 <div>
-                  <p className="text-[var(--text-secondary)] mb-1">Next Earnings</p>
-                  <p className="text-[var(--text-primary)]">{quote?.next_earnings ?? "N/A"}</p>
+                  <p className="text-[var(--text-secondary)] mb-1">Nästa rapport</p>
+                  <p className="text-[var(--text-primary)]">{quote?.next_earnings ?? "–"}</p>
                 </div>
                 {profile.weburl && (
                   <div className="col-span-2 sm:col-span-4">
-                    <p className="text-[var(--text-secondary)] mb-1">Website</p>
+                    <p className="text-[var(--text-secondary)] mb-1">Webbplats</p>
                     <a
                       href={profile.weburl}
                       target="_blank"
@@ -259,13 +259,13 @@ export default function StockDetailPage({
 
         <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
           {!history ? (
-            <div className="p-8 text-center text-[var(--text-secondary)] text-sm">Loading history…</div>
+            <div className="p-8 text-center text-[var(--text-secondary)] text-sm">Laddar historik…</div>
           ) : (
             <SignalHistoryTable
               rows={history.rows}
               hitRate={history.hitRate}
               evaluated={history.evaluated}
-              title={`${ticker} Signal History`}
+              title={`${ticker} signalhistorik`}
               defaultFilter="STRONG BUY"
             />
           )}

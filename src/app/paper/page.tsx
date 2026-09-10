@@ -67,34 +67,35 @@ export default function PaperTradingPage() {
       <section className="mx-auto max-w-5xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
           <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)]">
-            Paper Portfolio
+            Papperskonto
           </h1>
           <span className="text-[10px] font-mono tracking-widest bg-[rgba(239,68,68,0.12)] text-[var(--red)] border border-[rgba(239,68,68,0.35)] rounded px-2 py-1 self-start">
-            SIMULATED · NOT REAL MONEY
+            SIMULERAT · INGA RIKTIGA PENGAR
           </span>
         </div>
         <p className="text-[var(--text-secondary)] mb-8 max-w-2xl">
-          A fictional {data ? formatMoney(data.startingCash) : "$100,000"} account that automatically
-          buys the instant a stock reaches BUY or STRONG BUY, and sells the instant it drops off —
-          no manual entry, no hindsight. This is the signal engine&rsquo;s own track record, priced
-          in dollars instead of a hit rate. Two safety nets sit on top of the signal: an 8% stop-loss
-          from entry, and a trailing stop that locks in gains once a position is up 15%+ (selling if
-          it then gives back 10% from its peak) — both shown as the reason in the trade log below.
+          Ett fiktivt {data ? formatMoney(data.startingCash) : "$100,000"}-konto som automatiskt
+          köper i samma stund en aktie når BUY eller STRONG BUY, och säljer i samma stund den
+          faller ur — ingen manuell inmatning, inget facit i efterhand. Det här är signalmotorns
+          egna track record, prissatt i dollar istället för en träffsäkerhet. Två skyddsnät ligger
+          ovanpå signalen: en fast stop-loss på 8% under ingångspriset, och en trailing stop som
+          låser in vinst när en position gått upp 15%+ (säljer om den sedan backar 10% från sin
+          topp) — båda visas som anledning i handelsloggen nedan.
         </p>
 
-        {!data && <p className="text-[var(--text-muted)]">Loading…</p>}
+        {!data && <p className="text-[var(--text-muted)]">Laddar…</p>}
 
         {data && (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">TOTAL VALUE</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">TOTALT VÄRDE</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">
                   {formatMoney(data.totalValue)}
                 </p>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">RETURN</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">AVKASTNING</p>
                 <p
                   className={`font-mono text-xl font-bold ${
                     data.totalReturnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
@@ -104,13 +105,13 @@ export default function PaperTradingPage() {
                 </p>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">CASH</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">KONTANTER</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">
                   {formatMoney(data.cash)}
                 </p>
               </div>
               <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">OPEN POSITIONS</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">ÖPPNA POSITIONER</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">
                   {data.positions.length}
                 </p>
@@ -122,12 +123,12 @@ export default function PaperTradingPage() {
                 <div>
                   <p className="text-xs font-mono tracking-widest text-[var(--gold)] mb-1">VS. S&amp;P 500</p>
                   <p className="text-sm text-[var(--text-secondary)]">
-                    Same {formatMoney(data.startingCash)} in SPY since the first trade ({timeAgo(data.startedAt)})
+                    Samma {formatMoney(data.startingCash)} i SPY sedan den första affären ({timeAgo(data.startedAt)})
                   </p>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p className="text-xs font-mono text-[var(--text-muted)]">SIGNAL ENGINE</p>
+                    <p className="text-xs font-mono text-[var(--text-muted)]">SIGNALMOTOR</p>
                     <p
                       className={`font-mono text-lg font-bold ${
                         data.totalReturnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
@@ -156,19 +157,19 @@ export default function PaperTradingPage() {
 
             {data.positions.length > 0 && (
               <div className="mb-8">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">OPEN POSITIONS</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">ÖPPNA POSITIONER</p>
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
                   <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
                         <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ENTRY</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">CURRENT</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">RETURN</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VALUE</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SELLS AT</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ANTAL</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">INGÅNG</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">NUVARANDE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">AVKASTNING</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VÄRDE</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SÄLJS VID</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -223,8 +224,8 @@ export default function PaperTradingPage() {
                               }`}
                               title={
                                 usingTrailing
-                                  ? `Trailing stop, locked in once up 15%+. Entry-based stop-loss floor: $${formatPrice(p.stopLossPrice)}`
-                                  : "Hard stop-loss, 8% below entry. Trailing stop takes over once up 15%+."
+                                  ? `Trailing stop, låses in vid +15%. Golv för fast stop-loss: $${formatPrice(p.stopLossPrice)}`
+                                  : "Fast stop-loss, 8% under ingångspriset. Trailing stop tar över vid +15%."
                               }
                             >
                               ${formatPrice(sellsAt)} <span className="text-[10px] opacity-70">{usingTrailing ? "trail" : "stop"}</span>
@@ -240,11 +241,11 @@ export default function PaperTradingPage() {
             )}
 
             <div>
-              <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">TRADE LOG</p>
+              <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">HANDELSLOGG</p>
               {data.trades.length === 0 ? (
                 <p className="text-[var(--text-muted)] text-sm">
-                  No trades yet — the portfolio buys automatically the next time a tracked stock
-                  reaches BUY or STRONG BUY.
+                  Inga affärer ännu — portföljen köper automatiskt nästa gång en spårad aktie
+                  når BUY eller STRONG BUY.
                 </p>
               ) : (
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
@@ -252,12 +253,12 @@ export default function PaperTradingPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                        <th className="px-2.5 sm:px-4 py-3 font-medium">ACTION</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">ÅTGÄRD</th>
                         <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SHARES</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRICE</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium">REASON</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">WHEN</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ANTAL</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRIS</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium">ANLEDNING</th>
+                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">NÄR</th>
                       </tr>
                     </thead>
                     <tbody>
