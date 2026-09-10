@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { momentumScorer, lowVolScorer, runFactorStrategy, runCompositeRankStrategy } from "./strategies";
+import {
+  momentumScorer,
+  lowVolScorer,
+  shortTermReversalScorer,
+  fiftyTwoWeekHighScorer,
+  runFactorStrategy,
+  runCompositeRankStrategy,
+} from "./strategies";
 import type { MonthlySeries } from "./fetchHistory";
 
 describe("momentumScorer", () => {
@@ -22,6 +29,32 @@ describe("lowVolScorer", () => {
     const steadyScore = lowVolScorer(steady, 12)!;
     const volatileScore = lowVolScorer(volatile, 12)!;
     expect(steadyScore).toBeGreaterThan(volatileScore);
+  });
+});
+
+describe("shortTermReversalScorer", () => {
+  it("matches a hand-calculated negative last-month return", () => {
+    const prices = [100, 90]; // -10% last month
+    // score = -(90/100 - 1) = -(-0.1) = 0.1
+    expect(shortTermReversalScorer(prices, 1)).toBeCloseTo(0.1, 10);
+  });
+
+  it("scores a big recent gain WORSE (betting on reversal), not better", () => {
+    const dropped = [100, 80];
+    const rallied = [100, 130];
+    expect(shortTermReversalScorer(dropped, 1)!).toBeGreaterThan(shortTermReversalScorer(rallied, 1)!);
+  });
+});
+
+describe("fiftyTwoWeekHighScorer", () => {
+  it("is 1.0 when the current price IS the trailing-12-month high", () => {
+    const prices = [...Array(11).fill(90), 100]; // climbing to a new high this month
+    expect(fiftyTwoWeekHighScorer(prices, 11)).toBeCloseTo(1.0, 10);
+  });
+
+  it("is below 1.0 when off the high, matching a hand-calculated ratio", () => {
+    const prices = [...Array(11).fill(100), 80]; // was 100, now 80 -> 80/100 = 0.8
+    expect(fiftyTwoWeekHighScorer(prices, 11)).toBeCloseTo(0.8, 10);
   });
 });
 

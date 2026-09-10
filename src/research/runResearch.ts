@@ -12,6 +12,8 @@ import { fetchUniverseMonthlyHistory, BENCHMARK_TICKER, UniverseChoice } from ".
 import {
   momentumScorer,
   lowVolScorer,
+  shortTermReversalScorer,
+  fiftyTwoWeekHighScorer,
   runFactorStrategy,
   runEqualWeightUniverse,
   runCompositeRankStrategy,
@@ -27,7 +29,11 @@ import {
 } from "./stats";
 
 const HOLDOUT_MONTHS = 24; // locked, never used to pick a strategy or tune parameters
-const NUM_TRIALS = 3; // momentum, low-vol, composite — the strategy variants actually being compared
+// momentum, low-vol, composite, short-term reversal, 52-week-high — every
+// variant actually being compared. Raising this when a new strategy is
+// added is the honest move: more trials means a real Sharpe ratio needs to
+// clear a higher bar before it's trustworthy, not a lower one.
+const NUM_TRIALS = 5;
 
 const universeArg = (process.argv[2] as UniverseChoice) ?? "default";
 if (universeArg !== "default" && universeArg !== "sp500") {
@@ -113,6 +119,14 @@ async function main() {
       label: "Composite (momentum + low-vol)",
       result: runCompositeRankStrategy(panel, [momentumScorer, lowVolScorer], TOP_N, startIdx, endIdxExclusive),
     },
+    {
+      label: "Short-term reversal (1mo)",
+      result: runFactorStrategy(panel, shortTermReversalScorer, TOP_N, startIdx, endIdxExclusive),
+    },
+    {
+      label: "52-week-high proximity",
+      result: runFactorStrategy(panel, fiftyTwoWeekHighScorer, TOP_N, startIdx, endIdxExclusive),
+    },
   ];
   const benchmarks: { label: string; result: StrategyResult }[] = [
     { label: "Equal-weight universe (all tickers)", result: runEqualWeightUniverse(panel, startIdx, endIdxExclusive) },
@@ -173,7 +187,7 @@ async function main() {
       ? `- Universe is the CURRENT S&P 500 constituent list — fairer than a hand-picked list, but still NOT survivorship-bias-free (companies removed from the index before today aren't included).`
       : `- Universe is the site's hand-picked 39 tickers, NOT survivorship-bias-free (no delisted/failed companies included).`
   );
-  console.log(`- Only price-based factors tested — quality/value/PEAD need fundamentals data not yet integrated (point-in-time issue, unresolved).`);
+  console.log(`- Only price-based factors tested. Quality/value need fundamentals data that's only available as today's snapshot from free sources — using it for historical decisions would be look-ahead bias, so it's excluded rather than faked. PEAD was investigated and ruled out for the same reason: Finnhub's free tier only returns the last 4 quarters of earnings-surprise history per ticker, not enough for a real backtest.`);
   console.log(`- No trading costs applied in this research pass (that's modeled separately in the live backtest tool, not here yet).`);
   console.log(`- Deflated Sharpe Ratio is an approximation (see stats.ts) — a rigorous estimate, not a guarantee.`);
   console.log(`- Hold-out numbers above were computed in this same run as the research numbers — parameters (TOP_N, lookback windows) were fixed by academic convention BEFORE looking at this data, not tuned on it.`);

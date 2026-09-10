@@ -36,6 +36,33 @@ export const lowVolScorer: FactorScorer = (prices, idx) => {
   return -Math.sqrt(variance);
 };
 
+// Short-term reversal: negative of the most recent month's return — the
+// opposite bet from momentum's skipped "-1" month. Academically documented
+// (Jegadeesh 1990) as a distinct, short-horizon effect from 12-1 momentum,
+// not a contradiction of it. Price-only, so no point-in-time risk.
+export const shortTermReversalScorer: FactorScorer = (prices, idx) => {
+  if (idx < 1) return null;
+  const p0 = prices[idx - 1];
+  const p1 = prices[idx];
+  if (!p0 || !p1) return null;
+  return -(p1 / p0 - 1);
+};
+
+// 52-week-high proximity (George & Hwang 2004): current price as a
+// fraction of its trailing-12-month high. Closer to the high (ratio near
+// 1.0) scores better. A related but distinct signal from 12-1 momentum —
+// it's about distance to a specific reference price, not total return.
+export const fiftyTwoWeekHighScorer: FactorScorer = (prices, idx) => {
+  if (idx < 11) return null;
+  let high = -Infinity;
+  for (let i = idx - 11; i <= idx; i++) {
+    if (!prices[i]) return null;
+    high = Math.max(high, prices[i]);
+  }
+  if (!prices[idx] || high <= 0) return null;
+  return prices[idx] / high;
+};
+
 export interface StrategyResult {
   months: string[]; // one per rebalance-to-rebalance step (length = panel.months.length - startIdx - 1)
   portfolioValue: number[]; // starts at 1.0, length = months.length + 1
