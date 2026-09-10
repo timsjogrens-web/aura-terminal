@@ -19,6 +19,7 @@ export const SIDEBAR_GROUPS: { label: string; links: { href: string; label: stri
     links: [
       { href: "/heatmap", label: "Heatmap" },
       { href: "/backtest", label: "Backtest" },
+      { href: "/risk-calculator", label: "Risk Calculator" },
     ],
   },
   {
