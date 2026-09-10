@@ -65,12 +65,18 @@ export default function HistoryPage() {
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
           Signalhistorik
         </h1>
-        <p className="text-[var(--text-secondary)] mb-8">
+        <p className="text-[var(--text-secondary)] mb-4">
           Varje poäng loggas med en tidsstämpel. En signal räknas bara som
           &ldquo;träff&rdquo; eller &ldquo;miss&rdquo; när priset rört sig
           minst 5% minst 4 timmar senare — mindre eller för tidiga rörelser
           lämnas obedömda istället för att räknas som brus.
         </p>
+        <Link
+          href="/track-record"
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--gold)] hover:underline mb-8"
+        >
+          Se en fullständig historisk simulering, inklusive de sämsta perioderna →
+        </Link>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <button

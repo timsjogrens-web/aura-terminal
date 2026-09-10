@@ -31,6 +31,9 @@ export const SIDEBAR_GROUPS: { label: string; links: { href: string; label: stri
   },
   {
     label: "OM SAJTEN",
-    links: [{ href: "/methodology", label: "Metodik & ärlighet" }],
+    links: [
+      { href: "/methodology", label: "Metodik & ärlighet" },
+      { href: "/track-record", label: "Track record" },
+    ],
   },
 ];

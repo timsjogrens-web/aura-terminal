@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -133,7 +134,12 @@ export default function MethodologyPage() {
           <p>
             Se alltid till att sprida risk över flera bolag och branscher, och investera aldrig mer
             än du har råd att förlora. Riskkalkylatorn hjälper dig räkna på hur stor en enskild
-            position rimligen bör vara.
+            position rimligen bör vara. Och på{" "}
+            <Link href="/track-record" className="underline hover:text-[var(--text-primary)]">
+              Track record
+            </Link>{" "}
+            ser du en fullständig historisk simulering av att mekaniskt följa varje signal —
+            inklusive de sämsta perioderna, inte bara de bra.
           </p>
         </Section>
 
