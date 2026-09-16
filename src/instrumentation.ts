@@ -7,6 +7,22 @@ export async function register() {
   // other persistent-process host) keeps using node-cron here.
   if (process.env.VERCEL) return;
 
+  // Local dev talks to the SAME live database as production (same
+  // TURSO_DATABASE_URL in .env.local) — there's no separate dev database.
+  // This cron doesn't just refresh prices, it also drives the live
+  // paper-trading bot (refreshAll -> maybeTrade/checkRiskExits), so an
+  // always-on 15-minute loop here means every local dev session silently
+  // trades the real paper account far more often than the actual once-a-day
+  // production cadence (vercel.json), which skews its real track record.
+  // Off by default; set ENABLE_LOCAL_REFRESH_CRON=true to opt in when you
+  // deliberately want live cycling while developing.
+  if (process.env.ENABLE_LOCAL_REFRESH_CRON !== "true") {
+    console.log(
+      "[aura] local scheduled refresh disabled (would trade the live paper account) — set ENABLE_LOCAL_REFRESH_CRON=true to enable"
+    );
+    return;
+  }
+
   const cron = await import("node-cron");
   const { refreshAll } = await import("@/lib/refresh");
 

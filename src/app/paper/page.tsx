@@ -83,6 +83,20 @@ export default function PaperTradingPage() {
           topp) — båda visas som anledning i handelsloggen nedan.
         </p>
 
+        <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+          <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
+            NOTIS, 9–16 SEPTEMBER 2026
+          </p>
+          <p>
+            Under kontots första vecka uppdaterades priserna av misstag var 15:e minut istället
+            för en gång per dag som är tänkt, på grund av en bugg i utvecklingsmiljön — det gav
+            fler affärer än vad kontot normalt skulle göra, vilket sannolikt gjort resultatet
+            sämre än det annars hade blivit. Bortsett från antalet affärer är siffrorna äkta och
+            orörda — vi visar dem som de är, inklusive en dålig vecka, istället för att städa bort
+            den. Buggen är fixad 16 september.
+          </p>
+        </div>
+
         {!data && <p className="text-[var(--text-muted)]">Laddar…</p>}
 
         {data && (
