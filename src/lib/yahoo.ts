@@ -13,6 +13,8 @@ interface YahooChartResponse {
         quote: Array<{
           close: (number | null)[];
           open: (number | null)[];
+          high: (number | null)[];
+          low: (number | null)[];
           volume: (number | null)[];
         }>;
         adjclose?: Array<{ adjclose: (number | null)[] }>;
@@ -33,6 +35,9 @@ export interface DailyCandles {
 export interface ChartSeries {
   timestamps: number[]; // unix seconds
   closes: number[];
+  opens?: number[]; // present when the caller requested OHLC (getChartSeries) — for candlestick rendering
+  highs?: number[];
+  lows?: number[];
 }
 
 async function fetchYahooChart(
@@ -41,7 +46,13 @@ async function fetchYahooChart(
   interval: string
 ): Promise<{
   timestamp: number[];
-  quote: { close: (number | null)[]; open: (number | null)[]; volume: (number | null)[] };
+  quote: {
+    close: (number | null)[];
+    open: (number | null)[];
+    high: (number | null)[];
+    low: (number | null)[];
+    volume: (number | null)[];
+  };
   adjclose: (number | null)[] | null;
 }> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
@@ -131,11 +142,24 @@ export async function getChartSeries(symbol: string, rangeKey: string): Promise<
   const { timestamp, quote } = await fetchYahooChart(symbol, preset.range, preset.interval);
   const timestamps: number[] = [];
   const closes: number[] = [];
+  const opens: number[] = [];
+  const highs: number[] = [];
+  const lows: number[] = [];
   for (let i = 0; i < timestamp.length; i++) {
     const c = quote.close[i];
-    if (c !== null && c !== undefined) {
+    // A candle needs all four OHLC values — Yahoo occasionally has a null
+    // open/high/low on a bar even when close is present (illiquid ticks),
+    // so skip the whole bar rather than draw a candle with fabricated
+    // values for the missing side.
+    const o = quote.open[i];
+    const h = quote.high[i];
+    const l = quote.low[i];
+    if (c !== null && c !== undefined && o !== null && o !== undefined && h !== null && h !== undefined && l !== null && l !== undefined) {
       timestamps.push(timestamp[i]);
       closes.push(c);
+      opens.push(o);
+      highs.push(h);
+      lows.push(l);
     }
   }
 
@@ -143,7 +167,7 @@ export async function getChartSeries(symbol: string, rangeKey: string): Promise<
     throw new YahooError(`Not enough chart data for ${symbol} at range ${rangeKey}.`);
   }
 
-  return { timestamps, closes };
+  return { timestamps, closes, opens, highs, lows };
 }
 
 // For honest performance comparisons (backtests, paper portfolio vs. index)

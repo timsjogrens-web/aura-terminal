@@ -9,7 +9,13 @@ type Range = (typeof RANGES)[number];
 interface ChartData {
   timestamps: number[];
   closes: number[];
+  opens: number[];
+  highs: number[];
+  lows: number[];
 }
+
+type ChartType = "line" | "candles";
+const CHART_TYPE_KEY = "aura_chart_type";
 
 interface SignalMarker {
   timestamp: number; // unix seconds
@@ -30,13 +36,22 @@ const DAYS_AGO: Partial<Record<Range, number>> = {
   "3Y": 365 * 3,
 };
 
+function sliceFrom(series: ChartData, idx: number): ChartData {
+  return {
+    timestamps: series.timestamps.slice(idx),
+    closes: series.closes.slice(idx),
+    opens: series.opens.slice(idx),
+    highs: series.highs.slice(idx),
+    lows: series.lows.slice(idx),
+  };
+}
+
 function sliceByDaysAgo(series: ChartData, daysAgo: number): ChartData {
   if (series.timestamps.length === 0) return series;
   const nowTs = series.timestamps[series.timestamps.length - 1];
   const targetTs = nowTs - daysAgo * 86400;
   const startIdx = series.timestamps.findIndex((t) => t >= targetTs);
-  const idx = startIdx === -1 ? 0 : startIdx;
-  return { timestamps: series.timestamps.slice(idx), closes: series.closes.slice(idx) };
+  return sliceFrom(series, startIdx === -1 ? 0 : startIdx);
 }
 
 function sliceByYTD(series: ChartData): ChartData {
@@ -44,8 +59,7 @@ function sliceByYTD(series: ChartData): ChartData {
   const now = new Date(series.timestamps[series.timestamps.length - 1] * 1000);
   const jan1 = Date.UTC(now.getUTCFullYear(), 0, 1) / 1000;
   const startIdx = series.timestamps.findIndex((t) => t >= jan1);
-  const idx = startIdx === -1 ? 0 : startIdx;
-  return { timestamps: series.timestamps.slice(idx), closes: series.closes.slice(idx) };
+  return sliceFrom(series, startIdx === -1 ? 0 : startIdx);
 }
 
 function pctChange(series: ChartData | null): number | null {
@@ -60,7 +74,17 @@ async function fetchSeries(ticker: string, range: string): Promise<ChartData | n
   const res = await fetch(`/api/chart?ticker=${ticker}&range=${range}`);
   const json = await res.json();
   if (json.error) return null;
-  return { timestamps: json.timestamps, closes: json.closes };
+  // opens/highs/lows are missing only for the rare bar the API already
+  // dropped for incomplete OHLC — same-length arrays are guaranteed by
+  // getChartSeries. Falling back to closes here is just a type-safety
+  // backstop, not something expected to actually trigger.
+  return {
+    timestamps: json.timestamps,
+    closes: json.closes,
+    opens: json.opens ?? json.closes,
+    highs: json.highs ?? json.closes,
+    lows: json.lows ?? json.closes,
+  };
 }
 
 export default function PriceChart({
@@ -71,6 +95,18 @@ export default function PriceChart({
   changePct?: number | null;
 }) {
   const [range, setRange] = useState<Range>("1M");
+  const [chartType, setChartType] = useState<ChartType>("line");
+
+  useEffect(() => {
+    const saved = localStorage.getItem(CHART_TYPE_KEY);
+    if (saved === "line" || saved === "candles") setChartType(saved);
+  }, []);
+
+  function changeChartType(next: ChartType) {
+    setChartType(next);
+    localStorage.setItem(CHART_TYPE_KEY, next);
+  }
+
   // "Medium" (1y daily) and "long" (5y weekly) are fetched once per ticker;
   // every range except 1D/1W is derived from them locally (instant, no
   // refetch on click). 1D/1W need finer intraday granularity those two
@@ -205,9 +241,11 @@ export default function PriceChart({
     );
   }
 
-  const { timestamps, closes } = displayData;
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
+  const { timestamps, closes, opens, highs, lows } = displayData;
+  // Scale off highs/lows (not just closes) so candle wicks are never
+  // clipped — and so the price axis doesn't jump when toggling chart type.
+  const min = Math.min(...lows);
+  const max = Math.max(...highs);
   const priceRange = max - min || 1;
   const rising = closes[closes.length - 1] >= closes[0];
   const lineColor = rising ? "var(--green)" : "var(--red)";
@@ -217,6 +255,11 @@ export default function PriceChart({
 
   const points = closes.map((c, i) => `${xFor(i).toFixed(1)},${yFor(c).toFixed(1)}`).join(" ");
   const areaPoints = `${PADDING},${HEIGHT - PADDING} ${points} ${WIDTH - PADDING},${HEIGHT - PADDING}`;
+
+  // Candle body width: a fraction of the space between two bars, capped so
+  // a short range (few bars) doesn't produce absurdly fat candles.
+  const stepWidth = (WIDTH - PADDING * 2) / Math.max(timestamps.length - 1, 1);
+  const candleWidth = Math.max(1, Math.min(stepWidth * 0.6, 10));
 
   const rangeStart = timestamps[0];
   const visibleMarkers = markers.filter((m) => m.timestamp >= rangeStart);
@@ -257,6 +300,27 @@ export default function PriceChart({
 
   return (
     <div>
+      <div className="flex justify-end mb-2">
+        <div className="flex gap-1 bg-black/30 rounded-md p-1 border border-[var(--surface-border)]">
+          <button
+            onClick={() => changeChartType("line")}
+            className={`px-3 py-1 rounded text-xs font-mono font-semibold transition ${
+              chartType === "line" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+            }`}
+          >
+            Linje
+          </button>
+          <button
+            onClick={() => changeChartType("candles")}
+            className={`px-3 py-1 rounded text-xs font-mono font-semibold transition ${
+              chartType === "candles" ? "bg-[var(--surface-2)] text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+            }`}
+          >
+            Candlestick
+          </button>
+        </div>
+      </div>
+
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto">
         <text x={PADDING} y={16} fontSize="11" fill="var(--text-muted)" fontFamily="var(--font-mono)">
           ${formatPrice(max)}
@@ -271,8 +335,35 @@ export default function PriceChart({
           ${formatPrice(min)}
         </text>
 
-        <polyline points={areaPoints} fill={lineColor} opacity={0.08} stroke="none" />
-        <polyline points={points} fill="none" stroke={lineColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        {chartType === "line" ? (
+          <>
+            <polyline points={areaPoints} fill={lineColor} opacity={0.08} stroke="none" />
+            <polyline points={points} fill="none" stroke={lineColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          </>
+        ) : (
+          closes.map((c, i) => {
+            const o = opens[i];
+            const h = highs[i];
+            const l = lows[i];
+            const up = c >= o;
+            const color = up ? "var(--green)" : "var(--red)";
+            const bodyTop = yFor(Math.max(o, c));
+            const bodyBottom = yFor(Math.min(o, c));
+            const x = xFor(i);
+            return (
+              <g key={i}>
+                <line x1={x} x2={x} y1={yFor(h)} y2={yFor(l)} stroke={color} strokeWidth={1} />
+                <rect
+                  x={x - candleWidth / 2}
+                  y={bodyTop}
+                  width={candleWidth}
+                  height={Math.max(bodyBottom - bodyTop, 1)}
+                  fill={color}
+                />
+              </g>
+            );
+          })
+        )}
 
         {markerIndices.map((idx) => (
           <circle
