@@ -43,6 +43,7 @@ export const DEFAULT_UNIVERSE: UniverseEntry[] = [
   { ticker: "UNH", name: "UnitedHealth Group Inc.", sector: "Healthcare" },
   { ticker: "JNJ", name: "Johnson & Johnson", sector: "Healthcare" },
   { ticker: "ABBV", name: "AbbVie Inc.", sector: "Healthcare" },
+  { ticker: "ABCL", name: "AbCellera Biologics Inc.", sector: "Healthcare" },
   { ticker: "XOM", name: "Exxon Mobil Corporation", sector: "Energy" },
   { ticker: "CVX", name: "Chevron Corporation", sector: "Energy" },
   { ticker: "COP", name: "ConocoPhillips", sector: "Energy" },
