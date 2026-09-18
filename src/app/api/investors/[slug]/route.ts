@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { MANAGERS_BY_SLUG } from "@/lib/investors";
+import { getLogosForTickers } from "@/lib/logoCache";
 
 interface HoldingRow {
   cusip: string;
@@ -58,6 +59,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
       .map((r) => ({ cusip: r.cusip, issuer: r.issuer, ticker: r.ticker }));
   }
 
+  const logoByTicker = await getLogosForTickers(
+    holdings.map((h) => h.ticker).filter((t): t is string => !!t)
+  );
+
   const enriched = holdings.map((h) => ({
     cusip: h.cusip,
     issuer: h.issuer,
@@ -66,6 +71,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     shares: Number(h.shares),
     pct: totalValue > 0 ? (Number(h.value) / totalValue) * 100 : 0,
     isNew: previousFilingDate ? !previousCusips.has(h.cusip) : false,
+    logo: h.ticker ? logoByTicker.get(h.ticker) ?? null : null,
   }));
 
   return NextResponse.json({

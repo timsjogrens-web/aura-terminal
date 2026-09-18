@@ -145,6 +145,11 @@ const statements = [
     peak_price REAL NOT NULL,
     updated_at TEXT NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS ticker_logo_cache (
+    ticker TEXT PRIMARY KEY,
+    logo TEXT,
+    cached_at TEXT NOT NULL
+  )`,
 ];
 
 for (const sql of statements) {

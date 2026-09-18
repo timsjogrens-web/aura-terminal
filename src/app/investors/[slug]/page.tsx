@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CompanyLogo from "@/components/CompanyLogo";
 import { formatValue, initials, InstitutionalManager } from "@/lib/investors";
 
 interface Holding {
@@ -14,6 +15,7 @@ interface Holding {
   shares: number;
   pct: number;
   isNew: boolean;
+  logo: string | null;
 }
 
 interface ClosedPosition {
@@ -131,6 +133,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                         >
                           <td className="px-2.5 sm:px-4 py-3">
                             <div className="flex items-center gap-2 whitespace-nowrap">
+                              {h.ticker && <CompanyLogo ticker={h.ticker} logoUrl={h.logo} size={20} />}
                               {h.ticker ? (
                                 <Link
                                   href={`/stock/${h.ticker}`}

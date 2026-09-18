@@ -119,6 +119,11 @@ export const SCHEMA_STATEMENTS = [
     peak_price REAL NOT NULL,
     updated_at TEXT NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS ticker_logo_cache (
+    ticker TEXT PRIMARY KEY,
+    logo TEXT,
+    cached_at TEXT NOT NULL
+  )`,
 ];
 
 export async function getMeta(key: string): Promise<string | null> {
