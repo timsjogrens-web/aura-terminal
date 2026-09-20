@@ -88,8 +88,9 @@ export default function BacktestPage() {
             dras av på varje affär.
           </p>
           <p>
-            Aktieurvalet är dagens 40 spårade bolag — inte ett historiskt korrekt urval som även
-            innehåller aktier som gått i konkurs eller avnoterats sedan dess. Det gör att resultatet
+            Aktieurvalet är dagens spårade bolag — delvis sådana som kända fondförvaltare äger —
+            inte ett historiskt korrekt urval som även innehåller aktier som gått i konkurs eller
+            avnoterats sedan dess. Det gör att resultatet
             sannolikt ser bättre ut här än vad en riktig, fristående strategi skulle prestera
             (survivorship bias). Gratis data med den bristen är ett känt, accepterat avsteg för det
             här verktyget just nu — inte något vi gömmer.

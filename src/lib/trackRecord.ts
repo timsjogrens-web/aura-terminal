@@ -271,21 +271,37 @@ export async function computeUniverseTrackRecord(): Promise<UniverseTrackRecordR
   const seriesList: TickerSeries[] = [];
   const excludedTickers: string[] = [];
 
-  for (const entry of DEFAULT_UNIVERSE) {
-    try {
-      const candles = await getDailyCandles(entry.ticker, FETCH_RANGE);
-      seriesList.push({
-        ticker: entry.ticker,
-        dates: candles.timestamps.map(toDateKey),
-        adjCloses: candles.adjCloses,
-        opens: candles.opens,
-        volumes: candles.volumes,
-      });
-    } catch (e) {
-      excludedTickers.push(entry.ticker);
-      if (!(e instanceof YahooError)) throw e;
+  // In chunks of a few at a time — ~170 sequential fetches would blow the
+  // route's time limit, while one big burst is unkind to Yahoo's free,
+  // unauthenticated endpoint. Results are collected in universe order so
+  // the simulation stays deterministic.
+  const CHUNK = 8;
+  for (let i = 0; i < DEFAULT_UNIVERSE.length; i += CHUNK) {
+    const chunk = DEFAULT_UNIVERSE.slice(i, i + CHUNK);
+    const results = await Promise.all(
+      chunk.map(async (entry) => {
+        try {
+          const candles = await getDailyCandles(entry.ticker, FETCH_RANGE);
+          return {
+            entry,
+            series: {
+              ticker: entry.ticker,
+              dates: candles.timestamps.map(toDateKey),
+              adjCloses: candles.adjCloses,
+              opens: candles.opens,
+              volumes: candles.volumes,
+            } as TickerSeries,
+          };
+        } catch (e) {
+          if (!(e instanceof YahooError)) throw e;
+          return { entry, series: null };
+        }
+      })
+    );
+    for (const r of results) {
+      if (r.series) seriesList.push(r.series);
+      else excludedTickers.push(r.entry.ticker);
     }
-    await new Promise((r) => setTimeout(r, 150)); // stay polite to Yahoo's free, unauthenticated endpoint
   }
 
   const result = runUniverseTrackRecord(seriesList);

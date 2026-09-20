@@ -8,13 +8,29 @@ import { formatPct } from "@/lib/format";
 import { Quote } from "@/lib/types";
 import CompanyLogo from "@/components/CompanyLogo";
 
-const SECTOR_ORDER = ["Technology", "Financials", "Healthcare", "Energy", "Consumer"];
+const SECTOR_ORDER = [
+  "Technology",
+  "Financials",
+  "Healthcare",
+  "Energy",
+  "Consumer",
+  "Industrials",
+  "Materials",
+  "Utilities",
+  "Real Estate",
+  "Communication",
+];
 const SECTOR_LABELS: Record<string, string> = {
   Technology: "Teknik",
   Financials: "Finans",
   Healthcare: "Hälsovård",
   Energy: "Energi",
   Consumer: "Konsument",
+  Industrials: "Industri",
+  Materials: "Material",
+  Utilities: "Allmännyttigt",
+  "Real Estate": "Fastigheter",
+  Communication: "Kommunikation",
   Other: "Övrigt",
 };
 

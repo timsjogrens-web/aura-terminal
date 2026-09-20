@@ -13,7 +13,19 @@ import CompanyLogo from "./CompanyLogo";
 // Underlying values stay in English — they match the Sector type in
 // universe.ts and the sector column stored in the database. Only the
 // button labels shown to the user are translated.
-const SECTORS = ["ALL", "Technology", "Financials", "Healthcare", "Energy", "Consumer"];
+const SECTORS = [
+  "ALL",
+  "Technology",
+  "Financials",
+  "Healthcare",
+  "Energy",
+  "Consumer",
+  "Industrials",
+  "Materials",
+  "Utilities",
+  "Real Estate",
+  "Communication",
+];
 const SECTOR_LABELS: Record<string, string> = {
   ALL: "ALLA",
   Technology: "Teknik",
@@ -21,6 +33,11 @@ const SECTOR_LABELS: Record<string, string> = {
   Healthcare: "Hälsovård",
   Energy: "Energi",
   Consumer: "Konsument",
+  Industrials: "Industri",
+  Materials: "Material",
+  Utilities: "Allmännyttigt",
+  "Real Estate": "Fastigheter",
+  Communication: "Kommunikation",
 };
 const SIGNALS = ["ALL", "STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"];
 const SIGNAL_LABELS: Record<string, string> = { ALL: "ALLA" };

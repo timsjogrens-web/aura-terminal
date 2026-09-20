@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CompanyLogo from "@/components/CompanyLogo";
 import { timeAgo } from "@/lib/format";
+import { CORE_UNIVERSE } from "@/lib/universe";
 
 interface InsiderTrade {
   id: number;
@@ -78,7 +79,7 @@ export default function InsidersPage() {
         </div>
         <p className="text-[var(--text-secondary)] mb-6 max-w-2xl">
           Köp och sälj på öppna marknaden av direktörer, styrelseledamöter och ägare med 10%+
-          innehav i varje spårad aktie, hämtat från deras offentliga SEC Form 4-anmälningar.
+          innehav i sajtens {CORE_UNIVERSE.length} kärnbolag, hämtat från deras offentliga SEC Form 4-anmälningar.
           Tilldelningar, skatteavdrag och optionsinlösen är exkluderade — bara faktiska,
           frivilliga köp och försäljningar.
         </p>
@@ -115,7 +116,7 @@ export default function InsidersPage() {
         {trades && trades.length === 0 && (
           <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 text-center text-[var(--text-secondary)] mb-8">
             Inga anmälningar laddade ännu. Klicka på &ldquo;Kontrollera nya anmälningar&rdquo; ovan
-            för att hämta senaste Form 4-datan från SEC EDGAR (30 aktier, tar en minut eller två).
+            för att hämta senaste Form 4-datan från SEC EDGAR ({CORE_UNIVERSE.length} aktier, tar en minut eller två).
           </div>
         )}
 

@@ -148,7 +148,7 @@ export default function TrackRecordPage() {
         <p className="text-[var(--text-secondary)] mb-4 max-w-2xl leading-relaxed">
           En fullständig historisk simulering — inte bara de bra perioderna. Samma regler som det
           riktiga papperskontot (5 000 kr per ny köpsignal, 8% stop-loss, trailing stop) körs
-          mekaniskt över {data ? data.universeSize : "~40"} aktiers riktiga kurshistorik de
+          mekaniskt över {data ? data.universeSize : "~170"} aktiers riktiga kurshistorik de
           senaste ~2 åren, med samma regel mot framtidsdataläckage som backtest-verktyget:
           varje beslut baseras bara på data fram till dagens stängning, och handlas tidigast
           nästa dags öppning.
@@ -161,7 +161,10 @@ export default function TrackRecordPage() {
             <Link href="/methodology" className="underline hover:text-[var(--text-primary)]">
               Metodik
             </Link>
-            ) — dagens 40 spårade bolag, inte en historiskt korrekt lista. Stop-loss och trailing
+            ) — dagens spårade bolag, inte en historiskt korrekt lista. Urvalet är dessutom
+            delvis bolag som kända fondförvaltare äger (deras 13F-innehav), och bolag som
+            ägs av framgångsrika investerare har i efterhand oftare gått bra — ett urval som
+            kan få resultatet att se bättre ut än det borde. Stop-loss och trailing
             stop utvärderas här en gång per dag mot stängningskursen, medan det riktiga
             papperskontot kan reagera snabbare inom samma dag — om något är den här simuleringen
             alltså något långsammare att skydda en position än verkligheten, inte tvärtom.

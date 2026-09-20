@@ -44,6 +44,7 @@ export const SCHEMA_STATEMENTS = [
     next_earnings TEXT,
     news TEXT,
     logo TEXT,
+    aux_fetched_at TEXT,
     updated_at TEXT,
     error TEXT
   )`,

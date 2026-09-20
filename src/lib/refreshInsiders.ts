@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { DEFAULT_UNIVERSE } from "./universe";
+import { CORE_UNIVERSE } from "./universe";
 import { getCikForTicker, getRecentInsiderTransactions, Form4Error } from "./secForm4";
 
 const INSERT_SQL = `
@@ -38,9 +38,12 @@ export async function refreshInsiderTradesOne(ticker: string) {
   return { ok: true, transactionsFound: txns.length };
 }
 
+// Covers the core universe only: this runs synchronously from a button
+// press and needs a SEC lookup per stock, which doesn't fit in one request
+// for the whole (much larger) tracked universe.
 export async function refreshAllInsiderTrades() {
   const results: Array<{ ticker: string; ok: boolean; [key: string]: unknown }> = [];
-  for (const entry of DEFAULT_UNIVERSE) {
+  for (const entry of CORE_UNIVERSE) {
     try {
       const r = await refreshInsiderTradesOne(entry.ticker);
       results.push({ ticker: entry.ticker, ...r });

@@ -5,7 +5,7 @@
 import fs from "fs";
 import path from "path";
 import { getTotalReturnSeriesRaw } from "../lib/yahoo";
-import { DEFAULT_UNIVERSE } from "../lib/universe";
+import { CORE_UNIVERSE } from "../lib/universe";
 import { getSp500Universe } from "./sp500Universe";
 
 const CACHE_DIR = path.join(process.cwd(), "src/research/.cache");
@@ -50,7 +50,7 @@ function resolveUniverse(choice: UniverseChoice): { ticker: string; yahooSymbol:
   if (choice === "sp500") {
     return getSp500Universe().map((e) => ({ ticker: e.ticker, yahooSymbol: e.yahooSymbol }));
   }
-  return DEFAULT_UNIVERSE.map((e) => ({ ticker: e.ticker, yahooSymbol: e.ticker }));
+  return CORE_UNIVERSE.map((e) => ({ ticker: e.ticker, yahooSymbol: e.ticker }));
 }
 
 export async function fetchUniverseMonthlyHistory(opts?: {

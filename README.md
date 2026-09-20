@@ -64,6 +64,14 @@ Pass `sp500` as an argument to run the same research against the full current S&
 npx tsx src/research/runResearch.ts sp500
 ```
 
+## Tracked universe and how it refreshes
+
+`src/lib/universe.ts` has two lists: `CORE_UNIVERSE` (the original hand-picked stocks — the offline research and the SEC insider-trade refresh still only use these) and `INVESTOR_UNIVERSE` (every listed stock a tracked fund manager holds in its latest 13F that isn't already in the core). `DEFAULT_UNIVERSE` is both together, ~170 stocks.
+
+With that many stocks one function call can't refresh everything on Finnhub's free tier (60 calls/minute), so `refreshAll` (`src/lib/refresh.ts`) refreshes the **stalest** stocks that fit in a ~45s budget and stops; whoever triggers it next (cron, the refresh button, or a page view noticing stale data) continues from there. News, the next earnings date and logos are refetched at most every 6 hours. Every Finnhub call is spaced ~1s apart inside `src/lib/finnhub.ts`. A stock's first-ever signal is recorded but doesn't trigger a paper trade or Discord alert — it's a starting state, not a signal change.
+
+Local `npm run dev` shares the live database, so its background refresh loop (which would trade the live paper account) is off unless you set `ENABLE_LOCAL_REFRESH_CRON=true`.
+
 ## Signal ledger
 
 Every signal the site generates is recorded in an append-only, hash-chained ledger (`src/lib/ledger.ts`, table `signal_ledger`) — each row's hash depends on the previous row's, so editing or deleting a past entry breaks the chain and is detectable. Check integrity anytime at `GET /api/ledger/verify` (requires login, same as the rest of the app).

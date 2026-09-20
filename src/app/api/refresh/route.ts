@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { refreshAll } from "@/lib/refresh";
 import { getSession } from "@/lib/session";
 
+// One call refreshes a batch of the stalest stocks within this window.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   // Called two ways: the authenticated "Refresh now" button (session cookie),
   // and the hosting platform's scheduled cron hitting this route directly
@@ -24,8 +27,8 @@ export async function POST(req: NextRequest) {
     );
   }
   try {
-    await refreshAll();
-    return NextResponse.json({ ok: true });
+    const result = await refreshAll();
+    return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }

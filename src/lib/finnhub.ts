@@ -19,8 +19,23 @@ function getKey(): string {
   return key;
 }
 
+// Finnhub's free tier allows 60 calls a minute. The refresh job now walks a
+// ~170-stock universe, so every call in this process is spaced at least
+// MIN_GAP_MS apart (~57/min) instead of relying on each caller to sleep —
+// a burst would otherwise come back as 429s and surface as error rows.
+const MIN_GAP_MS = 1_050;
+let nextSlotAt = 0;
+
+async function waitForSlot(): Promise<void> {
+  const now = Date.now();
+  const at = Math.max(now, nextSlotAt);
+  nextSlotAt = at + MIN_GAP_MS;
+  if (at > now) await new Promise((r) => setTimeout(r, at - now));
+}
+
 async function finnhubGet<T>(pathname: string, params: Record<string, string>): Promise<T> {
   const key = getKey();
+  await waitForSlot();
   const url = new URL(BASE_URL + pathname);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   url.searchParams.set("token", key);

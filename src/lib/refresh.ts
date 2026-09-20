@@ -1,4 +1,4 @@
-import { db, setMeta } from "./db";
+import { db, getMeta, setMeta } from "./db";
 import { DEFAULT_UNIVERSE, UNIVERSE_MAP } from "./universe";
 import { getQuote, getEarningsCalendar, getCompanyNews, getProfile, FinnhubError } from "./finnhub";
 import { getDailyCandles, YahooError } from "./yahoo";
@@ -12,11 +12,11 @@ const UPSERT_SQL = `
   INSERT INTO quote_cache (
     ticker, company_name, sector, price, change, change_pct, open, high, low,
     prev_close, volume, avg_volume, sma50, rsi14, score, signal, sparkline,
-    next_earnings, news, logo, updated_at, error
+    next_earnings, news, logo, aux_fetched_at, updated_at, error
   ) VALUES (
     :ticker, :company_name, :sector, :price, :change, :change_pct, :open, :high, :low,
     :prev_close, :volume, :avg_volume, :sma50, :rsi14, :score, :signal, :sparkline,
-    :next_earnings, :news, :logo, :updated_at, :error
+    :next_earnings, :news, :logo, :aux_fetched_at, :updated_at, :error
   )
   ON CONFLICT(ticker) DO UPDATE SET
     company_name=excluded.company_name, sector=excluded.sector, price=excluded.price,
@@ -25,10 +25,11 @@ const UPSERT_SQL = `
     volume=excluded.volume, avg_volume=excluded.avg_volume, sma50=excluded.sma50,
     rsi14=excluded.rsi14, score=excluded.score, signal=excluded.signal,
     sparkline=excluded.sparkline, next_earnings=excluded.next_earnings,
-    news=excluded.news, logo=excluded.logo, updated_at=excluded.updated_at, error=excluded.error
+    news=excluded.news, logo=excluded.logo, aux_fetched_at=excluded.aux_fetched_at,
+    updated_at=excluded.updated_at, error=excluded.error
 `;
 
-const EXISTING_LOGO_SQL = `SELECT logo FROM quote_cache WHERE ticker = ?`;
+const EXISTING_SQL = `SELECT logo, news, next_earnings, aux_fetched_at FROM quote_cache WHERE ticker = ?`;
 
 const INSERT_HISTORY_SQL = `
   INSERT INTO signal_history (ticker, score, signal, price, timestamp)
@@ -39,11 +40,60 @@ const LATEST_HISTORY_SQL = `
   SELECT signal FROM signal_history WHERE ticker = ? ORDER BY id DESC LIMIT 1
 `;
 
+// Name/sector are written on first insert too, so a stock Finnhub can't
+// price still shows up labelled in the screener instead of as a blank row.
 const ERROR_ONLY_SQL = `
-  INSERT INTO quote_cache (ticker, error, updated_at)
-  VALUES (:ticker, :error, :updated_at)
+  INSERT INTO quote_cache (ticker, company_name, sector, error, updated_at)
+  VALUES (:ticker, :company_name, :sector, :error, :updated_at)
   ON CONFLICT(ticker) DO UPDATE SET error=excluded.error, updated_at=excluded.updated_at
 `;
+
+// News, the next earnings date and the logo change slowly, and each costs a
+// Finnhub call (the scarce resource with ~170 stocks on a 60-calls/minute
+// free tier) — so they're refetched at most this often, while price and
+// score still update on every pass.
+const AUX_TTL_MS = 6 * 60 * 60 * 1000;
+
+// One invocation refreshes as many of the stalest stocks as fit in this
+// window, then stops — a serverless function can't walk the whole universe
+// in one go. Later invocations continue where this one left off.
+const BATCH_BUDGET_MS = 45_000;
+
+const LOCK_KEY = "refresh_lock_at";
+const LOCK_MS = 5 * 60 * 1000;
+
+export interface RefreshTarget {
+  ticker: string;
+  name: string;
+  sector: string;
+}
+
+// Never-fetched stocks first, then oldest-updated first. Ties keep the
+// universe's own order so the result is deterministic.
+export function orderByStalest(
+  targets: RefreshTarget[],
+  updatedAt: Map<string, string | null>
+): RefreshTarget[] {
+  const ts = (ticker: string) => {
+    const v = updatedAt.get(ticker);
+    return v ? new Date(v).getTime() : -Infinity;
+  };
+  return targets
+    .map((t, i) => ({ t, i }))
+    .sort((a, b) => {
+      const ta = ts(a.t.ticker);
+      const tb = ts(b.t.ticker);
+      if (ta === tb) return a.i - b.i;
+      return ta < tb ? -1 : 1;
+    })
+    .map((x) => x.t);
+}
+
+export function isAuxDue(auxFetchedAt: string | null, nowMs: number): boolean {
+  if (!auxFetchedAt) return true;
+  const t = new Date(auxFetchedAt).getTime();
+  return Number.isNaN(t) || nowMs - t > AUX_TTL_MS;
+}
 
 export async function refreshOne(ticker: string, name: string, sector: string) {
   const now = new Date().toISOString();
@@ -82,46 +132,58 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
       avgVolume,
     });
 
-    // Logos don't change, so this is fetched once and reused from the
-    // cache forever after rather than re-hitting Finnhub's profile
-    // endpoint on every refresh cycle.
-    let logo: string | null = null;
-    const existingLogoRes = await db.execute({ sql: EXISTING_LOGO_SQL, args: [ticker] });
-    logo = (existingLogoRes.rows[0] as { logo: string | null } | undefined)?.logo ?? null;
-    if (!logo) {
+    // Logo, earnings date and news come from the row we already have unless
+    // they're due for a refresh (see AUX_TTL_MS). A failed fetch keeps the
+    // old value rather than wiping it.
+    const existingRes = await db.execute({ sql: EXISTING_SQL, args: [ticker] });
+    const existing = existingRes.rows[0] as
+      | { logo: string | null; news: string | null; next_earnings: string | null; aux_fetched_at: string | null }
+      | undefined;
+    let logo: string | null = existing?.logo ?? null;
+    let nextEarnings: string | null = existing?.next_earnings ?? null;
+    let newsJson: string = existing?.news ?? "[]";
+    let auxFetchedAt: string | null = existing?.aux_fetched_at ?? null;
+
+    if (isAuxDue(auxFetchedAt, Date.now())) {
+      let anyOk = false;
+
+      if (!logo) {
+        try {
+          const profile = await getProfile(ticker);
+          logo = profile.logo || null;
+          anyOk = true;
+        } catch {
+          // keep null; retried on the next due refresh
+        }
+      }
+
       try {
-        const profile = await getProfile(ticker);
-        logo = profile.logo || null;
+        const from = new Date().toISOString().slice(0, 10);
+        const to = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        const earnings = await getEarningsCalendar(ticker, from, to);
+        nextEarnings =
+          earnings.length > 0 ? earnings.sort((a, b) => a.date.localeCompare(b.date))[0].date : null;
+        anyOk = true;
       } catch {
-        logo = null;
+        // keep the previous value
       }
-    }
 
-    let nextEarnings: string | null = null;
-    try {
-      const from = new Date().toISOString().slice(0, 10);
-      const to = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 10);
-      const earnings = await getEarningsCalendar(ticker, from, to);
-      if (earnings.length > 0) {
-        nextEarnings = earnings.sort((a, b) => a.date.localeCompare(b.date))[0].date;
+      try {
+        const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        const to = new Date().toISOString().slice(0, 10);
+        const items = await getCompanyNews(ticker, from, to);
+        newsJson = JSON.stringify(
+          filterRelevantNews(items, name)
+            .sort((a, b) => b.datetime - a.datetime)
+            .slice(0, 3)
+            .map((n) => ({ headline: n.headline, url: n.url, source: n.source, datetime: n.datetime }))
+        );
+        anyOk = true;
+      } catch {
+        // keep the previous value
       }
-    } catch {
-      nextEarnings = null;
-    }
 
-    let news: { headline: string; url: string; source: string; datetime: number }[] = [];
-    try {
-      const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      const to = new Date().toISOString().slice(0, 10);
-      const items = await getCompanyNews(ticker, from, to);
-      news = filterRelevantNews(items, name)
-        .sort((a, b) => b.datetime - a.datetime)
-        .slice(0, 3)
-        .map((n) => ({ headline: n.headline, url: n.url, source: n.source, datetime: n.datetime }));
-    } catch {
-      news = [];
+      if (anyOk) auxFetchedAt = now;
     }
 
     await db.execute({
@@ -145,8 +207,9 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
         signal: breakdown.signal,
         sparkline: JSON.stringify(sparkline),
         next_earnings: nextEarnings,
-        news: JSON.stringify(news),
+        news: newsJson,
         logo,
+        aux_fetched_at: auxFetchedAt,
         updated_at: now,
         error: candleError,
       },
@@ -168,9 +231,16 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
       // from signal_history above (which stays as-is for existing
       // readers), see src/lib/ledger.ts for what this protects against.
       await appendSignalToLedger({ ticker, score: breakdown.score, signal: breakdown.signal, price: quote.c, timestamp: now });
-      await maybeTrade(ticker, breakdown.signal, quote.c, now);
-      if (breakdown.signal === "STRONG BUY") {
-        await sendStrongBuyAlert(ticker, quote.c, breakdown.score);
+      // The very first time a stock is seen isn't a signal CHANGE, just its
+      // starting state — it's recorded above, but doesn't trigger a paper
+      // trade or a Discord alert. Otherwise adding a batch of stocks to the
+      // universe would fire a burst of alerts and buys for stocks that were
+      // already sitting at BUY/STRONG BUY.
+      if (latestSignal !== null) {
+        await maybeTrade(ticker, breakdown.signal, quote.c, now);
+        if (breakdown.signal === "STRONG BUY") {
+          await sendStrongBuyAlert(ticker, quote.c, breakdown.score);
+        }
       }
     }
 
@@ -179,11 +249,14 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
     await checkRiskExits(ticker, quote.c, now);
   } catch (e) {
     const message = e instanceof FinnhubError ? e.message : "Unknown error fetching data.";
-    await db.execute({ sql: ERROR_ONLY_SQL, args: { ticker, error: message, updated_at: now } });
+    await db.execute({
+      sql: ERROR_ONLY_SQL,
+      args: { ticker, company_name: name, sector, error: message, updated_at: now },
+    });
   }
 }
 
-export async function refreshAll() {
+export async function loadTargets(): Promise<RefreshTarget[]> {
   const watchlistRes = await db.execute("SELECT ticker, company_name, sector FROM watchlist");
   const watchlistRows = watchlistRes.rows as unknown as {
     ticker: string;
@@ -191,23 +264,56 @@ export async function refreshAll() {
     sector: string | null;
   }[];
 
-  const targets = new Map<string, { name: string; sector: string }>();
-  for (const e of DEFAULT_UNIVERSE) targets.set(e.ticker, { name: e.name, sector: e.sector });
+  const targets = new Map<string, RefreshTarget>();
+  for (const e of DEFAULT_UNIVERSE) targets.set(e.ticker, { ticker: e.ticker, name: e.name, sector: e.sector });
   for (const w of watchlistRows) {
     if (!targets.has(w.ticker)) {
       targets.set(w.ticker, {
+        ticker: w.ticker,
         name: w.company_name ?? w.ticker,
         sector: w.sector ?? "Watchlist",
       });
     }
   }
+  return Array.from(targets.values());
+}
 
-  for (const [ticker, meta] of targets) {
-    await refreshOne(ticker, meta.name, meta.sector);
-    await new Promise((r) => setTimeout(r, 350)); // stay well under Finnhub's rate limit
+// The lock also stops a second run starting on top of this one: refreshOne
+// appends to the hash-chained signal ledger and moves the paper account's
+// cash, and neither is safe to run concurrently.
+async function acquireLock(): Promise<boolean> {
+  const lock = await getMeta(LOCK_KEY);
+  if (lock && Date.now() - new Date(lock).getTime() < LOCK_MS) return false;
+  await setMeta(LOCK_KEY, new Date().toISOString());
+  return true;
+}
+
+// Refreshes the stalest stocks that fit in one time budget — with ~170
+// stocks that's a slice of the universe per call, not all of it. Whoever
+// calls this (cron, the refresh button, a page view noticing stale data)
+// just moves the whole set a bit further along.
+export async function refreshAll(): Promise<{ refreshed: number; total: number; skipped: boolean }> {
+  if (!(await acquireLock())) return { refreshed: 0, total: 0, skipped: true };
+  try {
+    const targets = await loadTargets();
+    const ageRes = await db.execute("SELECT ticker, updated_at FROM quote_cache");
+    const updatedAt = new Map(
+      (ageRes.rows as unknown as { ticker: string; updated_at: string | null }[]).map((r) => [r.ticker, r.updated_at])
+    );
+
+    const started = Date.now();
+    let refreshed = 0;
+    for (const t of orderByStalest(targets, updatedAt)) {
+      if (Date.now() - started > BATCH_BUDGET_MS) break;
+      await refreshOne(t.ticker, t.name, t.sector);
+      refreshed++;
+    }
+
+    await setMeta("last_refresh_at", new Date().toISOString());
+    return { refreshed, total: targets.length, skipped: false };
+  } finally {
+    await setMeta(LOCK_KEY, "");
   }
-
-  await setMeta("last_refresh_at", new Date().toISOString());
 }
 
 export function getUniverseTickers(): string[] {

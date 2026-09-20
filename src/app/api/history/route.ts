@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { dropRepeatedSignals } from "@/lib/signalHistory";
 
 interface HistoryRow {
   id: number;
@@ -80,7 +81,7 @@ export async function GET(req: NextRequest) {
       sql: "SELECT id, ticker, score, signal, price, timestamp FROM signal_history WHERE ticker = ? ORDER BY timestamp ASC",
       args: [ticker.toUpperCase()],
     });
-    const rows = res.rows as unknown as HistoryRow[];
+    const rows = dropRepeatedSignals(res.rows as unknown as HistoryRow[]);
     const result = computeHitRate(rows);
     return NextResponse.json({ ticker: ticker.toUpperCase(), ...result });
   }
@@ -104,6 +105,7 @@ export async function GET(req: NextRequest) {
     if (!byTicker.has(row.ticker)) byTicker.set(row.ticker, []);
     byTicker.get(row.ticker)!.push(row);
   }
+  for (const [ticker, list] of byTicker) byTicker.set(ticker, dropRepeatedSignals(list));
 
   let totalHits = 0;
   let totalEvaluated = 0;
@@ -121,8 +123,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  const tickersDeduped = tickers.map((t) => ({ ...t, entries: byTicker.get(t.ticker)?.length ?? t.entries }));
+
   return NextResponse.json({
-    tickers,
+    tickers: tickersDeduped,
     overallHitRate: totalEvaluated > 0 ? Math.round((totalHits / totalEvaluated) * 100) : null,
     overallEvaluated: totalEvaluated,
     strongBuyHitRate: strongBuyEvaluated > 0 ? Math.round((strongBuyHits / strongBuyEvaluated) * 100) : null,

@@ -2,17 +2,19 @@ import { NextResponse } from "next/server";
 import { getMeta, setMeta } from "@/lib/db";
 import { computeUniverseTrackRecord } from "@/lib/trackRecord";
 
-// Fetching ~40 tickers' full 2-year history and re-running the simulation
+// Fetching every tracked ticker's full 2-year history and re-running the simulation
 // on every page view would be slow and hammer Yahoo's free endpoint for
 // no reason — the underlying signals only change once a day at most, so a
 // several-hour cache is plenty fresh without being stale in any way that
 // matters here.
-const CACHE_KEY = "track_record_cache_v1";
+// v2: the tracked universe grew from ~40 to ~170 stocks, so older cached
+// results describe a different portfolio and must not be served.
+const CACHE_KEY = "track_record_cache_v2";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
-// ~40 sequential fetches easily take 15-30s+ depending on network
-// conditions to Yahoo, which can exceed Vercel's default serverless
-// timeout — this raises the ceiling for this one route rather than
+// Fetching that history (a few tickers at a time) still takes a while
+// depending on network conditions to Yahoo, which can exceed Vercel's
+// default serverless timeout — this raises the ceiling for this one route rather than
 // risking a cold-cache request getting killed mid-computation.
 export const maxDuration = 60;
 
