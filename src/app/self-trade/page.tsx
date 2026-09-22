@@ -57,6 +57,11 @@ interface PortfolioData {
   trades: Trade[];
 }
 
+// With 50-60+ tickers often at BUY/STRONG BUY, showing them all by
+// default meant a very long scroll on mobile before reaching the actual
+// trade panel below — this caps the initial view behind a "Visa alla" tap.
+const SIGNALS_INITIAL_COUNT = 5;
+
 function formatMoney(n: number): string {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
@@ -79,6 +84,7 @@ export default function SelfTradePage() {
   const [submitting, setSubmitting] = useState(false);
   const [tradeError, setTradeError] = useState<string | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
+  const [showAllSignals, setShowAllSignals] = useState(false);
 
   const loadPortfolio = useCallback(() => {
     fetch("/api/manual-trade")
@@ -218,7 +224,7 @@ export default function SelfTradePage() {
               AKTUELLA KÖPSIGNALER — VÄLJ DIREKT
             </p>
             <div className="flex flex-wrap gap-2">
-              {buySignals.map((q) => (
+              {(showAllSignals ? buySignals : buySignals.slice(0, SIGNALS_INITIAL_COUNT)).map((q) => (
                 <button
                   key={q.ticker}
                   onClick={() => selectTicker(q.ticker, "BUY")}
@@ -237,6 +243,14 @@ export default function SelfTradePage() {
                 </button>
               ))}
             </div>
+            {buySignals.length > SIGNALS_INITIAL_COUNT && (
+              <button
+                onClick={() => setShowAllSignals((v) => !v)}
+                className="mt-3 text-sm font-medium text-[var(--gold)] hover:underline"
+              >
+                {showAllSignals ? "Visa färre" : `Visa alla (${buySignals.length})`}
+              </button>
+            )}
           </div>
         )}
 

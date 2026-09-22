@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Quote } from "@/lib/types";
@@ -42,11 +42,18 @@ const SECTOR_LABELS: Record<string, string> = {
 const SIGNALS = ["ALL", "STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"];
 const SIGNAL_LABELS: Record<string, string> = { ALL: "ALLA" };
 
+// On mobile, the full list (up to all ~170 tracked stocks) meant an
+// extremely long scroll before reaching anything below the screener —
+// this caps the initial view and lets a "Visa alla" tap reveal the rest,
+// same pattern as the buy-signal picker on the self-trade page.
+const MOBILE_INITIAL_COUNT = 10;
+
 export default function Screener({ quotes }: { quotes: Quote[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("ALL");
   const [signal, setSignal] = useState("ALL");
+  const [showAllMobile, setShowAllMobile] = useState(false);
 
   const filtered = useMemo(() => {
     return quotes.filter((q) => {
@@ -64,6 +71,17 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
       return true;
     });
   }, [quotes, sector, signal, query]);
+
+  const visibleOnMobile = showAllMobile ? filtered : filtered.slice(0, MOBILE_INITIAL_COUNT);
+  const hiddenOnMobileCount = filtered.length - visibleOnMobile.length;
+
+  // Changing a filter with the long list already expanded would dump the
+  // visitor right back into a huge scroll — collapse back to the short
+  // view so a new filter always starts from the top.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShowAllMobile(false);
+  }, [sector, signal, query]);
 
   return (
     <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
@@ -117,7 +135,7 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
       </div>
 
       <div className="sm:hidden divide-y divide-[var(--surface-border)]">
-        {filtered.map((q) => (
+        {visibleOnMobile.map((q) => (
           <Link
             key={q.ticker}
             href={`/stock/${q.ticker}`}
@@ -146,6 +164,22 @@ export default function Screener({ quotes }: { quotes: Quote[] }) {
         ))}
         {filtered.length === 0 && (
           <p className="px-4 py-10 text-center text-[var(--text-secondary)]">Inga aktier matchar dessa filter.</p>
+        )}
+        {hiddenOnMobileCount > 0 && (
+          <button
+            onClick={() => setShowAllMobile(true)}
+            className="w-full py-3.5 text-sm font-medium text-[var(--gold)] hover:bg-black/20 active:bg-black/30 transition"
+          >
+            Visa alla ({filtered.length} aktier)
+          </button>
+        )}
+        {showAllMobile && filtered.length > MOBILE_INITIAL_COUNT && (
+          <button
+            onClick={() => setShowAllMobile(false)}
+            className="w-full py-3.5 text-sm font-medium text-[var(--text-secondary)] hover:bg-black/20 active:bg-black/30 transition"
+          >
+            Visa färre
+          </button>
         )}
       </div>
 
