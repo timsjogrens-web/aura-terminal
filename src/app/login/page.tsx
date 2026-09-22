@@ -41,7 +41,7 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      router.push("/");
+      router.push("/markets");
       router.refresh();
     } catch {
       setError("Kunde inte nå servern.");

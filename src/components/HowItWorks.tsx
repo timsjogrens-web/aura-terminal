@@ -15,6 +15,22 @@ const CARDS = [
     number: "02",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+        <path
+          d="M4 21V10M10 21V6M16 21v-8M22 21H2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path d="M4 10l6-4 6 4 4-3" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    title: "Följer 12 kända fondförvaltare",
+    description:
+      "Läser deras offentliga SEC-anmälningar och flaggar direkt när någon öppnar en ny position i en aktie du spårar.",
+  },
+  {
+    number: "03",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="12" cy="12" r="9" />
         <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -24,7 +40,7 @@ const CARDS = [
       "Signalen loggas direkt, och historiken visar sedan exakt vad som hände med priset efteråt.",
   },
   {
-    number: "03",
+    number: "04",
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
@@ -40,7 +56,7 @@ const CARDS = [
 export default function HowItWorks() {
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 pb-12">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {CARDS.map((card) => (
           <div
             key={card.number}

@@ -1,5 +1,6 @@
 export const MAIN_LINKS = [
-  { href: "/", label: "Marknader" },
+  { href: "/", label: "Hem" },
+  { href: "/markets", label: "Marknader" },
   { href: "/watchlist", label: "Bevakningslista" },
   { href: "/history", label: "Historik" },
   { href: "/news", label: "Nyheter" },
