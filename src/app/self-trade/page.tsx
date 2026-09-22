@@ -89,7 +89,6 @@ export default function SelfTradePage() {
   const [side, setSide] = useState<"BUY" | "SELL">("BUY");
   const [shares, setShares] = useState("");
   const [amountText, setAmountText] = useState("");
-  const [inputMode, setInputMode] = useState<"shares" | "amount">("amount");
   const [submitting, setSubmitting] = useState(false);
   const [tradeError, setTradeError] = useState<string | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
@@ -172,19 +171,18 @@ export default function SelfTradePage() {
   const availableCash = portfolio?.cash ?? 0;
 
   // Both quick-pick paths (a dollar amount to buy for, or a % of a held
-  // position to sell) ultimately just set the share count that actually
-  // gets submitted — shares stays the single source of truth either way,
-  // amountText is purely a display convenience for the "BELOPP" mode.
+  // position to sell), and typing directly into either the ANTAL or
+  // BELOPP box below, all just set both `shares` (the source of truth
+  // actually submitted) and `amountText` (its dollar equivalent) together
+  // — the two boxes stay in sync no matter which one you used.
   function pickBuyAmount(amount: number) {
     if (!live || !live.price) return;
-    setInputMode("amount");
     setAmountText(String(Math.round(amount * 100) / 100));
     setShares(String(amount / live.price));
   }
 
   function pickSellPortion(pct: number) {
     if (!live) return;
-    setInputMode("shares");
     const sh = heldShares * (pct / 100);
     setShares(String(sh));
     setAmountText(String(Math.round(sh * live.price * 100) / 100));
@@ -399,47 +397,35 @@ export default function SelfTradePage() {
                   )}
                 </div>
 
+                {/* Both units editable at once, each side syncing the other
+                    live — type shares and the dollar amount fills in, or
+                    type a dollar amount and the share count fills in. */}
                 <div className="flex items-end gap-3 flex-wrap mt-4">
                   <div>
-                    <div className="flex items-center gap-1 mb-1.5">
-                      <button
-                        onClick={() => setInputMode("amount")}
-                        className={`text-xs font-mono tracking-widest rounded px-1.5 py-0.5 transition ${
-                          inputMode === "amount" ? "text-[var(--gold)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                        }`}
-                      >
-                        BELOPP ($)
-                      </button>
-                      <span className="text-[var(--text-muted)] text-xs">/</span>
-                      <button
-                        onClick={() => setInputMode("shares")}
-                        className={`text-xs font-mono tracking-widest rounded px-1.5 py-0.5 transition ${
-                          inputMode === "shares" ? "text-[var(--gold)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                        }`}
-                      >
-                        ANTAL
-                      </button>
-                    </div>
-                    {inputMode === "amount" ? (
-                      <input
-                        value={amountText}
-                        onChange={(e) => handleAmountInput(e.target.value)}
-                        placeholder="0"
-                        className="w-32 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
-                      />
-                    ) : (
-                      <input
-                        value={shares}
-                        onChange={(e) => handleSharesInput(e.target.value)}
-                        placeholder="0"
-                        className="w-32 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
-                      />
-                    )}
+                    <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
+                      ANTAL
+                    </label>
+                    <input
+                      value={shares}
+                      onChange={(e) => handleSharesInput(e.target.value)}
+                      placeholder="0"
+                      className="w-28 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
+                    />
+                  </div>
+                  <span className="text-[var(--text-muted)] pb-2.5">≈</span>
+                  <div>
+                    <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
+                      BELOPP ($)
+                    </label>
+                    <input
+                      value={amountText}
+                      onChange={(e) => handleAmountInput(e.target.value)}
+                      placeholder="0"
+                      className="w-28 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
+                    />
                   </div>
                   <p className="text-sm font-mono text-[var(--text-secondary)] pb-2.5">
-                    {inputMode === "amount"
-                      ? `≈ ${Number(shares || 0).toFixed(4)} st`
-                      : `${side === "BUY" ? "Kostnad" : "Intäkt"}: $${cost.toFixed(2)}`}
+                    {side === "BUY" ? "Kostnad" : "Intäkt"}: ${cost.toFixed(2)}
                   </p>
                   <button
                     onClick={submitTrade}
