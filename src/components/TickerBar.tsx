@@ -27,15 +27,25 @@ function Item({ q }: { q: Quote }) {
   );
 }
 
+// Keep the scroll speed (px/sec) constant no matter how many stocks are
+// tracked — duration scales with item count instead of being a fixed
+// seconds value, so growing the universe doesn't speed up the ticker.
+const SECONDS_PER_ITEM = 1.1;
+const MIN_DURATION_S = 30;
+
 export default function TickerBar({ quotes }: { quotes: Quote[] }) {
   const withPrices = quotes.filter((q) => q.price !== null);
   if (withPrices.length === 0) return null;
 
   const doubled = [...withPrices, ...withPrices];
+  const durationS = Math.max(MIN_DURATION_S, withPrices.length * SECONDS_PER_ITEM);
 
   return (
     <div className="border-b border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
-      <div className="flex animate-ticker w-max divide-x divide-[var(--surface-border)]">
+      <div
+        className="flex animate-ticker w-max divide-x divide-[var(--surface-border)]"
+        style={{ animationDuration: `${durationS}s` }}
+      >
         {doubled.map((q, i) => (
           <Item key={`${q.ticker}-${i}`} q={q} />
         ))}
