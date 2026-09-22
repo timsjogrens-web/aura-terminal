@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogoMark, Wordmark } from "@/components/Logo";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,6 +12,18 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Plain window.location rather than useSearchParams() — this page has
+  // no other reason to opt into the Suspense boundary that hook needs at
+  // build time, just to read a one-off error message from the Google
+  // OAuth redirect.
+  useEffect(() => {
+    const message = new URLSearchParams(window.location.search).get("error");
+    // Syncing from the URL (only known client-side) into state on mount —
+    // there's no earlier point to read it, so this one is unavoidable.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (message) setError(message);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,6 +68,14 @@ export default function LoginPage() {
         <p className="text-sm text-[var(--text-secondary)] mb-6">
           Till ditt eget konto — papperskonto, egen handel och bevakningslista.
         </p>
+
+        <GoogleSignInButton />
+
+        <div className="flex items-center gap-3 my-5">
+          <div className="h-px flex-1 bg-[var(--surface-border)]" />
+          <span className="text-xs text-[var(--text-muted)]">eller</span>
+          <div className="h-px flex-1 bg-[var(--surface-border)]" />
+        </div>
 
         <label className="block text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-2">
           E-post

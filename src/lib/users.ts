@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { db } from "./db";
 import { hashPassword, verifyPassword } from "./passwords";
 
@@ -47,6 +48,28 @@ export async function createUser(email: string, password: string): Promise<User>
   }
 
   const passwordHash = await hashPassword(password);
+  const createdAt = new Date().toISOString();
+  const res = await db.execute({
+    sql: "INSERT INTO users (email, password_hash, is_admin, bot_enabled, created_at) VALUES (?, ?, 0, 0, ?)",
+    args: [normalized, passwordHash, createdAt],
+  });
+  const id = Number(res.lastInsertRowid);
+  return { id, email: normalized, isAdmin: false, botEnabled: false, createdAt };
+}
+
+// Signing in with Google: reuses the account if this (Google-verified)
+// email already has one — whether it was created by password signup or a
+// previous Google sign-in — otherwise creates a new one. The stored
+// password_hash is random and never handed out, which simply means
+// password login never succeeds for a Google-only account; there's no
+// separate "how did this account get created" flag to track.
+export async function findOrCreateGoogleUser(email: string): Promise<User> {
+  const normalized = email.trim().toLowerCase();
+  const existing = await db.execute({ sql: "SELECT * FROM users WHERE email = ?", args: [normalized] });
+  const row = existing.rows[0] as unknown as UserRow | undefined;
+  if (row) return toUser(row);
+
+  const passwordHash = await hashPassword(randomBytes(32).toString("hex"));
   const createdAt = new Date().toISOString();
   const res = await db.execute({
     sql: "INSERT INTO users (email, password_hash, is_admin, bot_enabled, created_at) VALUES (?, ?, 0, 0, ?)",

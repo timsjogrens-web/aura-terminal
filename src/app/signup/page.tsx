@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogoMark, Wordmark } from "@/components/Logo";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -55,6 +56,14 @@ export default function SignupPage() {
         <p className="text-sm text-[var(--text-secondary)] mb-6">
           Ditt eget papperskonto och egen handel, från $100 000 — helt separat från alla andras.
         </p>
+
+        <GoogleSignInButton />
+
+        <div className="flex items-center gap-3 my-5">
+          <div className="h-px flex-1 bg-[var(--surface-border)]" />
+          <span className="text-xs text-[var(--text-muted)]">eller</span>
+          <div className="h-px flex-1 bg-[var(--surface-border)]" />
+        </div>
 
         <label className="block text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-2">
           E-post
