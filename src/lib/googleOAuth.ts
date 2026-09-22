@@ -16,7 +16,7 @@ function getCredentials(): { clientId: string; clientSecret: string } {
 }
 
 // `origin` is the exact scheme+host the request came in on (e.g.
-// "https://tsterminal.vercel.app" or "http://localhost:3000") — the
+// "https://candorapp.se" or "http://localhost:3000") — the
 // redirect_uri built from it must byte-for-byte match one of the
 // "Authorized redirect URIs" registered in Google Cloud Console, or
 // Google rejects the request.

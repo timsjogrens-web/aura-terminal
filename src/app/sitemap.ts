@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { DEFAULT_UNIVERSE } from "@/lib/universe";
 
-const BASE_URL = "https://tsterminal.vercel.app";
+const BASE_URL = "https://candorapp.se";
 
 // Static, publicly-viewable pages (GET is open to everyone — see
 // proxy.ts — even though most link to account-only actions). Anything
