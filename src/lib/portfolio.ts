@@ -92,6 +92,7 @@ export async function getPortfolioState(
   startedAt: string | null;
   trades: Trade[];
   openPositions: OpenPosition[];
+  realizedPnl: number;
 }> {
   const cash = await getCash(kind, userId);
   const startedAt = await getMeta(startedKey(kind, userId));
@@ -108,6 +109,14 @@ export async function getPortfolioState(
     entryDate: string;
   }
   const positions = new Map<string, Accum>();
+  // Separate from the account's overall return: the total already folds
+  // this in (cash reflects every SELL's real proceeds), but a closed
+  // trade's gain/loss is otherwise invisible once its position is gone —
+  // it doesn't show up in the open-positions table above, so a currently
+  // green open book can still sit on top of a currently negative total
+  // return purely from past losses already locked in. Tracked here so
+  // the UI can show that split honestly instead of just the net number.
+  let realizedPnl = 0;
   for (const t of trades) {
     const shares = Number(t.shares);
     const price = Number(t.price);
@@ -121,6 +130,7 @@ export async function getPortfolioState(
       }
     } else if (existing) {
       const avgPrice = existing.costBasis / existing.shares;
+      realizedPnl += shares * (price - avgPrice);
       existing.shares -= shares;
       existing.costBasis -= shares * avgPrice;
       if (existing.shares <= 1e-6) positions.delete(t.ticker);
@@ -136,7 +146,7 @@ export async function getPortfolioState(
       entryDate: p.entryDate,
     }));
 
-  return { cash, startedAt, trades: [...trades].reverse(), openPositions };
+  return { cash, startedAt, trades: [...trades].reverse(), openPositions, realizedPnl };
 }
 
 export async function getOpenPosition(

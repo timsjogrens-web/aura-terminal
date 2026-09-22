@@ -84,12 +84,15 @@ export async function GET() {
   const holdingsValue = positions.reduce((a, p) => a + p.value, 0);
   const totalValue = state.cash + holdingsValue;
   const totalReturnPct = ((totalValue - STARTING_CASH) / STARTING_CASH) * 100;
+  const unrealizedPnl = positions.reduce((a, p) => a + (p.value - p.shares * p.entryPrice), 0);
 
   return NextResponse.json({
     startingCash: STARTING_CASH,
     cash: state.cash,
     totalValue,
     totalReturnPct,
+    unrealizedPnl,
+    realizedPnl: state.realizedPnl,
     startedAt: state.startedAt,
     positions,
     trades,

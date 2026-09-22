@@ -104,6 +104,10 @@ export async function GET() {
   const holdingsValue = positions.reduce((a, p) => a + p.value, 0);
   const totalValue = state.cash + holdingsValue;
   const totalReturnPct = ((totalValue - STARTING_CASH) / STARTING_CASH) * 100;
+  // Split out so the UI can show a currently-green open book alongside a
+  // lower (or negative) total return honestly, instead of just the net
+  // number looking mysteriously off from what the positions table shows.
+  const unrealizedPnl = positions.reduce((a, p) => a + (p.value - p.shares * p.entryPrice), 0);
 
   let spyComparison: { returnPct: number } | null = null;
   if (state.startedAt) {
@@ -120,6 +124,8 @@ export async function GET() {
     cash: state.cash,
     totalValue,
     totalReturnPct,
+    unrealizedPnl,
+    realizedPnl: state.realizedPnl,
     startedAt: state.startedAt,
     positions,
     trades,

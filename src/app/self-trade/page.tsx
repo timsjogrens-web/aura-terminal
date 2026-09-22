@@ -52,6 +52,8 @@ interface PortfolioData {
   cash: number;
   totalValue: number;
   totalReturnPct: number;
+  unrealizedPnl: number;
+  realizedPnl: number;
   startedAt: string | null;
   positions: Position[];
   trades: Trade[];
@@ -64,6 +66,11 @@ const SIGNALS_INITIAL_COUNT = 5;
 
 function formatMoney(n: number): string {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+
+function formatSignedMoney(n: number): string {
+  const sign = n >= 0 ? "+" : "";
+  return sign + formatMoney(n);
 }
 
 export default function SelfTradePage() {
@@ -364,6 +371,20 @@ export default function SelfTradePage() {
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">{portfolio.positions.length}</p>
               </div>
             </div>
+
+            {(portfolio.unrealizedPnl !== 0 || portfolio.realizedPnl !== 0) && (
+              <p className="text-xs font-mono text-[var(--text-muted)] mb-8 -mt-4">
+                Orealiserat (öppna positioner):{" "}
+                <span className={portfolio.unrealizedPnl >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}>
+                  {formatSignedMoney(portfolio.unrealizedPnl)}
+                </span>
+                {" · "}
+                Realiserat (avslutade affärer hittills):{" "}
+                <span className={portfolio.realizedPnl >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}>
+                  {formatSignedMoney(portfolio.realizedPnl)}
+                </span>
+              </p>
+            )}
 
             {portfolio.positions.length > 0 && (
               <div className="mb-8">

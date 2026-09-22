@@ -41,6 +41,8 @@ interface PaperData {
   cash: number;
   totalValue: number;
   totalReturnPct: number;
+  unrealizedPnl: number;
+  realizedPnl: number;
   startedAt: string | null;
   positions: Position[];
   trades: Trade[];
@@ -49,6 +51,11 @@ interface PaperData {
 
 function formatMoney(n: number): string {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+
+function formatSignedMoney(n: number): string {
+  const sign = n >= 0 ? "+" : "";
+  return sign + formatMoney(n);
 }
 
 export default function PaperTradingPage() {
@@ -224,6 +231,24 @@ export default function PaperTradingPage() {
                 </p>
               </div>
             </div>
+
+            {/* Why AVKASTNING above doesn't just match what the open-positions
+                table below shows: it's this split, not a bug — a currently
+                green book (unrealized) sitting on top of losses already
+                locked in from trades that already closed (realized). */}
+            {(data.unrealizedPnl !== 0 || data.realizedPnl !== 0) && (
+              <p className="text-xs font-mono text-[var(--text-muted)] mb-8 -mt-4">
+                Orealiserat (öppna positioner):{" "}
+                <span className={data.unrealizedPnl >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}>
+                  {formatSignedMoney(data.unrealizedPnl)}
+                </span>
+                {" · "}
+                Realiserat (avslutade affärer hittills):{" "}
+                <span className={data.realizedPnl >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}>
+                  {formatSignedMoney(data.realizedPnl)}
+                </span>
+              </p>
+            )}
 
             {data.startedAt && (
               <div className="rounded-lg border border-[rgba(245,165,36,0.3)] bg-[rgba(245,165,36,0.05)] p-5 mb-8 flex items-center justify-between flex-wrap gap-4">
