@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import {
   getPaperPortfolioState,
@@ -9,6 +9,8 @@ import {
   TRAILING_STOP_PCT,
 } from "@/lib/paperTrading";
 import { getTotalReturnSeries } from "@/lib/yahoo";
+import { getSession } from "@/lib/session";
+import { getUserById, setBotEnabled } from "@/lib/users";
 
 function pickRange(startedAt: string): string {
   const days = (Date.now() - new Date(startedAt).getTime()) / 86_400_000;
@@ -44,8 +46,16 @@ async function getSpyComparison(startedAt: string) {
   return { returnPct, entryPrice, currentPrice };
 }
 
+// Every account has its own bot-driven paper portfolio now, switched off
+// by default — this requires a session, same as manual-trade.
 export async function GET() {
-  const state = await getPaperPortfolioState();
+  const session = await getSession();
+  if (!session.userId) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const user = await getUserById(session.userId);
+  const state = await getPaperPortfolioState(session.userId);
 
   const tickers = Array.from(
     new Set([...state.openPositions.map((p) => p.ticker), ...state.trades.map((t) => t.ticker)])
@@ -70,7 +80,7 @@ export async function GET() {
       const costBasis = p.shares * p.entryPrice;
 
       const stopLossPrice = p.entryPrice * (1 - STOP_LOSS_PCT / 100);
-      const peak = (await getPeakPrice(p.ticker)) ?? p.entryPrice;
+      const peak = (await getPeakPrice(session.userId!, p.ticker)) ?? p.entryPrice;
       const gainFromEntry = ((peak - p.entryPrice) / p.entryPrice) * 100;
       const trailingArmed = gainFromEntry >= TRAILING_ARM_PCT;
       const trailingStopPrice = trailingArmed ? peak * (1 - TRAILING_STOP_PCT / 100) : null;
@@ -105,6 +115,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
+    botEnabled: user?.botEnabled ?? false,
     startingCash: STARTING_CASH,
     cash: state.cash,
     totalValue,
@@ -114,4 +125,19 @@ export async function GET() {
     trades,
     spyComparison,
   });
+}
+
+// Turns this user's own bot on/off — it only ever trades their own
+// account, starting from their own $100,000, from the moment they switch
+// it on (no retroactive trades for signals that already happened).
+export async function POST(req: NextRequest) {
+  const session = await getSession();
+  if (!session.userId) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const body = await req.json().catch(() => null);
+  const enabled = Boolean(body?.enabled);
+  await setBotEnabled(session.userId, enabled);
+  return NextResponse.json({ ok: true, botEnabled: enabled });
 }

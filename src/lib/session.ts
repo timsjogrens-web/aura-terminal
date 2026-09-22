@@ -2,7 +2,9 @@ import { getIronSession, SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
 
 export interface SessionData {
-  loggedIn: boolean;
+  userId?: number;
+  email?: string;
+  isAdmin?: boolean;
 }
 
 export const sessionOptions: SessionOptions = {

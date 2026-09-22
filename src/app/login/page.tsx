@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogoMark, Wordmark } from "@/components/Logo";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,7 +20,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -49,34 +51,50 @@ export default function LoginPage() {
           <Wordmark className="text-lg" />
         </div>
 
-        <h1 className="font-serif text-2xl text-[var(--text-primary)] mb-1">Åtkomst begränsad</h1>
+        <h1 className="font-serif text-2xl text-[var(--text-primary)] mb-1">Logga in</h1>
         <p className="text-sm text-[var(--text-secondary)] mb-6">
-          Ange lösenordet för att nå terminalen.
+          Till ditt eget konto — papperskonto, egen handel och bevakningslista.
         </p>
+
+        <label className="block text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-2">
+          E-post
+        </label>
+        <input
+          type="email"
+          autoFocus
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded-md border border-[var(--surface-border)] bg-black/40 px-3 py-2.5 mb-4 font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)] transition-colors"
+          placeholder="du@exempel.se"
+        />
 
         <label className="block text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-2">
           Lösenord
         </label>
         <input
           type="password"
-          autoFocus
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-md border border-[var(--surface-border)] bg-black/40 px-3 py-2.5 font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)] transition-colors"
           placeholder="••••••••"
         />
 
-        {error && (
-          <p className="mt-3 text-sm text-[var(--red)]">{error}</p>
-        )}
+        {error && <p className="mt-3 text-sm text-[var(--red)]">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
           className="mt-6 w-full rounded-md bg-[var(--gold)] py-2.5 font-sans font-bold text-black tracking-wide hover:brightness-110 transition disabled:opacity-50"
         >
-          {loading ? "Verifierar..." : "Logga in"}
+          {loading ? "Loggar in..." : "Logga in"}
         </button>
+
+        <p className="mt-5 text-center text-sm text-[var(--text-secondary)]">
+          Inget konto ännu?{" "}
+          <Link href="/signup" className="text-[var(--gold)] underline">
+            Skapa ett
+          </Link>
+        </p>
       </form>
     </div>
   );

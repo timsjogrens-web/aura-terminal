@@ -20,7 +20,9 @@ interface SearchResult {
 }
 
 export default function WatchlistPage() {
-  const loggedIn = useAuthStatus();
+  const auth = useAuthStatus();
+  // Watchlist edits stay admin-only (one shared list, see WatchlistButton).
+  const loggedIn = auth ? auth.isAdmin : null;
   const { data } = useQuotes();
   const { entries, add, remove } = useWatchlist();
   const watchlist = Array.from(entries.values()).sort(
@@ -72,16 +74,23 @@ async function addTicker(ticker: string, description?: string) {
           Din bevakningslista
         </h1>
         <p className="text-[var(--text-secondary)] mb-8">
-          Lägg till valfri amerikansk aktie via ticker. Sparas på ditt konto, inte bara i webbläsaren.
+          Lägg till valfri amerikansk aktie via ticker. Det här är en delad lista för hela sajten
+          (inte per konto), så bara administratören kan ändra den just nu.
         </p>
 
-        {loggedIn === false && (
+        {auth && !auth.isAdmin && (
           <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)]">
             Du tittar på bevakningslistan i visningsläge.{" "}
-            <Link href="/login" className="text-[var(--gold)] underline">
-              Logga in
-            </Link>{" "}
-            för att lägga till eller ta bort aktier.
+            {auth.loggedIn ? (
+              "Bara administratören kan lägga till eller ta bort aktier här."
+            ) : (
+              <>
+                <Link href="/login" className="text-[var(--gold)] underline">
+                  Logga in
+                </Link>{" "}
+                som administratör för att lägga till eller ta bort aktier.
+              </>
+            )}
           </div>
         )}
 

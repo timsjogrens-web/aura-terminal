@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getProfile, searchSymbol, FinnhubError } from "@/lib/finnhub";
 import { refreshOne } from "@/lib/refresh";
 import { UNIVERSE_MAP } from "@/lib/universe";
+import { getSession } from "@/lib/session";
 
 export async function GET() {
   const res = await db.execute(
@@ -11,7 +12,16 @@ export async function GET() {
   return NextResponse.json({ watchlist: res.rows });
 }
 
+// One shared list for the whole site (not per account, unlike the paper
+// and self-trade portfolios) — proxy.ts only guarantees SOME account is
+// logged in for a write, so editing it is further restricted to the
+// admin here.
 export async function POST(req: NextRequest) {
+  const session = await getSession();
+  if (!session.isAdmin) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
   const { ticker: raw } = await req.json();
   if (typeof raw !== "string" || !raw.trim()) {
     return NextResponse.json({ error: "Ticker is required." }, { status: 400 });
@@ -67,6 +77,11 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const session = await getSession();
+  if (!session.isAdmin) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
   const { ticker } = await req.json();
   if (typeof ticker !== "string") {
     return NextResponse.json({ error: "Ticker is required." }, { status: 400 });

@@ -63,7 +63,8 @@ function formatMoney(n: number): string {
 
 export default function SelfTradePage() {
   const router = useRouter();
-  const loggedIn = useAuthStatus();
+  const auth = useAuthStatus();
+  const loggedIn = auth ? auth.loggedIn : null; // any account can self-trade, not just the admin
   const { data: quotesData } = useQuotes();
   const buySignals = (quotesData?.quotes ?? [])
     .filter((q) => q.signal === "STRONG BUY" || q.signal === "BUY")
@@ -81,14 +82,17 @@ export default function SelfTradePage() {
 
   const loadPortfolio = useCallback(() => {
     fetch("/api/manual-trade")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : null))
       .then(setPortfolio)
       .catch(() => setPortfolio(null));
   }, []);
 
   useEffect(() => {
-    loadPortfolio();
-  }, [loadPortfolio]);
+    // Each account has its own portfolio now, so there's nothing to load
+    // (and no point trying, since the API requires a session) until we
+    // know who's logged in.
+    if (loggedIn === true) loadPortfolio();
+  }, [loggedIn, loadPortfolio]);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -168,16 +172,20 @@ export default function SelfTradePage() {
           <Link href="/paper" className="text-[var(--gold)] hover:underline">
             Papperskonto
           </Link>
-          -sidan.
+          -sidan. Varje konto är helt separat — ditt eget, med din egen $100 000 att börja med.
         </p>
 
         {loggedIn === false && (
           <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)]">
-            Du tittar på det här kontot i visningsläge.{" "}
-            <Link href="/login" className="text-[var(--gold)] underline">
-              Logga in
+            Du måste ha ett konto för att handla här.{" "}
+            <Link href="/signup" className="text-[var(--gold)] underline">
+              Skapa konto
             </Link>{" "}
-            för att lägga en affär.
+            (startar på $100 000) eller{" "}
+            <Link href="/login" className="text-[var(--gold)] underline">
+              logga in
+            </Link>
+            .
           </div>
         )}
 

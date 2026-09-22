@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CompanyLogo from "@/components/CompanyLogo";
+import { useAuthStatus } from "@/lib/useAuthStatus";
 import { formatPct, formatPrice, timeAgo } from "@/lib/format";
 
 interface Position {
@@ -35,6 +36,7 @@ interface Trade {
 }
 
 interface PaperData {
+  botEnabled: boolean;
   startingCash: number;
   cash: number;
   totalValue: number;
@@ -51,14 +53,36 @@ function formatMoney(n: number): string {
 
 export default function PaperTradingPage() {
   const router = useRouter();
+  const auth = useAuthStatus();
+  const loggedIn = auth ? auth.loggedIn : null; // anyone with an account can run their own bot
   const [data, setData] = useState<PaperData | null>(null);
+  const [togglingBot, setTogglingBot] = useState(false);
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     fetch("/api/paper")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : null))
       .then(setData)
       .catch(() => setData(null));
   }, []);
+
+  useEffect(() => {
+    if (loggedIn === true) loadData();
+  }, [loggedIn, loadData]);
+
+  async function toggleBot() {
+    if (!data) return;
+    setTogglingBot(true);
+    try {
+      await fetch("/api/paper", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !data.botEnabled }),
+      });
+      loadData();
+    } finally {
+      setTogglingBot(false);
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -73,31 +97,82 @@ export default function PaperTradingPage() {
             SIMULERAT · INGA RIKTIGA PENGAR
           </span>
         </div>
-        <p className="text-[var(--text-secondary)] mb-8 max-w-2xl">
-          Ett fiktivt {data ? formatMoney(data.startingCash) : "$100,000"}-konto som automatiskt
-          köper i samma stund en aktie når BUY eller STRONG BUY, och säljer i samma stund den
-          faller ur — ingen manuell inmatning, inget facit i efterhand. Det här är signalmotorns
-          egna track record, prissatt i dollar istället för en träffsäkerhet. Två skyddsnät ligger
-          ovanpå signalen: en fast stop-loss på 8% under ingångspriset, och en trailing stop som
-          låser in vinst när en position gått upp 15%+ (säljer om den sedan backar 10% från sin
-          topp) — båda visas som anledning i handelsloggen nedan.
+        <p className="text-[var(--text-secondary)] mb-6 max-w-2xl">
+          Ditt eget fiktiva {data ? formatMoney(data.startingCash) : "$100,000"}-konto, som du
+          själv sätter igång — när boten är på köper den automatiskt i samma stund en aktie når
+          BUY eller STRONG BUY, och säljer i samma stund den faller ur, ingen manuell inmatning.
+          Två skyddsnät ligger ovanpå signalen: en fast stop-loss på 8% under ingångspriset, och
+          en trailing stop som låser in vinst när en position gått upp 15%+ (säljer om den sedan
+          backar 10% från sin topp) — båda visas som anledning i handelsloggen nedan.
         </p>
 
-        <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-          <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
-            NOTIS, 9–16 SEPTEMBER 2026
-          </p>
-          <p>
-            Under kontots första vecka uppdaterades priserna av misstag var 15:e minut istället
-            för en gång per dag som är tänkt, på grund av en bugg i utvecklingsmiljön — det gav
-            fler affärer än vad kontot normalt skulle göra, vilket sannolikt gjort resultatet
-            sämre än det annars hade blivit. Bortsett från antalet affärer är siffrorna äkta och
-            orörda — vi visar dem som de är, inklusive en dålig vecka, istället för att städa bort
-            den. Buggen är fixad 16 september.
-          </p>
-        </div>
+        {loggedIn === false && (
+          <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)] max-w-2xl">
+            Du behöver ett konto för att köra din egen bot.{" "}
+            <Link href="/signup" className="text-[var(--gold)] underline">
+              Skapa konto
+            </Link>{" "}
+            (startar på $100 000) eller{" "}
+            <Link href="/login" className="text-[var(--gold)] underline">
+              logga in
+            </Link>
+            .
+          </div>
+        )}
 
-        {!data && <p className="text-[var(--text-muted)]">Laddar…</p>}
+        {data && (
+          <div
+            className={`rounded-lg border px-4 py-3 mb-8 max-w-2xl flex items-center justify-between gap-4 flex-wrap ${
+              data.botEnabled
+                ? "border-[rgba(34,197,94,0.35)] bg-[rgba(34,197,94,0.06)]"
+                : "border-[var(--surface-border)] bg-[var(--surface)]"
+            }`}
+          >
+            <div>
+              <p className={`text-xs font-mono tracking-widest mb-0.5 ${data.botEnabled ? "text-[var(--green)]" : "text-[var(--text-muted)]"}`}>
+                {data.botEnabled ? "BOTEN ÄR PÅ" : "BOTEN ÄR AV"}
+              </p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {data.botEnabled
+                  ? "Handlar automatiskt på nya signaler från och med när du satte igång den."
+                  : "Ingen handel sker förrän du sätter igång den."}
+              </p>
+            </div>
+            <button
+              onClick={toggleBot}
+              disabled={togglingBot}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition disabled:opacity-50 ${
+                data.botEnabled
+                  ? "border border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--red)] hover:border-[var(--red)]"
+                  : "bg-[var(--green)] text-black hover:brightness-110"
+              }`}
+            >
+              {togglingBot ? "…" : data.botEnabled ? "Stäng av boten" : "Sätt igång boten"}
+            </button>
+          </div>
+        )}
+
+        {/* Only relevant to an account that already existed during that
+            window — irrelevant (and confusing) for anyone who signs up
+            after the fact, so it's shown only if this account's history
+            actually reaches back that far. */}
+        {data?.startedAt && new Date(data.startedAt) <= new Date("2026-09-16T23:59:59Z") && (
+          <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+            <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
+              NOTIS, 9–16 SEPTEMBER 2026
+            </p>
+            <p>
+              Under kontots första vecka uppdaterades priserna av misstag var 15:e minut istället
+              för en gång per dag som är tänkt, på grund av en bugg i utvecklingsmiljön — det gav
+              fler affärer än vad kontot normalt skulle göra, vilket sannolikt gjort resultatet
+              sämre än det annars hade blivit. Bortsett från antalet affärer är siffrorna äkta och
+              orörda — vi visar dem som de är, inklusive en dålig vecka, istället för att städa bort
+              den. Buggen är fixad 16 september.
+            </p>
+          </div>
+        )}
+
+        {loggedIn === true && !data && <p className="text-[var(--text-muted)]">Laddar…</p>}
 
         {data && (
           <>

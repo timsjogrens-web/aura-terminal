@@ -48,8 +48,16 @@ async function resolveLogos(tickers: string[]): Promise<Map<string, string | nul
   return result;
 }
 
+// Every account has its own self-trade portfolio now, so this requires a
+// session — there's no single shared demo account left to show an
+// anonymous visitor.
 export async function GET() {
-  const state = await getManualPortfolioState();
+  const session = await getSession();
+  if (!session.userId) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const state = await getManualPortfolioState(session.userId);
 
   const tickers = Array.from(
     new Set([...state.openPositions.map((p) => p.ticker), ...state.trades.map((t) => t.ticker)])
@@ -90,7 +98,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session.loggedIn) {
+  if (!session.userId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
@@ -111,7 +119,7 @@ export async function POST(req: NextRequest) {
     if (!price) {
       return NextResponse.json({ error: `No live price available for ${ticker}.` }, { status: 502 });
     }
-    await executeManualTrade(ticker, action, shares, price);
+    await executeManualTrade(session.userId, ticker, action, shares, price);
     return NextResponse.json({ ok: true });
   } catch (e) {
     if (e instanceof ManualTradeError) {

@@ -4,7 +4,8 @@ import { getQuote, getEarningsCalendar, getCompanyNews, getProfile, FinnhubError
 import { getDailyCandles, YahooError } from "./yahoo";
 import { filterRelevantNews } from "./newsFilter";
 import { sma, rsi, computeScore } from "./scoring";
-import { maybeTrade, checkRiskExits } from "./paperTrading";
+import { maybeTrade, checkRiskExitsForTicker } from "./paperTrading";
+import { getBotEnabledUserIds } from "./users";
 import { sendStrongBuyAlert } from "./discordAlert";
 import { appendSignalToLedger } from "./ledger";
 
@@ -95,7 +96,7 @@ export function isAuxDue(auxFetchedAt: string | null, nowMs: number): boolean {
   return Number.isNaN(t) || nowMs - t > AUX_TTL_MS;
 }
 
-export async function refreshOne(ticker: string, name: string, sector: string) {
+export async function refreshOne(ticker: string, name: string, sector: string, botEnabledUserIds: number[] = []) {
   const now = new Date().toISOString();
   try {
     const quote = await getQuote(ticker);
@@ -237,7 +238,11 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
       // universe would fire a burst of alerts and buys for stocks that were
       // already sitting at BUY/STRONG BUY.
       if (latestSignal !== null) {
-        await maybeTrade(ticker, breakdown.signal, quote.c, now);
+        // Once per user who has the bot switched on — each trades their
+        // own account independently, starting from their own $100k.
+        for (const userId of botEnabledUserIds) {
+          await maybeTrade(userId, ticker, breakdown.signal, quote.c, now);
+        }
         if (breakdown.signal === "STRONG BUY") {
           await sendStrongBuyAlert(ticker, quote.c, breakdown.score);
         }
@@ -245,8 +250,11 @@ export async function refreshOne(ticker: string, name: string, sector: string) {
     }
 
     // Stop-loss/trailing-stop react to price, not to the score, so this
-    // runs every cycle rather than only on a signal transition.
-    await checkRiskExits(ticker, quote.c, now);
+    // runs every cycle rather than only on a signal transition — for every
+    // user who currently holds this ticker via the bot, whether or not
+    // they've since switched it off (an existing position still gets
+    // managed until it closes).
+    await checkRiskExitsForTicker(ticker, quote.c, now);
   } catch (e) {
     const message = e instanceof FinnhubError ? e.message : "Unknown error fetching data.";
     await db.execute({
@@ -300,12 +308,16 @@ export async function refreshAll(): Promise<{ refreshed: number; total: number; 
     const updatedAt = new Map(
       (ageRes.rows as unknown as { ticker: string; updated_at: string | null }[]).map((r) => [r.ticker, r.updated_at])
     );
+    // Fetched once per batch (not per ticker) — who has the bot on doesn't
+    // change mid-batch, and this is the only extra query multi-user trading
+    // adds to the hot loop.
+    const botEnabledUserIds = await getBotEnabledUserIds();
 
     const started = Date.now();
     let refreshed = 0;
     for (const t of orderByStalest(targets, updatedAt)) {
       if (Date.now() - started > BATCH_BUDGET_MS) break;
-      await refreshOne(t.ticker, t.name, t.sector);
+      await refreshOne(t.ticker, t.name, t.sector, botEnabledUserIds);
       refreshed++;
     }
 

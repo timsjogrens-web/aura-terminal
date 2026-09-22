@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   if (!isCron) {
     const session = await getSession();
-    if (!session.loggedIn) {
+    if (!session.isAdmin) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
   }

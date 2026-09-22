@@ -80,8 +80,17 @@ export const SCHEMA_STATEMENTS = [
     key TEXT PRIMARY KEY,
     value TEXT
   )`,
+  `CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    is_admin INTEGER NOT NULL DEFAULT 0,
+    bot_enabled INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS paper_trades (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
     ticker TEXT NOT NULL,
     action TEXT NOT NULL,
     shares REAL NOT NULL,
@@ -90,6 +99,7 @@ export const SCHEMA_STATEMENTS = [
     reason TEXT
   )`,
   `CREATE INDEX IF NOT EXISTS idx_paper_trades_ticker ON paper_trades(ticker, timestamp)`,
+  `CREATE INDEX IF NOT EXISTS idx_paper_trades_user ON paper_trades(user_id, ticker)`,
   `CREATE TABLE IF NOT EXISTS insider_trades (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ticker TEXT NOT NULL,
@@ -107,6 +117,7 @@ export const SCHEMA_STATEMENTS = [
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_insider_trades_dedup ON insider_trades(ticker, owner_name, transaction_date, shares, price)`,
   `CREATE TABLE IF NOT EXISTS manual_trades (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
     ticker TEXT NOT NULL,
     action TEXT NOT NULL,
     shares REAL NOT NULL,
@@ -115,10 +126,13 @@ export const SCHEMA_STATEMENTS = [
     reason TEXT
   )`,
   `CREATE INDEX IF NOT EXISTS idx_manual_trades_ticker ON manual_trades(ticker, timestamp)`,
+  `CREATE INDEX IF NOT EXISTS idx_manual_trades_user ON manual_trades(user_id, ticker)`,
   `CREATE TABLE IF NOT EXISTS paper_position_peaks (
-    ticker TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    ticker TEXT NOT NULL,
     peak_price REAL NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, ticker)
   )`,
   `CREATE TABLE IF NOT EXISTS ticker_logo_cache (
     ticker TEXT PRIMARY KEY,

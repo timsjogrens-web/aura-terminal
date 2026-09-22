@@ -33,7 +33,8 @@ export default function InsidersPage() {
   const [trades, setTrades] = useState<InsiderTrade[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const loggedIn = useAuthStatus();
+  const auth = useAuthStatus();
+  const loggedIn = auth ? auth.isAdmin : null; // checking for new filings stays admin-only
   const [filter, setFilter] = useState<"all" | "buys">("buys");
 
   function load() {

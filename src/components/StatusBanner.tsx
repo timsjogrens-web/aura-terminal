@@ -15,7 +15,9 @@ export default function StatusBanner({
   onRefresh: () => void;
 }) {
   const [refreshing, setRefreshing] = useState(false);
-  const loggedIn = useAuthStatus();
+  const auth = useAuthStatus();
+  // Forcing a global refresh stays admin-only (see StatusBanner in proxy.ts's comment).
+  const loggedIn = auth ? auth.isAdmin : null;
 
   async function handleManualRefresh() {
     setRefreshing(true);

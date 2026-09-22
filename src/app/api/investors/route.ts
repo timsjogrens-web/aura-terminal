@@ -82,7 +82,7 @@ export async function GET() {
 
 export async function POST() {
   const session = await getSession();
-  if (!session.loggedIn) {
+  if (!session.isAdmin) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
   try {

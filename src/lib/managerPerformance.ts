@@ -2,6 +2,7 @@ import { db, getMeta, setMeta } from "./db";
 import { MANAGERS } from "./investors";
 import { getChartSeries } from "./yahoo";
 import { getPaperPortfolioState, STARTING_CASH } from "./paperTrading";
+import { getAdminUserId } from "./users";
 
 // 13F filings never disclose a cost basis, so there's no honest way to
 // compute "Buffett's actual return." What IS real and computable: the
@@ -70,8 +71,25 @@ export interface LeaderboardEntry {
   asOfDate: string | null;
 }
 
+// Every user gets their own independent bot instance now (see paperTrading.ts),
+// so "the signal engine's own track record" on this leaderboard anchors to
+// the site's own reference account (the admin's) rather than any one
+// visitor's — that's the account that's been running longest and isn't
+// tied to whichever stranger happens to load this page.
 async function getAuraEntry(): Promise<LeaderboardEntry> {
-  const state = await getPaperPortfolioState();
+  const adminId = await getAdminUserId();
+  if (adminId === null) {
+    return {
+      slug: "aura",
+      name: "Aura Signal Engine",
+      fund: "This app's own paper portfolio",
+      isAura: true,
+      returnPct: null,
+      coveragePct: 100,
+      asOfDate: null,
+    };
+  }
+  const state = await getPaperPortfolioState(adminId);
   const tickers = state.openPositions.map((p) => p.ticker);
   let priceByTicker = new Map<string, number>();
   if (tickers.length > 0) {

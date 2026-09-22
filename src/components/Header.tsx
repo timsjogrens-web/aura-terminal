@@ -19,7 +19,8 @@ export default function Header() {
   const { data } = useQuotes();
   const { permission, requestPermission } = useNotificationPermission();
   useStrongBuyAlerts(permission === "granted");
-  const loggedIn = useAuthStatus();
+  const auth = useAuthStatus();
+  const loggedIn = auth ? auth.loggedIn : null;
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -98,6 +99,7 @@ export default function Header() {
           {loggedIn === true && (
             <button
               onClick={handleLogout}
+              title={auth?.email ?? undefined}
               className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
             >
               Logga ut

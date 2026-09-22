@@ -37,7 +37,8 @@ export default function InvestorsPage() {
   const [managers, setManagers] = useState<ManagerData[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const loggedIn = useAuthStatus();
+  const auth = useAuthStatus();
+  const loggedIn = auth ? auth.isAdmin : null; // checking for new filings stays admin-only
 
   const trackedTickers = new Set(DEFAULT_UNIVERSE.map((e) => e.ticker));
 
