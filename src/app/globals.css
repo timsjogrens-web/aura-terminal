@@ -102,6 +102,54 @@ body {
   animation-play-state: paused;
 }
 
+/* Hero background: a subtle gold glow + starfield + chart grid, layered
+   behind the hero text. Pure CSS (no image assets), fading out toward the
+   bottom so it never fights with the text or the sections below. */
+.hero-bg-glow {
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 78% 15%, rgba(245, 165, 36, 0.16), transparent 60%),
+    radial-gradient(ellipse 40% 40% at 15% 85%, rgba(245, 165, 36, 0.07), transparent 65%);
+}
+
+.hero-bg-stars {
+  pointer-events: none;
+  background-image:
+    radial-gradient(rgba(244, 242, 236, 0.55) 1px, transparent 1.5px),
+    radial-gradient(rgba(244, 242, 236, 0.3) 1px, transparent 1.5px),
+    radial-gradient(rgba(245, 165, 36, 0.4) 1px, transparent 1.5px);
+  background-size: 160px 160px, 110px 110px, 210px 210px;
+  background-position: 20px 10px, 70px 90px, 140px 40px;
+  mask-image: linear-gradient(to bottom, black, transparent 90%);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 90%);
+  animation: hero-stars-drift 90s linear infinite;
+}
+
+@keyframes hero-stars-drift {
+  from {
+    background-position: 20px 10px, 70px 90px, 140px 40px;
+  }
+  to {
+    background-position: -140px 170px, -40px 200px, -70px 250px;
+  }
+}
+
+.hero-bg-grid {
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(245, 165, 36, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 165, 36, 0.07) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 55% 60% at 78% 10%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 55% 60% at 78% 10%, black 0%, transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-stars {
+    animation: none;
+  }
+}
+
 @keyframes pulse-dot {
   0%,
   100% {

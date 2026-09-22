@@ -9,7 +9,7 @@ const CARDS = [
     ),
     title: "Riktiga nyheter, inte bara en siffra",
     description:
-      "Varje aktie stäms av mot live-nyheter, filtrerat så bara artiklar som faktiskt nämner bolaget släpps igenom — aldrig generellt marknadsbrus förklätt till bolagsspecifika nyheter.",
+      "Varje signal kopplas till nyheter som faktiskt nämner bolaget — aldrig generellt marknadsbrus.",
   },
   {
     number: "02",
@@ -21,7 +21,7 @@ const CARDS = [
     ),
     title: "Varje signal loggas och kontrolleras",
     description:
-      "Varje signal loggas i samma stund den ges. Historik-sidan visar sedan exakt vad som hände med priset efteråt — en verklig träffsäkerhet, inte ett påstående du måste ta på tro.",
+      "Signalen loggas direkt, och historiken visar sedan exakt vad som hände med priset efteråt.",
   },
   {
     number: "03",
@@ -33,7 +33,7 @@ const CARDS = [
     ),
     title: "Inget gömt bakom poängen",
     description:
-      "Varje poäng bryts ner till exakt de faktorer som ligger bakom — trend mot 50-dagars snittet, RSI-momentum och volym mot sitt eget snitt — så du kan se varför en signal gavs, inte bara lita på siffran.",
+      "Varje poäng bryts ner i trend, momentum och volym — du ser alltid varför en signal gavs.",
   },
 ];
 
