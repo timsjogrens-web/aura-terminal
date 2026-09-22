@@ -88,6 +88,8 @@ export default function SelfTradePage() {
   const [liveError, setLiveError] = useState<string | null>(null);
   const [side, setSide] = useState<"BUY" | "SELL">("BUY");
   const [shares, setShares] = useState("");
+  const [amountText, setAmountText] = useState("");
+  const [inputMode, setInputMode] = useState<"shares" | "amount">("amount");
   const [submitting, setSubmitting] = useState(false);
   const [tradeError, setTradeError] = useState<string | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
@@ -128,6 +130,7 @@ export default function SelfTradePage() {
     setLive(null);
     setLiveError(null);
     setShares("");
+    setAmountText("");
     setTradeError(null);
     if (presetSide) setSide(presetSide);
     fetch(`/api/quote-lookup?ticker=${ticker}`)
@@ -155,6 +158,7 @@ export default function SelfTradePage() {
         return;
       }
       setShares("");
+      setAmountText("");
       loadPortfolio();
       selectTicker(selected, side); // refresh live price after the trade
     } finally {
@@ -164,6 +168,39 @@ export default function SelfTradePage() {
 
   const cost = live && shares ? Number(shares) * live.price : 0;
   const heldShares = portfolio?.positions.find((p) => p.ticker === selected)?.shares ?? 0;
+  const heldValue = live ? heldShares * live.price : 0;
+  const availableCash = portfolio?.cash ?? 0;
+
+  // Both quick-pick paths (a dollar amount to buy for, or a % of a held
+  // position to sell) ultimately just set the share count that actually
+  // gets submitted — shares stays the single source of truth either way,
+  // amountText is purely a display convenience for the "BELOPP" mode.
+  function pickBuyAmount(amount: number) {
+    if (!live || !live.price) return;
+    setInputMode("amount");
+    setAmountText(String(Math.round(amount * 100) / 100));
+    setShares(String(amount / live.price));
+  }
+
+  function pickSellPortion(pct: number) {
+    if (!live) return;
+    setInputMode("shares");
+    const sh = heldShares * (pct / 100);
+    setShares(String(sh));
+    setAmountText(String(Math.round(sh * live.price * 100) / 100));
+  }
+
+  function handleSharesInput(value: string) {
+    const cleaned = value.replace(/[^0-9.]/g, "");
+    setShares(cleaned);
+    setAmountText(live && cleaned ? String(Math.round(Number(cleaned) * live.price * 100) / 100) : "");
+  }
+
+  function handleAmountInput(value: string) {
+    const cleaned = value.replace(/[^0-9.]/g, "");
+    setAmountText(cleaned);
+    setShares(live && live.price && cleaned ? String(Number(cleaned) / live.price) : "");
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -289,7 +326,11 @@ export default function SelfTradePage() {
                     we don't actually have data for. */}
                 <div className="grid grid-cols-2 gap-3 mb-2">
                   <button
-                    onClick={() => setSide("SELL")}
+                    onClick={() => {
+                      setSide("SELL");
+                      setShares("");
+                      setAmountText("");
+                    }}
                     className={`rounded-lg border-2 py-4 text-center transition ${
                       side === "SELL"
                         ? "border-[var(--red)] bg-[rgba(239,68,68,0.12)]"
@@ -300,7 +341,11 @@ export default function SelfTradePage() {
                     <p className="font-mono text-2xl font-bold text-[var(--text-primary)]">${formatPrice(live.price)}</p>
                   </button>
                   <button
-                    onClick={() => setSide("BUY")}
+                    onClick={() => {
+                      setSide("BUY");
+                      setShares("");
+                      setAmountText("");
+                    }}
                     className={`rounded-lg border-2 py-4 text-center transition ${
                       side === "BUY"
                         ? "border-[var(--green)] bg-[rgba(34,197,94,0.12)]"
@@ -311,26 +356,90 @@ export default function SelfTradePage() {
                     <p className="font-mono text-2xl font-bold text-[var(--text-primary)]">${formatPrice(live.price)}</p>
                   </button>
                 </div>
-                {side === "SELL" && (
-                  <p className="text-xs font-mono text-[var(--text-muted)] mb-3">
-                    Du äger {heldShares.toFixed(4)} st
-                  </p>
-                )}
+                {/* What you actually have available, shown right where the
+                    decision is made — cash to spend when buying, current
+                    holding when selling — instead of making you scroll down
+                    to the stats cards to check before typing a number. */}
+                <p className="text-xs font-mono text-[var(--text-muted)] mb-3">
+                  {side === "BUY"
+                    ? `Tillgängligt att köpa för: ${formatMoney(availableCash)}`
+                    : `Du äger ${heldShares.toFixed(4)} st (${formatMoney(heldValue)})`}
+                </p>
+
+                <div className="flex gap-2 flex-wrap mb-4">
+                  {side === "BUY"
+                    ? [500, 1000, 2500].map((amt) => (
+                        <button
+                          key={amt}
+                          onClick={() => pickBuyAmount(amt)}
+                          disabled={amt > availableCash}
+                          className="text-xs font-mono border border-[var(--surface-border)] rounded-md px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--gold-dim)] hover:text-[var(--text-primary)] disabled:opacity-40 disabled:hover:border-[var(--surface-border)] transition"
+                        >
+                          ${amt.toLocaleString("en-US")}
+                        </button>
+                      ))
+                    : [25, 50, 100].map((pct) => (
+                        <button
+                          key={pct}
+                          onClick={() => pickSellPortion(pct)}
+                          disabled={heldShares <= 0}
+                          className="text-xs font-mono border border-[var(--surface-border)] rounded-md px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--gold-dim)] hover:text-[var(--text-primary)] disabled:opacity-40 transition"
+                        >
+                          {pct === 100 ? "Sälj allt" : `${pct}%`}
+                        </button>
+                      ))}
+                  {side === "BUY" && (
+                    <button
+                      onClick={() => pickBuyAmount(availableCash)}
+                      disabled={availableCash <= 0}
+                      className="text-xs font-mono border border-[var(--surface-border)] rounded-md px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--gold-dim)] hover:text-[var(--text-primary)] disabled:opacity-40 transition"
+                    >
+                      Max
+                    </button>
+                  )}
+                </div>
 
                 <div className="flex items-end gap-3 flex-wrap mt-4">
                   <div>
-                    <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                      ANTAL
-                    </label>
-                    <input
-                      value={shares}
-                      onChange={(e) => setShares(e.target.value.replace(/[^0-9.]/g, ""))}
-                      placeholder="0"
-                      className="w-32 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
-                    />
+                    <div className="flex items-center gap-1 mb-1.5">
+                      <button
+                        onClick={() => setInputMode("amount")}
+                        className={`text-xs font-mono tracking-widest rounded px-1.5 py-0.5 transition ${
+                          inputMode === "amount" ? "text-[var(--gold)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                        }`}
+                      >
+                        BELOPP ($)
+                      </button>
+                      <span className="text-[var(--text-muted)] text-xs">/</span>
+                      <button
+                        onClick={() => setInputMode("shares")}
+                        className={`text-xs font-mono tracking-widest rounded px-1.5 py-0.5 transition ${
+                          inputMode === "shares" ? "text-[var(--gold)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                        }`}
+                      >
+                        ANTAL
+                      </button>
+                    </div>
+                    {inputMode === "amount" ? (
+                      <input
+                        value={amountText}
+                        onChange={(e) => handleAmountInput(e.target.value)}
+                        placeholder="0"
+                        className="w-32 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
+                      />
+                    ) : (
+                      <input
+                        value={shares}
+                        onChange={(e) => handleSharesInput(e.target.value)}
+                        placeholder="0"
+                        className="w-32 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
+                      />
+                    )}
                   </div>
                   <p className="text-sm font-mono text-[var(--text-secondary)] pb-2.5">
-                    {side === "BUY" ? "Kostnad" : "Intäkt"}: ${cost.toFixed(2)}
+                    {inputMode === "amount"
+                      ? `≈ ${Number(shares || 0).toFixed(4)} st`
+                      : `${side === "BUY" ? "Kostnad" : "Intäkt"}: $${cost.toFixed(2)}`}
                   </p>
                   <button
                     onClick={submitTrade}
