@@ -9,7 +9,10 @@ import { computeUniverseTrackRecord } from "@/lib/trackRecord";
 // matters here.
 // v2: the tracked universe grew from ~40 to ~170 stocks, so older cached
 // results describe a different portfolio and must not be served.
-const CACHE_KEY = "track_record_cache_v2";
+// v3: the bot's entry rule changed from BUY-or-STRONG-BUY to STRONG BUY
+// only (see paperTrading.ts's maybeTrade) — a v2-cached result used the
+// old rule and must not be served under the new methodology's numbers.
+const CACHE_KEY = "track_record_cache_v3";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 // Fetching that history (a few tickers at a time) still takes a while

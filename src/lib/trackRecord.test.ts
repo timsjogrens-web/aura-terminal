@@ -63,7 +63,7 @@ describe("runUniverseTrackRecord", () => {
     // matters to a holder: even a severe overnight gap gets sold at the
     // very next available open, not held indefinitely, and the realized
     // loss is bounded to roughly that gap — never open-ended.
-    const rally = [5]; // minimal move into a BUY
+    const rally = [8]; // minimal move into a STRONG BUY (the only tier the bot enters on)
     const gap = [-40, -1]; // a severe single-day gap down, plus one more day so the resulting sell has a next-day open to execute at
     const series = [buildSeries("A", 55, [...rally, ...gap])];
     const result = runUniverseTrackRecord(series);

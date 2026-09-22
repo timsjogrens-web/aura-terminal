@@ -147,8 +147,8 @@ export default function TrackRecordPage() {
         </h1>
         <p className="text-[var(--text-secondary)] mb-4 max-w-2xl leading-relaxed">
           En fullständig historisk simulering — inte bara de bra perioderna. Samma regler som det
-          riktiga papperskontot (5 000 kr per ny köpsignal, 8% stop-loss, trailing stop) körs
-          mekaniskt över {data ? data.universeSize : "~170"} aktiers riktiga kurshistorik de
+          riktiga papperskontot ($5 000 per ny STRONG BUY-signal, 8% stop-loss, trailing stop)
+          körs mekaniskt över {data ? data.universeSize : "~170"} aktiers riktiga kurshistorik de
           senaste ~2 åren, med samma regel mot framtidsdataläckage som backtest-verktyget:
           varje beslut baseras bara på data fram till dagens stängning, och handlas tidigast
           nästa dags öppning.
@@ -168,6 +168,13 @@ export default function TrackRecordPage() {
             stop utvärderas här en gång per dag mot stängningskursen, medan det riktiga
             papperskontot kan reagera snabbare inom samma dag — om något är den här simuleringen
             alltså något långsammare att skydda en position än verkligheten, inte tvärtom.
+          </p>
+          <p className="mt-2">
+            <strong>Om varför gränsen är STRONG BUY, inte BUY:</strong> vi testade hur resultatet
+            förändras med hur högt poängen måste vara för att köpas, och en högre gräns gav
+            genomgående bättre resultat i båda halvorna av den här 2-årsperioden. Men det är
+            fortfarande samma två år som testas OCH visas här — inget bevis på hur det går
+            framåt i tiden, bara den mest rigorösa kontroll den fria datan tillåter.
           </p>
         </div>
 

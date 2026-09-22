@@ -107,10 +107,11 @@ export default function PaperTradingPage() {
         <p className="text-[var(--text-secondary)] mb-6 max-w-2xl">
           Ditt eget fiktiva {data ? formatMoney(data.startingCash) : "$100,000"}-konto, som du
           själv sätter igång — när boten är på köper den automatiskt i samma stund en aktie når
-          BUY eller STRONG BUY, och säljer i samma stund den faller ur, ingen manuell inmatning.
-          Två skyddsnät ligger ovanpå signalen: en fast stop-loss på 8% under ingångspriset, och
-          en trailing stop som låser in vinst när en position gått upp 15%+ (säljer om den sedan
-          backar 10% från sin topp) — båda visas som anledning i handelsloggen nedan.
+          STRONG BUY (den högsta signalnivån — vanlig BUY visas fortfarande på sajten men
+          auto-handlas inte längre, se notisen nedan), och säljer i samma stund den faller under
+          BUY. Två skyddsnät ligger ovanpå signalen: en fast stop-loss på 8% under ingångspriset,
+          och en trailing stop som låser in vinst när en position gått upp 15%+ (säljer om den
+          sedan backar 10% från sin topp) — båda visas som anledning i handelsloggen nedan.
         </p>
 
         {loggedIn === false && (
@@ -126,6 +127,23 @@ export default function PaperTradingPage() {
             .
           </div>
         )}
+
+        <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+          <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
+            NOTIS, 22 SEPTEMBER 2026 — BOTEN BLEV MER SELEKTIV
+          </p>
+          <p>
+            Boten köpte tidigare på både BUY och STRONG BUY. En backtest över de senaste 2 åren
+            visade att strategin fick tydligt bättre resultat (och lägre nedgångar) ju mer
+            selektiv den blev, och höll i sig i båda halvorna av perioden var för sig — inte bara
+            en lyckad period. Boten köper nu bara på STRONG BUY. Ärlig brasklapp: detta är testat
+            på samma 2 år som vi bara har tillgång till, inte ett facit på framtiden — se{" "}
+            <Link href="/methodology" className="underline hover:text-[var(--text-primary)]">
+              metodiken
+            </Link>{" "}
+            för detaljer.
+          </p>
+        </div>
 
         {data && (
           <div

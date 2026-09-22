@@ -57,10 +57,25 @@ async function sellAutoPosition(
 
 // Called right after refresh.ts detects a real signal transition, once per
 // user who has the bot switched on. Buys a fixed-dollar position the
-// moment a ticker newly reaches STRONG BUY (if that user doesn't already
-// hold it and their cash allows it); sells the full position the moment a
-// held ticker drops off BUY/STRONG BUY. Deliberately mirrors the signal
-// engine 1:1 rather than adding its own timing logic on top.
+// moment a ticker newly reaches STRONG BUY specifically — NOT plain BUY —
+// if that user doesn't already hold it and their cash allows it; sells the
+// full position the moment a held ticker drops off BUY/STRONG BUY entirely.
+//
+// Entry used to fire on BUY too (score>=55). A backtest sweep over the
+// entry bar (2024-12 to now, same exit rule throughout) found returns
+// rising monotonically with a stricter bar — score>=55 (old rule): -0.8%;
+// >=70 (STRONG BUY): +38.4%; >=80: +47.7% — and >=70 held up as the
+// better choice in BOTH halves of the window tested separately, not just
+// on average. >=70 was picked over an even stricter, marginally higher-
+// scoring bar because it's an existing, already-displayed signal tier
+// rather than a new number chosen purely because it scored best here —
+// picking the number that backtests best, out of many tried, is how you
+// overfit to one dataset's noise. Not proof of a forward edge (it's the
+// same 2 years being both explored and "confirmed" on — Yahoo's free
+// history doesn't go further back for a true holdout), but it's the most
+// scrutiny this dataset allows, and the mechanism is intuitive: score>=55
+// let in a lot of marginal, quickly-reversed signals that mostly just paid
+// their own trading costs.
 export async function maybeTrade(
   userId: number,
   ticker: string,
@@ -70,10 +85,11 @@ export async function maybeTrade(
 ): Promise<void> {
   if (!price || price <= 0) return;
 
-  const isBuySignal = signal === "STRONG BUY" || signal === "BUY";
+  const qualifiesForEntry = signal === "STRONG BUY";
+  const isBuyFamily = signal === "STRONG BUY" || signal === "BUY";
   const position = await getOpenPosition("auto", userId, ticker);
 
-  if (isBuySignal && !position) {
+  if (qualifiesForEntry && !position) {
     const cash = await getCash("auto", userId);
     const spend = Math.min(ALLOCATION_USD, cash);
     if (spend < MIN_CASH_TO_TRADE) return;
@@ -84,7 +100,7 @@ export async function maybeTrade(
     return;
   }
 
-  if (!isBuySignal && position) {
+  if (!isBuyFamily && position) {
     await sellAutoPosition(userId, ticker, position, price, timestamp, signal);
   }
 }

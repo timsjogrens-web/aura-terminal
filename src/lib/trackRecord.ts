@@ -7,10 +7,13 @@ import { DEFAULT_UNIVERSE } from "./universe";
 // site ever generated" across the whole tracked universe at once, over
 // real historical price data — not a single flattering ticker, the whole
 // portfolio, including every drawdown. Mirrors the live paper-trading
-// bot's own rules exactly (src/lib/paperTrading.ts): $5,000 per new BUY/
-// STRONG BUY position, sell when a held ticker drops off BUY/STRONG BUY,
-// an 8% stop-loss, and a trailing stop that arms at +15% and sells on a
-// 10% pullback from peak. Same look-ahead discipline as the backtest tool
+// bot's own rules exactly (src/lib/paperTrading.ts): $5,000 per new
+// STRONG BUY position (a plain BUY is shown on the site but no longer
+// auto-traded — see the entry-threshold sweep this was decided from, in
+// paperTrading.ts's maybeTrade comment), sell when a held ticker drops off
+// BUY/STRONG BUY entirely, an 8% stop-loss, and a trailing stop that arms
+// at +15% and sells on a 10% pullback from peak. Same look-ahead discipline
+// as the backtest tool
 // (src/lib/backtest.ts): every decision uses data only through that day's
 // close, and executes at the NEXT day's open — including stop-loss and
 // trailing-stop exits, which in the live bot react within the same
@@ -160,14 +163,19 @@ export function runUniverseTrackRecord(seriesList: TickerSeries[]): TrackRecordR
 
       const { signal } = computeScore({ price: s.adjCloses[idx], sma50, rsi14, volume, avgVolume });
       const prevSignal = lastSignal.get(s.ticker);
-      const isBuySignal = signal === "STRONG BUY" || signal === "BUY";
-      const wasBuySignal = prevSignal === "STRONG BUY" || prevSignal === "BUY";
+      // Entry requires STRONG BUY specifically; exit still fires on
+      // dropping off BUY-or-STRONG-BUY entirely (unchanged) — see
+      // paperTrading.ts's maybeTrade for why these aren't the same bar.
+      const qualifiesForEntry = signal === "STRONG BUY";
+      const wasQualifying = prevSignal === "STRONG BUY";
+      const isBuyFamily = signal === "STRONG BUY" || signal === "BUY";
+      const wasBuyFamily = prevSignal === "STRONG BUY" || prevSignal === "BUY";
 
       if (prevSignal !== undefined && prevSignal !== signal) {
-        if (isBuySignal && !wasBuySignal && !positions.has(s.ticker)) {
+        if (qualifiesForEntry && !wasQualifying && !positions.has(s.ticker)) {
           pendingBuys.push(s.ticker);
         }
-        if (!isBuySignal && wasBuySignal && positions.has(s.ticker) && !pendingSellReasons.has(s.ticker)) {
+        if (!isBuyFamily && wasBuyFamily && positions.has(s.ticker) && !pendingSellReasons.has(s.ticker)) {
           pendingSellReasons.set(s.ticker, signal);
         }
       }
