@@ -7,16 +7,16 @@ export default function Hero({ tickerCount }: { tickerCount: number }) {
         SIGNALMOTOR &middot; {tickerCount} US-AKTIER
       </p>
       <h1 className="font-serif font-bold text-4xl sm:text-6xl leading-[1.05] text-[var(--text-primary)] max-w-3xl">
-        Varje signal, poängsatt
+        Köp- och säljsignaler
         <br />
-        och testad mot verkligheten.
+        för amerikanska aktier.
       </h1>
-      <p className="mt-5 max-w-xl text-[var(--text-secondary)] text-base sm:text-lg leading-relaxed">
-        Varje aktie får en poäng 0&ndash;100 baserat på trend, momentum och volym,
-        tillsammans med exakt de indikatorer som ligger bakom beslutet &mdash;
-        inget gömt bakom siffran. Vi har testat den här och andra strategier
-        mot en låst testperiod; ingen har ännu visat en bevisad fördel
-        &mdash;{" "}
+      <p className="mt-5 max-w-xl text-[var(--text-primary)] text-base sm:text-lg leading-relaxed">
+        Varje aktie får en poäng 0&ndash;100 baserat på trend, momentum och volym &mdash;
+        och blir en tydlig signal: köp, sälj eller avvakta.
+      </p>
+      <p className="mt-3 max-w-xl text-[var(--text-secondary)] text-sm leading-relaxed">
+        Inget gömt bakom siffran, och ingen bevisad fördel påstås utan bevis &mdash;{" "}
         <Link href="/methodology" className="underline hover:text-[var(--text-primary)]">
           se hela metodiken
         </Link>
