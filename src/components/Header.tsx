@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useQuotes } from "@/lib/useQuotes";
 import { useNotificationPermission, useStrongBuyAlerts } from "@/lib/useAlerts";
 import { useWatchlist } from "@/lib/WatchlistContext";
@@ -13,7 +13,6 @@ import { LogoMark, Wordmark } from "./Logo";
 
 export default function Header() {
   const pathname = usePathname();
-  const router = useRouter();
   const { entries, loading: watchlistLoading } = useWatchlist();
   const watchlistCount = watchlistLoading ? null : entries.size;
   const { data } = useQuotes();
@@ -21,12 +20,6 @@ export default function Header() {
   useStrongBuyAlerts(permission === "granted");
   const auth = useAuthStatus();
   const loggedIn = auth ? auth.loggedIn : null;
-
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
 
   const isLive = data && !data.isStale && data.apiKeyConfigured;
 
@@ -97,13 +90,17 @@ export default function Header() {
             </span>
           </div>
           {loggedIn === true && (
-            <button
-              onClick={handleLogout}
+            <Link
+              href="/account"
               title={auth?.email ?? undefined}
-              className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
+              className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
             >
-              Logga ut
-            </button>
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" strokeLinecap="round" />
+              </svg>
+              <span className="hidden sm:inline">Mitt konto</span>
+            </Link>
           )}
           {loggedIn === false && (
             <Link

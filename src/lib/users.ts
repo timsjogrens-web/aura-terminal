@@ -148,6 +148,41 @@ export async function getBotEnabledUserIds(): Promise<number[]> {
   return (res.rows as unknown as { id: number }[]).map((r) => r.id);
 }
 
+// Deletes an account and every row tied to it — the paper/self-trade trade
+// logs, the shared-cash and started-at meta keys (see portfolio.ts, which
+// keys them "<name>:<userId>"), the personal watchlist, any pending auth
+// tokens, and the account row itself. Refuses to delete the site's only
+// admin account (it would leave nothing able to use the admin-only
+// features — the shared watchlist, forcing a refresh, checking filings —
+// ever again), which is the one guard this needs beyond "you're deleting
+// your own account, so no one else's data is at risk."
+export async function deleteUser(userId: number): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) return;
+
+  if (user.isAdmin) {
+    const admins = await db.execute("SELECT COUNT(*) as n FROM users WHERE is_admin = 1");
+    const count = Number((admins.rows[0] as unknown as { n: number }).n);
+    if (count <= 1) {
+      throw new UserError(
+        "Du är sajtens enda administratör — kontot kan inte raderas utan att sajten tappar sin adminfunktion helt."
+      );
+    }
+  }
+
+  await db.execute({ sql: "DELETE FROM paper_trades WHERE user_id = ?", args: [userId] });
+  await db.execute({ sql: "DELETE FROM manual_trades WHERE user_id = ?", args: [userId] });
+  await db.execute({ sql: "DELETE FROM paper_position_peaks WHERE user_id = ?", args: [userId] });
+  await db.execute({ sql: "DELETE FROM watchlist WHERE user_id = ?", args: [userId] });
+  await db.execute({ sql: "DELETE FROM auth_tokens WHERE user_id = ?", args: [userId] });
+  await db.execute({
+    sql: "DELETE FROM meta WHERE key IN (?, ?, ?, ?)",
+    args: [`paper_cash:${userId}`, `paper_started_at:${userId}`, `manual_cash:${userId}`, `manual_started_at:${userId}`],
+  });
+  await db.execute({ sql: "DELETE FROM rate_limits WHERE key = ?", args: [`resend-verify:${userId}`] });
+  await db.execute({ sql: "DELETE FROM users WHERE id = ?", args: [userId] });
+}
+
 // --- Password reset / email verification tokens -----------------------
 // One shared table for both purposes (see db.ts's auth_tokens) — a
 // single-use, expiring, random token tied to a user and a purpose.
