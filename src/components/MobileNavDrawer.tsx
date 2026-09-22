@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MAIN_LINKS, SIDEBAR_GROUPS } from "@/lib/navConfig";
+import { LogoMark, Wordmark } from "./Logo";
 
 // Replaces the old horizontal-scrolling mobile nav strip (11 items in one
 // row, everything past the first few required a swipe to even see). A
@@ -49,10 +50,10 @@ export default function MobileNavDrawer({ watchlistCount }: { watchlistCount: nu
           <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
           <div className="relative w-64 max-w-[70vw] h-full bg-[var(--surface)] border-r border-[var(--surface-border)] overflow-y-auto flex flex-col">
             <div className="flex items-center justify-between px-4 py-3.5 border-b border-[var(--surface-border)]">
-              <span className="font-sans font-bold text-sm tracking-wide">
-                <span className="text-[var(--text-primary)]">AURA</span>{" "}
-                <span className="text-[var(--gold)]">TERMINAL</span>
-              </span>
+              <div className="flex items-center gap-2">
+                <LogoMark size={24} />
+                <Wordmark className="text-sm" />
+              </div>
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Stäng meny"

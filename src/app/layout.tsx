@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aura Terminal",
+  title: "TS Terminal",
   description: "Signalmotor för amerikanska aktier — poängsatt, testad och redovisad ärligt.",
   // Automatic browser translation was mangling numbers and range labels
   // (e.g. "1M" -> "1 miljon", "I ÅR" -> "Jag ÅR") in ways no amount of

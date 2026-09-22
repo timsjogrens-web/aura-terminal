@@ -8,6 +8,7 @@ import { useWatchlist } from "@/lib/WatchlistContext";
 import { MAIN_LINKS } from "@/lib/navConfig";
 import Sidebar from "./Sidebar";
 import MobileNavDrawer from "./MobileNavDrawer";
+import { LogoMark, Wordmark } from "./Logo";
 
 export default function Header() {
   const pathname = usePathname();
@@ -32,15 +33,8 @@ export default function Header() {
       <header className="border-b border-[var(--surface-border)] bg-[var(--surface)]/60 backdrop-blur sticky top-0 z-30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="h-8 w-8 rounded-md bg-[var(--gold)] flex items-center justify-center shadow-[0_0_14px_rgba(245,165,36,0.35)]">
-            <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 text-black" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M2 12h4l3 8 4-16 3 8h4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <span className="font-sans font-bold tracking-wide text-base sm:text-lg whitespace-nowrap">
-            <span className="text-[var(--text-primary)]">AURA</span>{" "}
-            <span className="text-[var(--gold)]">TERMINAL</span>
-          </span>
+          <LogoMark size={32} glow />
+          <Wordmark className="text-base sm:text-lg" />
         </Link>
 
         <nav className="hidden sm:flex items-center gap-1 bg-black/30 rounded-lg p-1 border border-[var(--surface-border)]">

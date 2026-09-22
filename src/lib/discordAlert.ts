@@ -22,7 +22,7 @@ export async function sendStrongBuyAlert(ticker: string, price: number, score: n
             description: `Score ${score} at $${price.toFixed(2)}`,
             url: `${appUrl}/stock/${ticker}`,
             color: 0xf5a524,
-            footer: { text: "Aura Terminal · Not financial advice" },
+            footer: { text: "TS Terminal · Not financial advice" },
           },
         ],
       }),

@@ -79,10 +79,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
               borderRadius: 8,
               background: "#f5a524",
               display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+              fontWeight: 800,
+              color: "#0a0a0a",
+              letterSpacing: -0.5,
             }}
-          />
+          >
+            TS
+          </div>
           <div style={{ display: "flex", fontSize: 28, fontWeight: 700, letterSpacing: 1 }}>
-            <span style={{ color: "#f4f2ec" }}>AURA&nbsp;</span>
+            <span style={{ color: "#f4f2ec" }}>TS&nbsp;</span>
             <span style={{ color: "#f5a524" }}>TERMINAL</span>
           </div>
         </div>

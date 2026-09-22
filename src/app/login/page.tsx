@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogoMark, Wordmark } from "@/components/Logo";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -44,15 +45,8 @@ export default function LoginPage() {
         className="relative z-10 w-full max-w-sm rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 shadow-2xl"
       >
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-9 w-9 rounded-md bg-[var(--gold)] flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className="h-5 w-5 text-black" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M2 12h4l3 8 4-16 3 8h4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <span className="font-sans font-bold tracking-wide text-lg">
-            <span className="text-[var(--text-primary)]">AURA</span>{" "}
-            <span className="text-[var(--gold)]">TERMINAL</span>
-          </span>
+          <LogoMark size={36} />
+          <Wordmark className="text-lg" />
         </div>
 
         <h1 className="font-serif text-2xl text-[var(--text-primary)] mb-1">Åtkomst begränsad</h1>

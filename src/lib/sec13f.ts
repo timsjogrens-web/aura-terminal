@@ -3,7 +3,7 @@
 // SEC asks all automated callers to identify themselves with a descriptive
 // User-Agent including contact info (https://www.sec.gov/os/webmaster-faq#developers).
 
-const SEC_USER_AGENT = "Aura Terminal (personal finance dashboard) contact@aura-terminal.example";
+const SEC_USER_AGENT = "TS Terminal (personal finance dashboard) contact@ts-terminal.example";
 
 export class SecError extends Error {}
 

@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="border-t border-[var(--surface-border)] mt-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 text-xs text-[var(--text-muted)] leading-relaxed space-y-2">
         <p>
-          Aura Terminal är inte en licensierad investeringsrådgivare. Signaler och poäng
+          TS Terminal är inte en licensierad investeringsrådgivare. Signaler och poäng
           genereras automatiskt från en regelbaserad formel, inte en bevisad
           fördel &mdash; vi har testat fem strategier mot ett brett index och
           ingen har ännu visat en statistiskt säkerställd fördel (se{" "}
