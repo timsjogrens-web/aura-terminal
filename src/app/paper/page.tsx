@@ -172,6 +172,24 @@ export default function PaperTradingPage() {
           </div>
         )}
 
+        {/* Same "existed before the fix" scoping as the notice above.
+            Only Tim's admin account is old enough to hit this. */}
+        {data?.startedAt && new Date(data.startedAt) <= new Date("2026-09-18T23:59:59Z") && (
+          <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+            <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
+              NOTIS, 18 SEPTEMBER 2026 — RÄTTAD 23 SEPTEMBER
+            </p>
+            <p>
+              Två uppdateringskörningar råkade gå samtidigt och köpte ANET dubbelt (en
+              låsningsbugg i uppdateringsjobbet, inte i själva signalen) — kontot ägde tillfälligt
+              dubbelt så mycket ANET som avsett, utan att motsvarande belopp drogs från kassan.
+              Det blåste upp avkastningen med cirka $5 200 (ungefär +4,9 procentenheter) tills det
+              upptäcktes. Den extra affären är borttagen och boken stämmer nu exakt mot
+              handelsloggen igen; låsningsbuggen är fixad så det inte kan hända igen.
+            </p>
+          </div>
+        )}
+
         {loggedIn === true && !data && <p className="text-[var(--text-muted)]">Laddar…</p>}
 
         {data && (

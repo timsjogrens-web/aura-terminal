@@ -287,13 +287,39 @@ export async function loadTargets(): Promise<RefreshTarget[]> {
 }
 
 // The lock also stops a second run starting on top of this one: refreshOne
-// appends to the hash-chained signal ledger and moves the paper account's
-// cash, and neither is safe to run concurrently.
+// appends to the hash-chained signal ledger and moves paper-trading cash
+// around, and neither is safe to run concurrently.
+//
+// This used to be read-then-write (read the lock, check its age, then
+// write a fresh one) — exactly the same non-atomic shape that forced the
+// ledger's CAS fix (see ledger.ts), and it had the same failure mode: two
+// overlapping requests (e.g. the cron trigger firing right as someone
+// clicked "Uppdatera nu") could both read an expired lock before either
+// wrote a fresh one, and both proceed to run refreshAll() at once. That's
+// exactly what caused a real duplicate ANET buy on 2026-09-18 — two
+// concurrent runs both saw "no open position" before either had recorded
+// its trade, and both bought.
+//
+// Fixed the same way as the ledger: write MY OWN unique token with a
+// single conditional UPDATE (only takes effect if the stored value is
+// still missing/expired at the instant SQLite applies it, not at the
+// instant I last read it), then read the value back — if it's my token,
+// I won the lock; if it's someone else's, they got there first.
 async function acquireLock(): Promise<boolean> {
-  const lock = await getMeta(LOCK_KEY);
-  if (lock && Date.now() - new Date(lock).getTime() < LOCK_MS) return false;
-  await setMeta(LOCK_KEY, new Date().toISOString());
-  return true;
+  const myToken = `${new Date().toISOString()}-${Math.random().toString(36).slice(2, 8)}`;
+  const cutoffIso = new Date(Date.now() - LOCK_MS).toISOString();
+
+  await db.execute({
+    sql: `
+      INSERT INTO meta (key, value) VALUES (?, ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value
+      WHERE meta.value IS NULL OR meta.value = '' OR meta.value < ?
+    `,
+    args: [LOCK_KEY, myToken, cutoffIso],
+  });
+
+  const current = await getMeta(LOCK_KEY);
+  return current === myToken;
 }
 
 // Refreshes the stalest stocks that fit in one time budget — with ~170
