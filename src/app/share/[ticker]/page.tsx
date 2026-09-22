@@ -9,9 +9,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const symbol = ticker.toUpperCase();
   const imagePath = `/api/share/${symbol}`;
   return {
-    title: `${symbol} · TS Terminal`,
-    description: `Live signal and score for ${symbol} from TS Terminal.`,
-    openGraph: { title: `${symbol} · TS Terminal`, images: [imagePath] },
+    title: `${symbol} · Candor`,
+    description: `Live signal and score for ${symbol} from Candor.`,
+    openGraph: { title: `${symbol} · Candor`, images: [imagePath] },
     twitter: { card: "summary_large_image", images: [imagePath] },
   };
 }
@@ -40,7 +40,7 @@ export default async function SharePage({ params }: Props) {
         style={{ maxWidth: "100%", width: 640, borderRadius: 12, border: "1px solid #2a2620" }}
       />
       <p style={{ color: "#5c584d", fontSize: 13, fontFamily: "monospace", textAlign: "center", maxWidth: 480 }}>
-        TS Terminal är inte en licensierad investeringsrådgivare. Signaler genereras automatiskt
+        Candor är inte en licensierad investeringsrådgivare. Signaler genereras automatiskt
         från offentlig marknadsdata och är inte finansiell rådgivning.
       </p>
     </div>

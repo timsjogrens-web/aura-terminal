@@ -1,8 +1,8 @@
-// A "TS" monogram in a gold square, plus the "TS TERMINAL" wordmark next to
-// it — used everywhere the brand appears (Header, MobileNavDrawer, the
-// login screen). Kept as one shared component after the rename from "Aura
-// Terminal" so all three copies can't drift out of sync with each other
-// the way the header nav links once did.
+// A "C" monogram in a gold square, plus the "CANDOR" wordmark next to it —
+// used everywhere the brand appears (Header, MobileNavDrawer, the login
+// screen). Kept as one shared component (after two renames now — "Aura
+// Terminal", then "TS Terminal", now "Candor") so all copies can't drift
+// out of sync with each other the way the header nav links once did.
 export function LogoMark({ size = 32, glow = false }: { size?: number; glow?: boolean }) {
   return (
     <div
@@ -13,9 +13,9 @@ export function LogoMark({ size = 32, glow = false }: { size?: number; glow?: bo
     >
       <span
         className="font-sans font-black text-black"
-        style={{ fontSize: size * 0.4, letterSpacing: "-0.03em" }}
+        style={{ fontSize: size * 0.5, letterSpacing: "-0.03em" }}
       >
-        TS
+        C
       </span>
     </div>
   );
@@ -24,8 +24,7 @@ export function LogoMark({ size = 32, glow = false }: { size?: number; glow?: bo
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <span className={`font-sans font-bold tracking-wide whitespace-nowrap ${className}`}>
-      <span className="text-[var(--text-primary)]">TS</span>{" "}
-      <span className="text-[var(--gold)]">TERMINAL</span>
+      <span className="text-[var(--gold)]">CANDOR</span>
     </span>
   );
 }

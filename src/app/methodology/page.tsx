@@ -27,7 +27,7 @@ export default function MethodologyPage() {
           Metodik &amp; ärlighet
         </h1>
         <p className="text-[var(--text-secondary)] mb-10">
-          Den här sidan beskriver exakt hur TS Terminal fungerar, vad vi faktiskt testat, och vad
+          Den här sidan beskriver exakt hur Candor fungerar, vad vi faktiskt testat, och vad
           vi ännu inte kan bevisa. Uppdaterad löpande i takt med att fler strategier testas.
         </p>
 
@@ -47,7 +47,7 @@ export default function MethodologyPage() {
 
         <Section title="Vad sajten faktiskt gör">
           <p>
-            TS Terminal räknar ut en poäng 0–100 för varje spårad aktie, baserat på tre saker:
+            Candor räknar ut en poäng 0–100 för varje spårad aktie, baserat på tre saker:
             hur priset ligger jämfört med sitt 50-dagars glidande medelvärde (trend), RSI-momentum,
             och handelsvolym jämfört med sitt eget snitt. Poängen översätts till en signal:
             STRONG BUY, BUY, HOLD, SELL eller STRONG SELL.
@@ -145,7 +145,7 @@ export default function MethodologyPage() {
 
         <Section title="Vem ligger bakom sajten">
           <p>
-            TS Terminal drivs av Tim Sjögren som ett personligt projekt, inte av ett registrerat
+            Candor drivs av Tim Sjögren som ett personligt projekt, inte av ett registrerat
             finansföretag. Sajten är inte en licensierad investeringsrådgivare och lämnar ingen
             personlig rådgivning. Allt innehåll är automatiskt genererat från offentlig marknadsdata
             och tillhandahålls i informationssyfte. Frågor om sajten kan skickas till{" "}

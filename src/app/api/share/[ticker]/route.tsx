@@ -87,11 +87,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
               letterSpacing: -0.5,
             }}
           >
-            TS
+            C
           </div>
           <div style={{ display: "flex", fontSize: 28, fontWeight: 700, letterSpacing: 1 }}>
-            <span style={{ color: "#f4f2ec" }}>TS&nbsp;</span>
-            <span style={{ color: "#f5a524" }}>TERMINAL</span>
+            <span style={{ color: "#f5a524" }}>CANDOR</span>
           </div>
         </div>
 

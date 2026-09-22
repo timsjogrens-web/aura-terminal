@@ -11,7 +11,7 @@ export class EmailError extends Error {}
 // Resend's own shared sending domain — works immediately with no DNS
 // setup, fine for this volume. Swap for a verified custom domain later
 // if wanted (cosmetic only: from-address, not deliverability at this scale).
-const FROM_ADDRESS = "TS Terminal <onboarding@resend.dev>";
+const FROM_ADDRESS = "Candor <onboarding@resend.dev>";
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
@@ -40,11 +40,11 @@ function emailShell(bodyHtml: string): string {
   return `
     <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
       <div style="font-weight: 800; font-size: 18px; margin-bottom: 24px;">
-        <span style="color: #f5a524;">TS</span> TERMINAL
+        <span style="color: #f5a524;">CANDOR</span>
       </div>
       ${bodyHtml}
       <p style="margin-top: 32px; font-size: 12px; color: #888;">
-        TS Terminal &mdash; ett personligt projekt, inte finansiell rådgivning.
+        Candor &mdash; ett personligt projekt, inte finansiell rådgivning.
       </p>
     </div>
   `;
@@ -53,7 +53,7 @@ function emailShell(bodyHtml: string): string {
 export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
   await sendEmail(
     to,
-    "Återställ ditt lösenord — TS Terminal",
+    "Återställ ditt lösenord — Candor",
     emailShell(`
       <p>Någon (troligen du) bad om att återställa lösenordet för det här kontot.</p>
       <p><a href="${resetUrl}" style="display: inline-block; background: #f5a524; color: #000; font-weight: 700; padding: 10px 20px; border-radius: 6px; text-decoration: none;">Välj nytt lösenord</a></p>
@@ -65,7 +65,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
 export async function sendVerificationEmail(to: string, verifyUrl: string): Promise<void> {
   await sendEmail(
     to,
-    "Bekräfta din e-post — TS Terminal",
+    "Bekräfta din e-post — Candor",
     emailShell(`
       <p>Bekräfta din e-postadress för att slutföra registreringen:</p>
       <p><a href="${verifyUrl}" style="display: inline-block; background: #f5a524; color: #000; font-weight: 700; padding: 10px 20px; border-radius: 6px; text-decoration: none;">Bekräfta e-post</a></p>

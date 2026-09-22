@@ -29,9 +29,9 @@ export default function TermsPage() {
           Kort och rakt. Uppdaterad 22 september 2026.
         </p>
 
-        <Section title="Vad TS Terminal är">
+        <Section title="Vad Candor är">
           <p>
-            TS Terminal är ett personligt, icke-kommersiellt projekt av Tim Sjögren — inte ett
+            Candor är ett personligt, icke-kommersiellt projekt av Tim Sjögren — inte ett
             registrerat finansföretag och inte en licensierad investeringsrådgivare. Signaler,
             poäng och allt innehåll tillhandahålls endast i informationssyfte och är inte
             finansiell rådgivning. Se{" "}

@@ -2,7 +2,7 @@
 // free, public EDGAR data source as the 13F client, just a different
 // filing type and scoped to individual companies instead of fund managers.
 
-const SEC_USER_AGENT = "TS Terminal (personal finance dashboard) contact@ts-terminal.example";
+const SEC_USER_AGENT = "Candor (personal finance dashboard) contact@candor.example";
 const TICKERS_JSON_URL = "https://www.sec.gov/files/company_tickers.json";
 
 export class Form4Error extends Error {}

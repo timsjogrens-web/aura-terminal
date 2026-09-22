@@ -132,7 +132,7 @@ export default function PaperTradingPage() {
           <div className="rounded-lg border border-[rgba(245,165,36,0.35)] bg-[rgba(245,165,36,0.06)] p-5 mb-6 max-w-2xl">
             <div className="flex items-start justify-between gap-3">
               <p className="font-serif font-bold text-lg text-[var(--text-primary)] mb-2">
-                Välkommen till TS Terminal! 🎉
+                Välkommen till Candor! 🎉
               </p>
               <button
                 onClick={() => setShowWelcome(false)}

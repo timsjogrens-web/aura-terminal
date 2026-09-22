@@ -32,7 +32,7 @@ export default function PrivacyPage() {
 
         <Section title="Vem är ansvarig">
           <p>
-            TS Terminal drivs av Tim Sjögren som ett personligt projekt, inte av ett registrerat
+            Candor drivs av Tim Sjögren som ett personligt projekt, inte av ett registrerat
             företag. Frågor om dina uppgifter går till{" "}
             <a href="mailto:timsjogrens.jobb@gmail.com" className="underline hover:text-[var(--text-primary)]">
               timsjogrens.jobb@gmail.com
@@ -86,7 +86,7 @@ export default function PrivacyPage() {
           <p>
             Om du väljer &ldquo;Fortsätt med Google&rdquo; delar Google bara din verifierade e-postadress med
             oss, inte ditt Google-lösenord eller något annat i ditt Google-konto. Du kan när som
-            helst återkalla TS Terminals åtkomst via{" "}
+            helst återkalla Candors åtkomst via{" "}
             <a
               href="https://myaccount.google.com/permissions"
               target="_blank"
