@@ -19,12 +19,12 @@ export default function WatchlistButton({
   const [busy, setBusy] = useState(false);
   const isWatched = entries.has(ticker);
   const auth = useAuthStatus();
-  const isAdmin = auth?.isAdmin === true;
+  const loggedIn = auth?.loggedIn === true;
 
   async function handleClick(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (busy || !isAdmin) return;
+    if (busy || !loggedIn) return;
     setBusy(true);
     if (isWatched) {
       await remove(ticker);
@@ -37,10 +37,10 @@ export default function WatchlistButton({
   return (
     <button
       onClick={handleClick}
-      disabled={busy || !isAdmin}
+      disabled={busy || !loggedIn}
       title={
-        !isAdmin
-          ? "Endast administratören kan ändra den delade bevakningslistan"
+        !loggedIn
+          ? "Logga in för att lägga till i din bevakningslista"
           : isWatched
           ? `Ta bort ${ticker} från bevakningslistan`
           : `Lägg till ${ticker} i bevakningslistan`

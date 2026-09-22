@@ -29,7 +29,7 @@ export default function SignupPage() {
         setLoading(false);
         return;
       }
-      router.push("/paper");
+      router.push("/paper?welcome=1");
       router.refresh();
     } catch {
       setError("Kunde inte nå servern.");

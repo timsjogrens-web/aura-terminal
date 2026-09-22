@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const googleUser = await getGoogleUserInfo(code, req.nextUrl.origin);
-    const user = await findOrCreateGoogleUser(googleUser.email);
+    const { user, isNew } = await findOrCreateGoogleUser(googleUser.email);
 
     const session = await getSession();
     session.userId = user.id;
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     session.isAdmin = user.isAdmin;
     await session.save();
 
-    const res = NextResponse.redirect(new URL("/paper", req.url));
+    const res = NextResponse.redirect(new URL(isNew ? "/paper?welcome=1" : "/paper", req.url));
     res.cookies.delete("google_oauth_state");
     return res;
   } catch (e) {

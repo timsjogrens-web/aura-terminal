@@ -64,6 +64,9 @@ export default function PaperTradingPage() {
   const loggedIn = auth ? auth.loggedIn : null; // anyone with an account can run their own bot
   const [data, setData] = useState<PaperData | null>(null);
   const [togglingBot, setTogglingBot] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<"ok" | "invalid" | "missing" | null>(null);
+  const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
 
   const loadData = useCallback(() => {
     fetch("/api/paper")
@@ -75,6 +78,26 @@ export default function PaperTradingPage() {
   useEffect(() => {
     if (loggedIn === true) loadData();
   }, [loggedIn, loadData]);
+
+  // Reads one-off flags from the signup / email-verification redirects —
+  // only known client-side, so this can't happen any earlier than mount.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (params.get("welcome") === "1") setShowWelcome(true);
+    const verify = params.get("verify");
+    if (verify === "ok" || verify === "invalid" || verify === "missing") setVerifyResult(verify);
+  }, []);
+
+  async function resendVerification() {
+    setResendState("sending");
+    try {
+      await fetch("/api/auth/resend-verification", { method: "POST" });
+      setResendState("sent");
+    } catch {
+      setResendState("idle");
+    }
+  }
 
   async function toggleBot() {
     if (!data) return;
@@ -104,6 +127,79 @@ export default function PaperTradingPage() {
             SIMULERAT · INGA RIKTIGA PENGAR
           </span>
         </div>
+
+        {showWelcome && (
+          <div className="rounded-lg border border-[rgba(245,165,36,0.35)] bg-[rgba(245,165,36,0.06)] p-5 mb-6 max-w-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-serif font-bold text-lg text-[var(--text-primary)] mb-2">
+                Välkommen till TS Terminal! 🎉
+              </p>
+              <button
+                onClick={() => setShowWelcome(false)}
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-sm"
+                aria-label="Stäng"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-[var(--text-secondary)] mb-3">
+              Ditt konto är klart, med $100 000 att öva med. Tre saker att göra härnäst:
+            </p>
+            <ul className="text-sm text-[var(--text-secondary)] space-y-1.5 mb-3 list-disc list-inside">
+              <li>
+                <strong className="text-[var(--text-primary)]">Sätt igång boten</strong> nedan om
+                du vill att den handlar automatiskt åt dig på STRONG BUY-signaler.
+              </li>
+              <li>
+                Eller testa{" "}
+                <Link href="/self-trade" className="text-[var(--gold)] underline">
+                  egen handel
+                </Link>{" "}
+                och välj dina egna affärer.
+              </li>
+              <li>
+                Bygg din{" "}
+                <Link href="/watchlist" className="text-[var(--gold)] underline">
+                  bevakningslista
+                </Link>{" "}
+                med aktier du vill följa.
+              </li>
+            </ul>
+            <p className="text-xs text-[var(--text-muted)]">
+              Läs gärna{" "}
+              <Link href="/methodology" className="underline hover:text-[var(--text-secondary)]">
+                metodiken
+              </Link>{" "}
+              för en ärlig bild av vad som är testat och inte.
+            </p>
+          </div>
+        )}
+
+        {verifyResult === "ok" && (
+          <div className="rounded-lg border border-[rgba(34,197,94,0.35)] bg-[rgba(34,197,94,0.06)] px-4 py-3 mb-6 max-w-2xl text-sm text-[var(--green)]">
+            E-postadressen är bekräftad. Tack!
+          </div>
+        )}
+        {(verifyResult === "invalid" || verifyResult === "missing") && (
+          <div className="rounded-lg border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.06)] px-4 py-3 mb-6 max-w-2xl text-sm text-[var(--red)]">
+            Länken för att bekräfta e-post är ogiltig eller har gått ut. Begär en ny nedan om du
+            fortfarande behöver bekräfta.
+          </div>
+        )}
+
+        {auth?.loggedIn && auth.emailVerified === false && (
+          <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 max-w-2xl text-sm text-[var(--text-secondary)] flex items-center justify-between gap-3 flex-wrap">
+            <span>Bekräfta din e-postadress — vi skickade en länk när du registrerade dig.</span>
+            <button
+              onClick={resendVerification}
+              disabled={resendState !== "idle"}
+              className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--gold-dim)] hover:text-[var(--text-primary)] disabled:opacity-50 shrink-0"
+            >
+              {resendState === "sent" ? "Skickat!" : resendState === "sending" ? "Skickar…" : "Skicka igen"}
+            </button>
+          </div>
+        )}
+
         <p className="text-[var(--text-secondary)] mb-6 max-w-2xl">
           Ditt eget fiktiva {data ? formatMoney(data.startingCash) : "$100,000"}-konto, som du
           själv sätter igång — när boten är på köper den automatiskt i samma stund en aktie når

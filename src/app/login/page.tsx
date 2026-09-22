@@ -89,9 +89,14 @@ export default function LoginPage() {
           placeholder="du@exempel.se"
         />
 
-        <label className="block text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-2">
-          Lösenord
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-xs uppercase tracking-widest text-[var(--text-secondary)]">
+            Lösenord
+          </label>
+          <Link href="/forgot-password" className="text-xs text-[var(--gold)] hover:underline">
+            Glömt lösenord?
+          </Link>
+        </div>
         <input
           type="password"
           value={password}

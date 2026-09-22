@@ -7,10 +7,14 @@ import { sessionOptions, SessionData } from "@/lib/session";
 const PUBLIC_PATHS = [
   "/login",
   "/signup",
+  "/forgot-password",
+  "/reset-password",
   "/api/auth/login",
   "/api/auth/register",
   "/api/auth/logout",
   "/api/auth/session",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
   "/api/refresh",
 ];
 // Shareable signal cards are meant to be opened by people who don't have

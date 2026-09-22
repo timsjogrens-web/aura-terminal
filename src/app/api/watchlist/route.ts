@@ -5,20 +5,24 @@ import { refreshOne } from "@/lib/refresh";
 import { UNIVERSE_MAP } from "@/lib/universe";
 import { getSession } from "@/lib/session";
 
+// Personal per-account watchlist — GET requires a session (there's no
+// meaningful "shared" list to show an anonymous visitor anymore), and
+// write access is just "you're logged in", same as paper/self-trade.
 export async function GET() {
-  const res = await db.execute(
-    "SELECT ticker, company_name, sector, added_at FROM watchlist ORDER BY added_at DESC"
-  );
+  const session = await getSession();
+  if (!session.userId) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  const res = await db.execute({
+    sql: "SELECT ticker, company_name, sector, added_at FROM watchlist WHERE user_id = ? ORDER BY added_at DESC",
+    args: [session.userId],
+  });
   return NextResponse.json({ watchlist: res.rows });
 }
 
-// One shared list for the whole site (not per account, unlike the paper
-// and self-trade portfolios) — proxy.ts only guarantees SOME account is
-// logged in for a write, so editing it is further restricted to the
-// admin here.
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session.isAdmin) {
+  if (!session.userId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
@@ -29,8 +33,8 @@ export async function POST(req: NextRequest) {
   const ticker = raw.trim().toUpperCase();
 
   const existingRes = await db.execute({
-    sql: "SELECT ticker FROM watchlist WHERE ticker = ?",
-    args: [ticker],
+    sql: "SELECT ticker FROM watchlist WHERE user_id = ? AND ticker = ?",
+    args: [session.userId, ticker],
   });
   if (existingRes.rows.length > 0) {
     return NextResponse.json({ error: `${ticker} is already on your watchlist.` }, { status: 409 });
@@ -67,10 +71,12 @@ export async function POST(req: NextRequest) {
   }
 
   await db.execute({
-    sql: "INSERT INTO watchlist (ticker, company_name, sector, added_at) VALUES (?, ?, ?, ?)",
-    args: [ticker, name, sector, new Date().toISOString()],
+    sql: "INSERT INTO watchlist (user_id, ticker, company_name, sector, added_at) VALUES (?, ?, ?, ?, ?)",
+    args: [session.userId, ticker, name, sector, new Date().toISOString()],
   });
 
+  // Refreshing this ticker's quote data is universe-wide (whoever else is
+  // watching it benefits too), not specific to this one user's watchlist.
   after(() => refreshOne(ticker, name, sector).catch(() => {}));
 
   return NextResponse.json({ ok: true, ticker, name, sector });
@@ -78,7 +84,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const session = await getSession();
-  if (!session.isAdmin) {
+  if (!session.userId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
@@ -87,8 +93,8 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Ticker is required." }, { status: 400 });
   }
   await db.execute({
-    sql: "DELETE FROM watchlist WHERE ticker = ?",
-    args: [ticker.toUpperCase()],
+    sql: "DELETE FROM watchlist WHERE user_id = ? AND ticker = ?",
+    args: [session.userId, ticker.toUpperCase()],
   });
   return NextResponse.json({ ok: true });
 }

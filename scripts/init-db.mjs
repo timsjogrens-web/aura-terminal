@@ -81,10 +81,12 @@ const statements = [
   `CREATE INDEX IF NOT EXISTS idx_signal_ledger_ticker ON signal_ledger(ticker, timestamp)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_signal_ledger_row_hash ON signal_ledger(row_hash)`,
   `CREATE TABLE IF NOT EXISTS watchlist (
-    ticker TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    ticker TEXT NOT NULL,
     company_name TEXT,
     sector TEXT,
-    added_at TEXT NOT NULL
+    added_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, ticker)
   )`,
   `CREATE TABLE IF NOT EXISTS meta (
     key TEXT PRIMARY KEY,
@@ -112,7 +114,21 @@ const statements = [
     password_hash TEXT NOT NULL,
     is_admin INTEGER NOT NULL DEFAULT 0,
     bot_enabled INTEGER NOT NULL DEFAULT 0,
+    email_verified INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS auth_tokens (
+    token TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    purpose TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used_at TEXT
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_auth_tokens_user ON auth_tokens(user_id, purpose)`,
+  `CREATE TABLE IF NOT EXISTS rate_limits (
+    key TEXT PRIMARY KEY,
+    count INTEGER NOT NULL,
+    window_start TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS paper_trades (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

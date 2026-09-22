@@ -6,6 +6,7 @@ export interface AuthStatus {
   loggedIn: boolean;
   isAdmin: boolean;
   email: string | null;
+  emailVerified: boolean;
 }
 
 // Whether THIS visitor is logged in, as who, and whether they're the
@@ -26,9 +27,10 @@ export function useAuthStatus(): AuthStatus | null {
           loggedIn: Boolean(json.loggedIn),
           isAdmin: Boolean(json.isAdmin),
           email: json.email ?? null,
+          emailVerified: Boolean(json.emailVerified),
         })
       )
-      .catch(() => setStatus({ loggedIn: false, isAdmin: false, email: null }));
+      .catch(() => setStatus({ loggedIn: false, isAdmin: false, email: null, emailVerified: false }));
   }, []);
 
   return status;

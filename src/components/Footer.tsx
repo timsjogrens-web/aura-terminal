@@ -26,6 +26,10 @@ export default function Footer() {
           <Link href="/privacy" className="underline hover:text-[var(--text-secondary)]">
             Integritetspolicy
           </Link>
+          {" · "}
+          <Link href="/terms" className="underline hover:text-[var(--text-secondary)]">
+            Användarvillkor
+          </Link>
         </p>
       </div>
     </footer>
