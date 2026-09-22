@@ -22,6 +22,10 @@ export default function Footer() {
           <a href="mailto:timsjogrens.jobb@gmail.com" className="underline hover:text-[var(--text-secondary)]">
             timsjogrens.jobb@gmail.com
           </a>
+          {" · "}
+          <Link href="/privacy" className="underline hover:text-[var(--text-secondary)]">
+            Integritetspolicy
+          </Link>
         </p>
       </div>
     </footer>
