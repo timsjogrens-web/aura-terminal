@@ -9,7 +9,7 @@ export async function sendStrongBuyAlert(ticker: string, price: number, score: n
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   if (!webhookUrl) return;
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://aura-terminal-two.vercel.app";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://tsterminal.vercel.app";
 
   try {
     await fetch(webhookUrl, {
