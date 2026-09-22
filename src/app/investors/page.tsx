@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAuthStatus } from "@/lib/useAuthStatus";
 import { DEFAULT_UNIVERSE } from "@/lib/universe";
 import { formatValue } from "@/lib/investors";
 import ManagerAvatar from "@/components/ManagerAvatar";
@@ -36,6 +37,7 @@ export default function InvestorsPage() {
   const [managers, setManagers] = useState<ManagerData[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const loggedIn = useAuthStatus();
 
   const trackedTickers = new Set(DEFAULT_UNIVERSE.map((e) => e.ticker));
 
@@ -79,13 +81,15 @@ export default function InvestorsPage() {
           <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)]">
             Institutionella investerare
           </h1>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
-          >
-            {refreshing ? "Kontrollerar SEC…" : "Kontrollera nya anmälningar"}
-          </button>
+          {loggedIn === true && (
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
+            >
+              {refreshing ? "Kontrollerar SEC…" : "Kontrollera nya anmälningar"}
+            </button>
+          )}
         </div>
         <p className="text-[var(--text-secondary)] mb-8 max-w-2xl">
           Spårar de offentliga SEC 13F-anmälningarna från 12 kända fondförvaltare — vad de

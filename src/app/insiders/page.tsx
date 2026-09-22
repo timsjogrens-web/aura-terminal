@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAuthStatus } from "@/lib/useAuthStatus";
 import CompanyLogo from "@/components/CompanyLogo";
 import { timeAgo } from "@/lib/format";
 import { CORE_UNIVERSE } from "@/lib/universe";
@@ -32,6 +33,7 @@ export default function InsidersPage() {
   const [trades, setTrades] = useState<InsiderTrade[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const loggedIn = useAuthStatus();
   const [filter, setFilter] = useState<"all" | "buys">("buys");
 
   function load() {
@@ -69,13 +71,15 @@ export default function InsidersPage() {
           <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)]">
             Insiderhandel
           </h1>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
-          >
-            {refreshing ? "Kontrollerar SEC…" : "Kontrollera nya anmälningar"}
-          </button>
+          {loggedIn === true && (
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
+            >
+              {refreshing ? "Kontrollerar SEC…" : "Kontrollera nya anmälningar"}
+            </button>
+          )}
         </div>
         <p className="text-[var(--text-secondary)] mb-6 max-w-2xl">
           Köp och sälj på öppna marknaden av direktörer, styrelseledamöter och ägare med 10%+

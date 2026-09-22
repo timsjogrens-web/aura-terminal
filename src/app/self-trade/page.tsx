@@ -10,6 +10,7 @@ import CompanyLogo from "@/components/CompanyLogo";
 import SignalBadge from "@/components/SignalBadge";
 import { formatPct, formatPrice } from "@/lib/format";
 import { useQuotes } from "@/lib/useQuotes";
+import { useAuthStatus } from "@/lib/useAuthStatus";
 
 interface SearchResult {
   symbol: string;
@@ -62,6 +63,7 @@ function formatMoney(n: number): string {
 
 export default function SelfTradePage() {
   const router = useRouter();
+  const loggedIn = useAuthStatus();
   const { data: quotesData } = useQuotes();
   const buySignals = (quotesData?.quotes ?? [])
     .filter((q) => q.signal === "STRONG BUY" || q.signal === "BUY")
@@ -168,6 +170,16 @@ export default function SelfTradePage() {
           </Link>
           -sidan.
         </p>
+
+        {loggedIn === false && (
+          <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)]">
+            Du tittar på det här kontot i visningsläge.{" "}
+            <Link href="/login" className="text-[var(--gold)] underline">
+              Logga in
+            </Link>{" "}
+            för att lägga en affär.
+          </div>
+        )}
 
         <div className="relative mb-6">
           <input
@@ -293,7 +305,8 @@ export default function SelfTradePage() {
                   </p>
                   <button
                     onClick={submitTrade}
-                    disabled={submitting || !shares || Number(shares) <= 0}
+                    disabled={submitting || !shares || Number(shares) <= 0 || loggedIn === false}
+                    title={loggedIn === false ? "Logga in för att lägga en affär" : undefined}
                     className={`px-5 py-2 rounded-md text-sm font-semibold transition disabled:opacity-50 ${
                       side === "BUY" ? "bg-[var(--green)] text-black" : "bg-[var(--red)] text-black"
                     }`}

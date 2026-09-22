@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useWatchlist } from "@/lib/WatchlistContext";
+import { useAuthStatus } from "@/lib/useAuthStatus";
 
 export default function WatchlistButton({
   ticker,
@@ -17,11 +18,12 @@ export default function WatchlistButton({
   const { entries, add, remove } = useWatchlist();
   const [busy, setBusy] = useState(false);
   const isWatched = entries.has(ticker);
+  const loggedIn = useAuthStatus();
 
   async function handleClick(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (busy) return;
+    if (busy || !loggedIn) return;
     setBusy(true);
     if (isWatched) {
       await remove(ticker);
@@ -34,8 +36,14 @@ export default function WatchlistButton({
   return (
     <button
       onClick={handleClick}
-      disabled={busy}
-      title={isWatched ? `Ta bort ${ticker} från bevakningslistan` : `Lägg till ${ticker} i bevakningslistan`}
+      disabled={busy || !loggedIn}
+      title={
+        !loggedIn
+          ? "Logga in för att ändra bevakningslistan"
+          : isWatched
+          ? `Ta bort ${ticker} från bevakningslistan`
+          : `Lägg till ${ticker} i bevakningslistan`
+      }
       className={`h-7 w-7 shrink-0 rounded-md border flex items-center justify-center transition disabled:opacity-50 ${
         isWatched
           ? "border-[rgba(245,165,36,0.4)] bg-[rgba(245,165,36,0.1)] text-[var(--gold)]"

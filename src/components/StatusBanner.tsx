@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { QuotesResponse } from "@/lib/types";
 import { formatClock, timeAgo } from "@/lib/format";
+import { useAuthStatus } from "@/lib/useAuthStatus";
 
 export default function StatusBanner({
   data,
@@ -14,6 +15,7 @@ export default function StatusBanner({
   onRefresh: () => void;
 }) {
   const [refreshing, setRefreshing] = useState(false);
+  const loggedIn = useAuthStatus();
 
   async function handleManualRefresh() {
     setRefreshing(true);
@@ -34,12 +36,14 @@ export default function StatusBanner({
       <div className="mx-auto max-w-7xl px-4 sm:px-6 mb-6">
         <div className="rounded-lg border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.08)] px-4 py-3 text-sm text-[var(--red)] flex items-center justify-between gap-3 flex-wrap">
           <span>Kunde inte hämta data från servern: {fetchError}</span>
-          <button
-            onClick={handleManualRefresh}
-            className="text-xs font-mono border border-[rgba(239,68,68,0.4)] rounded px-2 py-1 hover:bg-[rgba(239,68,68,0.15)]"
-          >
-            Försök igen
-          </button>
+          {loggedIn === true && (
+            <button
+              onClick={handleManualRefresh}
+              className="text-xs font-mono border border-[rgba(239,68,68,0.4)] rounded px-2 py-1 hover:bg-[rgba(239,68,68,0.15)]"
+            >
+              Försök igen
+            </button>
+          )}
         </div>
       </div>
     );
@@ -81,13 +85,15 @@ export default function StatusBanner({
           </span>
         )}
       </div>
-      <button
-        onClick={handleManualRefresh}
-        disabled={refreshing}
-        className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
-      >
-        {refreshing ? "Uppdaterar…" : "Uppdatera nu"}
-      </button>
+      {loggedIn === true && (
+        <button
+          onClick={handleManualRefresh}
+          disabled={refreshing}
+          className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
+        >
+          {refreshing ? "Uppdaterar…" : "Uppdatera nu"}
+        </button>
+      )}
     </div>
   );
 }

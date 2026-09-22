@@ -10,6 +10,7 @@ import NewsList from "@/components/NewsList";
 import CompanyLogo from "@/components/CompanyLogo";
 import { useQuotes } from "@/lib/useQuotes";
 import { useWatchlist } from "@/lib/WatchlistContext";
+import { useAuthStatus } from "@/lib/useAuthStatus";
 import { formatPct, formatPrice } from "@/lib/format";
 import { buildComment } from "@/lib/comment";
 
@@ -19,6 +20,7 @@ interface SearchResult {
 }
 
 export default function WatchlistPage() {
+  const loggedIn = useAuthStatus();
   const { data } = useQuotes();
   const { entries, add, remove } = useWatchlist();
   const watchlist = Array.from(entries.values()).sort(
@@ -73,12 +75,23 @@ async function addTicker(ticker: string, description?: string) {
           Lägg till valfri amerikansk aktie via ticker. Sparas på ditt konto, inte bara i webbläsaren.
         </p>
 
+        {loggedIn === false && (
+          <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)]">
+            Du tittar på bevakningslistan i visningsläge.{" "}
+            <Link href="/login" className="text-[var(--gold)] underline">
+              Logga in
+            </Link>{" "}
+            för att lägga till eller ta bort aktier.
+          </div>
+        )}
+
         <div className="relative mb-10">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value.toUpperCase())}
+            disabled={loggedIn === false}
             placeholder="Sök ticker eller bolag (t.ex. NFLX)"
-            className="w-full rounded-md border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-3 font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
+            className="w-full rounded-md border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-3 font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)] disabled:opacity-50"
           />
           {results.length > 0 && (
             <div className="absolute z-10 mt-1 w-full rounded-md border border-[var(--surface-border)] bg-[var(--surface-2)] shadow-xl overflow-hidden">
@@ -129,7 +142,9 @@ async function addTicker(ticker: string, description?: string) {
                       {q && <SignalBadge signal={q.signal} score={q.score} />}
                       <button
                         onClick={() => remove(w.ticker)}
-                        className="text-xs text-[var(--text-muted)] hover:text-[var(--red)] border border-[var(--surface-border)] rounded px-2 py-1"
+                        disabled={loggedIn === false}
+                        title={loggedIn === false ? "Logga in för att ändra bevakningslistan" : undefined}
+                        className="text-xs text-[var(--text-muted)] hover:text-[var(--red)] border border-[var(--surface-border)] rounded px-2 py-1 disabled:opacity-50"
                       >
                         Ta bort
                       </button>

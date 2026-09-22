@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuotes } from "@/lib/useQuotes";
 import { useNotificationPermission, useStrongBuyAlerts } from "@/lib/useAlerts";
 import { useWatchlist } from "@/lib/WatchlistContext";
+import { useAuthStatus } from "@/lib/useAuthStatus";
 import { MAIN_LINKS } from "@/lib/navConfig";
 import Sidebar from "./Sidebar";
 import MobileNavDrawer from "./MobileNavDrawer";
@@ -18,6 +19,7 @@ export default function Header() {
   const { data } = useQuotes();
   const { permission, requestPermission } = useNotificationPermission();
   useStrongBuyAlerts(permission === "granted");
+  const loggedIn = useAuthStatus();
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -93,12 +95,22 @@ export default function Header() {
               {isLive ? "Marknad live" : "Fördröjd data"}
             </span>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
-          >
-            Logga ut
-          </button>
+          {loggedIn === true && (
+            <button
+              onClick={handleLogout}
+              className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
+            >
+              Logga ut
+            </button>
+          )}
+          {loggedIn === false && (
+            <Link
+              href="/login"
+              className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
+            >
+              Logga in
+            </Link>
+          )}
         </div>
       </div>
     </header>
