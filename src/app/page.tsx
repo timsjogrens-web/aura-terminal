@@ -12,6 +12,7 @@ import { DEFAULT_UNIVERSE } from "@/lib/universe";
 export default function HomePage() {
   const { data } = useQuotes();
   const quotes = data?.quotes ?? [];
+  const buySignalCount = quotes.filter((q) => q.signal === "STRONG BUY" || q.signal === "BUY").length;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -19,19 +20,26 @@ export default function HomePage() {
       <TickerBar quotes={quotes} />
       <Hero tickerCount={DEFAULT_UNIVERSE.length} />
 
-      <section className="mx-auto max-w-7xl w-full px-4 sm:px-6 pb-12 flex gap-3 flex-wrap">
-        <Link
-          href="/markets"
-          className="rounded-md bg-[var(--gold)] px-5 py-2.5 font-sans font-bold text-black tracking-wide hover:brightness-110 transition"
-        >
-          Utforska marknaden →
-        </Link>
-        <Link
-          href="/methodology"
-          className="rounded-md border border-[var(--surface-border)] px-5 py-2.5 font-sans font-medium text-[var(--text-primary)] hover:border-[var(--gold-dim)] transition"
-        >
-          Se hela metodiken
-        </Link>
+      <section className="mx-auto max-w-7xl w-full px-4 sm:px-6 pb-12">
+        <div className="flex gap-3 flex-wrap mb-3">
+          <Link
+            href="/signup"
+            className="rounded-md bg-[var(--gold)] px-5 py-2.5 font-sans font-bold text-black tracking-wide hover:brightness-110 transition"
+          >
+            Skapa konto — helt gratis
+          </Link>
+          <Link
+            href="/markets"
+            className="rounded-md border border-[var(--surface-border)] px-5 py-2.5 font-sans font-medium text-[var(--text-primary)] hover:border-[var(--gold-dim)] transition"
+          >
+            Utforska marknaden utan konto
+          </Link>
+        </div>
+        <p className="text-sm text-[var(--text-secondary)]">
+          Inget kreditkort, inga avgifter &mdash; skapa ett konto och få tillgång till
+          {buySignalCount > 0 ? ` ${buySignalCount} aktuella köpsignaler` : " dagens köp- och säljsignaler"},
+          eget papperskonto med $100 000 att öva med, och en egen bevakningslista.
+        </p>
       </section>
 
       <HowItWorks />

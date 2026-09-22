@@ -9,7 +9,7 @@ export default function Hero({ tickerCount }: { tickerCount: number }) {
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 pt-14 pb-10">
         <p className="text-xs font-mono font-semibold tracking-[0.2em] text-[var(--gold)] mb-4">
-          SIGNALMOTOR &middot; {tickerCount} US-AKTIER
+          HELT GRATIS &middot; {tickerCount} US-AKTIER SPÅRADE
         </p>
         <h1 className="font-serif font-bold text-4xl sm:text-6xl leading-[1.05] text-[var(--text-primary)] max-w-3xl">
           Köp- och säljsignaler
