@@ -73,7 +73,7 @@ export default function HistoryPage() {
         </p>
         <Link
           href="/track-record"
-          className="inline-flex items-center gap-1.5 text-sm text-[var(--gold)] hover:underline mb-8"
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--accent)] hover:underline mb-8"
         >
           Se en fullständig historisk simulering, inklusive de sämsta perioderna →
         </Link>
@@ -102,7 +102,7 @@ export default function HistoryPage() {
             <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-2">
               TOTAL TRÄFFSÄKERHET
             </p>
-            <p className="text-4xl font-mono font-bold text-[var(--gold)]">
+            <p className="text-4xl font-mono font-bold text-[var(--accent)]">
               {overallHitRate !== null ? `${overallHitRate}%` : "—"}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
@@ -152,7 +152,7 @@ export default function HistoryPage() {
             Ingen historik ännu — ögonblicksbilder loggas varje uppdateringscykel.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-6">
             <div className="flex flex-col gap-1">
               {tickers.map((t) => (
                 <div key={t.ticker} className="flex items-center gap-1">
@@ -160,7 +160,7 @@ export default function HistoryPage() {
                     onClick={() => setSelected(t.ticker)}
                     className={`flex-1 text-left rounded-md px-3 py-2.5 border transition ${
                       selected === t.ticker
-                        ? "border-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
+                        ? "border-[var(--accent)] bg-[rgba(111,176,224,0.08)]"
                         : "border-transparent hover:border-[var(--surface-border)]"
                     }`}
                   >
@@ -169,7 +169,7 @@ export default function HistoryPage() {
                   </button>
                   <Link
                     href={`/stock/${t.ticker}`}
-                    className="text-xs text-[var(--text-muted)] hover:text-[var(--gold)] px-2"
+                    className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)] px-2"
                     title={`Visa detaljsidan för ${t.ticker}`}
                   >
                     ↗

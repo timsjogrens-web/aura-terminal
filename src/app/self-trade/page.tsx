@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -9,12 +9,22 @@ import PriceChart from "@/components/PriceChart";
 import CompanyLogo from "@/components/CompanyLogo";
 import SignalBadge from "@/components/SignalBadge";
 import { formatPct, formatPrice } from "@/lib/format";
-import { useQuotes } from "@/lib/useQuotes";
 import { useAuthStatus } from "@/lib/useAuthStatus";
+import { useQuotes } from "@/lib/useQuotes";
 
 interface SearchResult {
   symbol: string;
   description: string;
+}
+
+interface WeeklyPick {
+  ticker: string;
+  companyName: string | null;
+  price: number | null;
+  logo: string | null;
+  signal: string;
+  score: number | null;
+  signaledAt: string;
 }
 
 interface LiveQuote {
@@ -35,6 +45,8 @@ interface Position {
   value: number;
   returnPct: number;
   logo?: string | null;
+  signal: string | null;
+  score: number | null;
 }
 
 interface Trade {
@@ -59,11 +71,6 @@ interface PortfolioData {
   trades: Trade[];
 }
 
-// With 50-60+ tickers often at BUY/STRONG BUY, showing them all by
-// default meant a very long scroll on mobile before reaching the actual
-// trade panel below — this caps the initial view behind a "Visa alla" tap.
-const SIGNALS_INITIAL_COUNT = 5;
-
 function formatMoney(n: number): string {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
@@ -77,10 +84,6 @@ export default function SelfTradePage() {
   const router = useRouter();
   const auth = useAuthStatus();
   const loggedIn = auth ? auth.loggedIn : null; // any account can self-trade, not just the admin
-  const { data: quotesData } = useQuotes();
-  const buySignals = (quotesData?.quotes ?? [])
-    .filter((q) => q.signal === "STRONG BUY" || q.signal === "BUY")
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -92,7 +95,39 @@ export default function SelfTradePage() {
   const [submitting, setSubmitting] = useState(false);
   const [tradeError, setTradeError] = useState<string | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
+  const [weeklyPicks, setWeeklyPicks] = useState<WeeklyPick[] | null>(null);
   const [showAllSignals, setShowAllSignals] = useState(false);
+  const tradePanelRef = useRef<HTMLDivElement | null>(null);
+
+  // The full, unfiltered list — still available on demand ("Visa alla
+  // aktuella signaler") for anyone who specifically wants to browse every
+  // current BUY/STRONG BUY ticker, not just the curated weekly shortlist
+  // above. Kept separate from weeklyPicks rather than replacing it.
+  const { data: quotesData } = useQuotes();
+  const allBuySignals = (quotesData?.quotes ?? [])
+    .filter((q) => q.signal === "STRONG BUY" || q.signal === "BUY")
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+  // A small, stable shortlist instead of "every current BUY/STRONG BUY
+  // signal" (which can be 20-30+ tickers at once) — fine for the
+  // auto-bot, unrealistic for a person to actually buy all of with their
+  // own money. See lib/weeklyPicks.ts for the ranking logic.
+  useEffect(() => {
+    fetch("/api/weekly-picks")
+      .then((r) => (r.ok ? r.json() : { picks: [] }))
+      .then((json) => setWeeklyPicks(json.picks ?? []))
+      .catch(() => setWeeklyPicks([]));
+  }, []);
+
+  // The trade panel renders near the top of the page, above the open-
+  // positions table further down — picking a ticker from that table (or
+  // from the "Sälj" button on a row) would otherwise open the panel
+  // off-screen, above whatever the user was already scrolled to, making
+  // it look like nothing happened. Scroll it into view whenever a ticker
+  // becomes selected, regardless of where the click came from.
+  useEffect(() => {
+    if (selected) tradePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selected]);
 
   const loadPortfolio = useCallback(() => {
     fetch("/api/manual-trade")
@@ -214,23 +249,28 @@ export default function SelfTradePage() {
           </span>
         </div>
         <p className="text-[var(--text-secondary)] mb-8 max-w-2xl">
-          Ditt eget {portfolio ? formatMoney(portfolio.startingCash) : "$100,000"}-konto — sök
-          valfri aktie och handla den själv, separat från signalmotorns egna auto-handlande
-          papperskonto. Se hur dina egna val står sig mot boten på{" "}
-          <Link href="/paper" className="text-[var(--gold)] hover:underline">
+          Ditt eget {portfolio ? formatMoney(portfolio.startingCash) : "$100,000"}-konto — du väljer
+          själv vad som köps och säljs, live, framåt i tiden. Separat från boten som handlar
+          automatiskt på{" "}
+          <Link href="/paper" className="text-[var(--accent)] hover:underline">
             Papperskonto
           </Link>
-          -sidan. Varje konto är helt separat — ditt eget, med din egen $100 000 att börja med.
+          -sidan, och separat från{" "}
+          <Link href="/track-record" className="text-[var(--accent)] hover:underline">
+            Track record
+          </Link>
+          , som bara visar hur det hade gått bakåt i tiden. Varje konto är helt separat — ditt
+          eget, med din egen $100 000 att börja med.
         </p>
 
         {loggedIn === false && (
-          <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)]">
+          <div className="rounded-lg border border-[var(--accent-dim)] bg-[rgba(111,176,224,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)]">
             Du måste ha ett konto för att handla här.{" "}
-            <Link href="/signup" className="text-[var(--gold)] underline">
+            <Link href="/signup" className="text-[var(--accent)] underline">
               Skapa konto
             </Link>{" "}
             (startar på $100 000) eller{" "}
-            <Link href="/login" className="text-[var(--gold)] underline">
+            <Link href="/login" className="text-[var(--accent)] underline">
               logga in
             </Link>
             .
@@ -238,11 +278,21 @@ export default function SelfTradePage() {
         )}
 
         <div className="relative mb-6">
+          <svg
+            viewBox="0 0 24 24"
+            className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)] pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4-4" strokeLinecap="round" />
+          </svg>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value.toUpperCase())}
             placeholder="Sök valfri aktie (t.ex. NFLX)"
-            className="w-full rounded-md border border-[var(--surface-border)] bg-black/30 px-2.5 sm:px-4 py-3 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
+            className="w-full rounded-md border border-[var(--surface-border)] bg-black/30 pl-9 sm:pl-11 pr-2.5 sm:pr-4 py-3 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
           />
           {results.length > 0 && (
             <div className="absolute z-10 mt-1 w-full rounded-md border border-[var(--surface-border)] bg-[var(--surface)] shadow-lg overflow-hidden">
@@ -260,20 +310,27 @@ export default function SelfTradePage() {
           )}
         </div>
 
-        {buySignals.length > 0 && (
+        {weeklyPicks && weeklyPicks.length > 0 && (
           <div className="mb-8">
-            <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
-              AKTUELLA KÖPSIGNALER — VÄLJ DIREKT
+            <h2 className="font-sans font-bold text-lg text-[var(--text-primary)] flex items-center gap-2 mb-1.5">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 21 12 17l-5.5 4L8 13.5 3 9l6.5-.5z" strokeLinejoin="round" />
+              </svg>
+              Topp 5 för veckan — välj direkt
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)] mb-3 max-w-2xl">
+              De 5 starkaste köpsignalerna just nu. Du behöver inte följa alla 33 aktuella signaler —
+              plocka några du gillar här, eller sök upp något annat nedan.
             </p>
             <div className="flex flex-wrap gap-2">
-              {(showAllSignals ? buySignals : buySignals.slice(0, SIGNALS_INITIAL_COUNT)).map((q) => (
+              {weeklyPicks.map((q) => (
                 <button
                   key={q.ticker}
                   onClick={() => selectTicker(q.ticker, "BUY")}
                   className={`flex items-center gap-2 rounded-lg border px-3 py-2 transition ${
                     selected === q.ticker
-                      ? "border-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
-                      : "border-[var(--surface-border)] bg-[var(--surface)] hover:border-[var(--gold-dim)]"
+                      ? "border-[var(--accent)] bg-[rgba(111,176,224,0.08)]"
+                      : "border-[var(--surface-border)] bg-[var(--surface)] hover:border-[var(--accent-dim)]"
                   }`}
                 >
                   <CompanyLogo ticker={q.ticker} logoUrl={q.logo} size={20} />
@@ -285,19 +342,43 @@ export default function SelfTradePage() {
                 </button>
               ))}
             </div>
-            {buySignals.length > SIGNALS_INITIAL_COUNT && (
+
+            {allBuySignals.length > 0 && (
               <button
                 onClick={() => setShowAllSignals((v) => !v)}
-                className="mt-3 text-sm font-medium text-[var(--gold)] hover:underline"
+                className="mt-3 text-sm font-medium text-[var(--accent)] hover:underline"
               >
-                {showAllSignals ? "Visa färre" : `Visa alla (${buySignals.length})`}
+                {showAllSignals ? "Visa färre" : `Visa alla aktuella signaler (${allBuySignals.length})`}
               </button>
+            )}
+
+            {showAllSignals && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {allBuySignals.map((q) => (
+                  <button
+                    key={q.ticker}
+                    onClick={() => selectTicker(q.ticker, "BUY")}
+                    className={`flex items-center gap-2 rounded-lg border px-3 py-2 transition ${
+                      selected === q.ticker
+                        ? "border-[var(--accent)] bg-[rgba(111,176,224,0.08)]"
+                        : "border-[var(--surface-border)] bg-[var(--surface)] hover:border-[var(--accent-dim)]"
+                    }`}
+                  >
+                    <CompanyLogo ticker={q.ticker} logoUrl={q.logo} size={20} />
+                    <span className="font-mono font-semibold text-sm text-[var(--text-primary)]">{q.ticker}</span>
+                    <SignalBadge signal={q.signal} score={q.score} />
+                    <span className="font-mono text-sm text-[var(--text-secondary)]">
+                      {q.price !== null ? `$${formatPrice(q.price)}` : "—"}
+                    </span>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         )}
 
         {selected && (
-          <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-8">
+          <div ref={tradePanelRef} className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-8">
             {liveError && <p className="text-sm text-[var(--red)] mb-3">{liveError}</p>}
             {live && (
               <>
@@ -371,7 +452,7 @@ export default function SelfTradePage() {
                           key={amt}
                           onClick={() => pickBuyAmount(amt)}
                           disabled={amt > availableCash}
-                          className="text-xs font-mono border border-[var(--surface-border)] rounded-md px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--gold-dim)] hover:text-[var(--text-primary)] disabled:opacity-40 disabled:hover:border-[var(--surface-border)] transition"
+                          className="text-xs font-mono border border-[var(--surface-border)] rounded-md px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--accent-dim)] hover:text-[var(--text-primary)] disabled:opacity-40 disabled:hover:border-[var(--surface-border)] transition"
                         >
                           ${amt.toLocaleString("en-US")}
                         </button>
@@ -381,7 +462,7 @@ export default function SelfTradePage() {
                           key={pct}
                           onClick={() => pickSellPortion(pct)}
                           disabled={heldShares <= 0}
-                          className="text-xs font-mono border border-[var(--surface-border)] rounded-md px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--gold-dim)] hover:text-[var(--text-primary)] disabled:opacity-40 transition"
+                          className="text-xs font-mono border border-[var(--surface-border)] rounded-md px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--accent-dim)] hover:text-[var(--text-primary)] disabled:opacity-40 transition"
                         >
                           {pct === 100 ? "Sälj allt" : `${pct}%`}
                         </button>
@@ -390,7 +471,7 @@ export default function SelfTradePage() {
                     <button
                       onClick={() => pickBuyAmount(availableCash)}
                       disabled={availableCash <= 0}
-                      className="text-xs font-mono border border-[var(--surface-border)] rounded-md px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--gold-dim)] hover:text-[var(--text-primary)] disabled:opacity-40 transition"
+                      className="text-xs font-mono border border-[var(--surface-border)] rounded-md px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--accent-dim)] hover:text-[var(--text-primary)] disabled:opacity-40 transition"
                     >
                       Max
                     </button>
@@ -402,27 +483,32 @@ export default function SelfTradePage() {
                     type a dollar amount and the share count fills in. */}
                 <div className="flex items-end gap-3 flex-wrap mt-4">
                   <div>
-                    <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                      ANTAL
+                    <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                      Antal
                     </label>
                     <input
                       value={shares}
                       onChange={(e) => handleSharesInput(e.target.value)}
                       placeholder="0"
-                      className="w-28 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
+                      className="w-28 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                     />
                   </div>
                   <span className="text-[var(--text-muted)] pb-2.5">≈</span>
                   <div>
-                    <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                      BELOPP ($)
+                    <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                      Belopp
                     </label>
-                    <input
-                      value={amountText}
-                      onChange={(e) => handleAmountInput(e.target.value)}
-                      placeholder="0"
-                      className="w-28 rounded-md border border-[var(--surface-border)] bg-black/30 px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)]"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-mono text-[var(--text-muted)] pointer-events-none">
+                        $
+                      </span>
+                      <input
+                        value={amountText}
+                        onChange={(e) => handleAmountInput(e.target.value)}
+                        placeholder="0"
+                        className="w-28 rounded-md border border-[var(--surface-border)] bg-black/30 pl-6 pr-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                      />
+                    </div>
                   </div>
                   <p className="text-sm font-mono text-[var(--text-secondary)] pb-2.5">
                     {side === "BUY" ? "Kostnad" : "Intäkt"}: ${cost.toFixed(2)}
@@ -447,22 +533,26 @@ export default function SelfTradePage() {
         {portfolio && (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-              <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">TOTALT VÄRDE</p>
+              <div className="rounded-lg border border-[var(--surface-border)] border-l-[3px] border-l-[var(--surface-border)] bg-[var(--surface)] p-4">
+                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Totalt värde</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">{formatMoney(portfolio.totalValue)}</p>
               </div>
-              <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">AVKASTNING</p>
+              <div
+                className={`rounded-lg border border-[var(--surface-border)] border-l-[3px] bg-[var(--surface)] p-4 ${
+                  portfolio.totalReturnPct >= 0 ? "border-l-[var(--green)]" : "border-l-[var(--red)]"
+                }`}
+              >
+                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Avkastning</p>
                 <p className={`font-mono text-xl font-bold ${portfolio.totalReturnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
                   {formatPct(portfolio.totalReturnPct)}
                 </p>
               </div>
-              <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">KONTANTER</p>
+              <div className="rounded-lg border border-[var(--surface-border)] border-l-[3px] border-l-[var(--surface-border)] bg-[var(--surface)] p-4">
+                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Kontanter</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">{formatMoney(portfolio.cash)}</p>
               </div>
-              <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">ÖPPNA POSITIONER</p>
+              <div className="rounded-lg border border-[var(--surface-border)] border-l-[3px] border-l-[var(--accent)] bg-[var(--surface)] p-4">
+                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Öppna positioner</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">{portfolio.positions.length}</p>
               </div>
             </div>
@@ -483,54 +573,70 @@ export default function SelfTradePage() {
 
             {portfolio.positions.length > 0 && (
               <div className="mb-8">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">ÖPPNA POSITIONER</p>
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1.5">ÖPPNA POSITIONER</p>
+                <p className="text-sm text-[var(--text-secondary)] mb-3 max-w-2xl">
+                  SIGNAL visar vad modellen tycker om aktien just nu, inte bara vad du köpte den för.
+                  Byter den till <span className="text-[var(--red)] font-medium">SELL</span> eller{" "}
+                  <span className="text-[var(--red)] font-medium">STRONG SELL</span> är det modellens sätt att
+                  säga att det kan vara läge att sälja — men det säljer aldrig åt dig automatiskt.
+                </p>
                 <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
                   <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                        <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ANTAL</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">SNITTKOSTNAD</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">NUVARANDE</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">AVKASTNING</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VÄRDE</th>
-                        <th className="px-2.5 sm:px-4 py-3 font-medium"></th>
+                        <th className="px-2 lg:px-2.5 xl:px-4 py-3 font-medium">TICKER</th>
+                        <th className="px-2 lg:px-2.5 xl:px-4 py-3 font-medium text-right">ANTAL</th>
+                        <th className="px-2 lg:px-2.5 xl:px-4 py-3 font-medium text-right">SNITTKOSTNAD</th>
+                        <th className="px-2 lg:px-2.5 xl:px-4 py-3 font-medium text-right">NUVARANDE</th>
+                        <th className="px-2 lg:px-2.5 xl:px-4 py-3 font-medium text-right">AVKASTNING</th>
+                        <th className="px-2 lg:px-2.5 xl:px-4 py-3 font-medium text-right">VÄRDE</th>
+                        <th className="px-2 lg:px-2.5 xl:px-4 py-3 font-medium">SIGNAL</th>
+                        <th className="px-2 lg:px-2.5 xl:px-4 py-3 font-medium"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio.positions.map((p) => (
                         <tr
                           key={p.ticker}
-                          onClick={() => router.push(`/stock/${p.ticker}`)}
+                          onClick={() => selectTicker(p.ticker, "BUY")}
                           className="border-b border-[var(--surface-border)] last:border-0 hover:bg-black/20 cursor-pointer transition-colors"
                         >
-                          <td className="px-2.5 sm:px-4 py-3">
+                          <td className="px-2 lg:px-2.5 xl:px-4 py-3">
                             <Link
                               href={`/stock/${p.ticker}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline"
+                              className="flex items-center gap-2 font-mono font-semibold text-[var(--accent)] hover:underline"
                             >
                               <CompanyLogo ticker={p.ticker} logoUrl={p.logo} size={20} />
                               {p.ticker}
                             </Link>
                           </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2 lg:px-2.5 xl:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             {p.shares.toFixed(4)}
                           </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                          <td className="px-2 lg:px-2.5 xl:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                             ${formatPrice(p.entryPrice)}
                           </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                          <td className="px-2 lg:px-2.5 xl:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                             ${formatPrice(p.currentPrice)}
                           </td>
-                          <td className={`px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap ${p.returnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
+                          <td className={`px-2 lg:px-2.5 xl:px-4 py-3 text-right font-mono whitespace-nowrap ${p.returnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
                             {formatPct(p.returnPct)}
                           </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                          <td className="px-2 lg:px-2.5 xl:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                             {formatMoney(p.value)}
                           </td>
-                          <td className="px-2.5 sm:px-4 py-3 text-right">
+                          <td className="px-2 lg:px-2.5 xl:px-4 py-3">
+                            {p.signal ? (
+                              <SignalBadge signal={p.signal} score={null} />
+                            ) : (
+                              <span className="text-xs text-[var(--text-muted)]" title="Den här aktien ingår inte i de 167 spårade — ingen signal beräknas för den.">
+                                Ej spårad
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-2 lg:px-2.5 xl:px-4 py-3 text-right">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -587,7 +693,7 @@ export default function SelfTradePage() {
                             <Link
                               href={`/stock/${t.ticker}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]"
+                              className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--accent)]"
                             >
                               <CompanyLogo ticker={t.ticker} logoUrl={t.logo} size={20} />
                               {t.ticker}

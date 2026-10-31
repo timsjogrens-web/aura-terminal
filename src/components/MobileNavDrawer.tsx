@@ -72,7 +72,7 @@ export default function MobileNavDrawer({ watchlistCount }: { watchlistCount: nu
                   <Link key={link.href} href={link.href} onClick={() => setOpen(false)} className={`${linkClass(active)} flex items-center gap-2`}>
                     {link.label}
                     {link.href === "/watchlist" && watchlistCount !== null && (
-                      <span className="text-xs font-mono bg-[var(--gold)]/15 text-[var(--gold)] rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+                      <span className="text-xs font-mono bg-[var(--accent)]/15 text-[var(--accent)] rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
                         {watchlistCount}
                       </span>
                     )}
@@ -84,7 +84,7 @@ export default function MobileNavDrawer({ watchlistCount }: { watchlistCount: nu
             <div className="flex flex-col gap-5 p-3 pt-1">
               {SIDEBAR_GROUPS.map((group) => (
                 <div key={group.label}>
-                  <p className="text-[11px] font-mono font-bold tracking-widest text-[var(--gold)] px-3 mb-1.5">
+                  <p className="text-[11px] font-mono font-bold tracking-widest text-[var(--accent)] px-3 mb-1.5">
                     {group.label}
                   </p>
                   <nav className="flex flex-col gap-0.5">

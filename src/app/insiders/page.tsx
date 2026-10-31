@@ -76,7 +76,7 @@ export default function InsidersPage() {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
+              className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent-dim)] transition disabled:opacity-50"
             >
               {refreshing ? "Kontrollerar SEC…" : "Kontrollera nya anmälningar"}
             </button>
@@ -131,31 +131,31 @@ export default function InsidersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                  <th className="px-2.5 sm:px-4 py-3 font-medium">TICKER</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium">INSIDER</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium">ÅTGÄRD</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">ANTAL</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">PRIS</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">VÄRDE</th>
-                  <th className="px-2.5 sm:px-4 py-3 font-medium text-right">NÄR</th>
+                  <th className="px-1.5 sm:px-4 py-3 font-medium">TICKER</th>
+                  <th className="px-1.5 sm:px-4 py-3 font-medium">INSIDER</th>
+                  <th className="px-1.5 sm:px-4 py-3 font-medium">ÅTGÄRD</th>
+                  <th className="hidden lg:table-cell px-2.5 sm:px-4 py-3 font-medium text-right">ANTAL</th>
+                  <th className="hidden lg:table-cell px-2.5 sm:px-4 py-3 font-medium text-right">PRIS</th>
+                  <th className="px-1.5 sm:px-4 py-3 font-medium text-right">VÄRDE</th>
+                  <th className="hidden xl:table-cell px-2.5 sm:px-4 py-3 font-medium text-right">NÄR</th>
                 </tr>
               </thead>
               <tbody>
                 {visible.map((t) => (
                   <tr key={t.id} className="border-b border-[var(--surface-border)] last:border-0 hover:bg-black/20 transition-colors">
-                    <td className="px-2.5 sm:px-4 py-3">
-                      <Link href={`/stock/${t.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline">
+                    <td className="px-1.5 sm:px-4 py-3">
+                      <Link href={`/stock/${t.ticker}`} className="flex items-center gap-2 font-mono font-semibold text-[var(--accent)] hover:underline">
                         <CompanyLogo ticker={t.ticker} logoUrl={t.logo} size={20} />
                         {t.ticker}
                       </Link>
                     </td>
-                    <td className="px-2.5 sm:px-4 py-3">
-                      <p className="text-[var(--text-primary)] whitespace-nowrap">{t.owner_name}</p>
+                    <td className="px-1.5 sm:px-4 py-3 max-w-[90px] sm:max-w-[160px] lg:max-w-none">
+                      <p className="text-[var(--text-primary)] truncate lg:whitespace-nowrap">{t.owner_name}</p>
                       {t.owner_title && (
-                        <p className="text-xs text-[var(--text-muted)] whitespace-nowrap">{t.owner_title}</p>
+                        <p className="text-xs text-[var(--text-muted)] truncate lg:whitespace-nowrap">{t.owner_title}</p>
                       )}
                     </td>
-                    <td className="px-2.5 sm:px-4 py-3">
+                    <td className="px-1.5 sm:px-4 py-3">
                       <span
                         className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
                           t.transaction_code === "P"
@@ -166,16 +166,16 @@ export default function InsidersPage() {
                         {t.transaction_code === "P" ? "KÖP" : "SÄLJ"}
                       </span>
                     </td>
-                    <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                    <td className="hidden lg:table-cell px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                       {t.shares.toLocaleString()}
                     </td>
-                    <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                    <td className="hidden lg:table-cell px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-secondary)] whitespace-nowrap">
                       ${t.price.toFixed(2)}
                     </td>
-                    <td className="px-2.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
+                    <td className="px-1.5 sm:px-4 py-3 text-right font-mono text-[var(--text-primary)] whitespace-nowrap">
                       {formatValue(t.value)}
                     </td>
-                    <td className="px-2.5 sm:px-4 py-3 text-right text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
+                    <td className="hidden xl:table-cell px-2.5 sm:px-4 py-3 text-right text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
                       {timeAgo(t.transaction_date)}
                     </td>
                   </tr>

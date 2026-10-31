@@ -38,7 +38,7 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition flex items-center gap-2 shrink-0 whitespace-nowrap ${
+              className={`px-2.5 xl:px-4 py-1.5 rounded-md text-sm font-medium transition flex items-center gap-2 shrink-0 whitespace-nowrap ${
                 pathname === link.href
                   ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -46,7 +46,7 @@ export default function Header() {
             >
               {link.label}
               {link.href === "/watchlist" && watchlistCount !== null && (
-                <span className="text-xs font-mono bg-[var(--gold)]/15 text-[var(--gold)] rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+                <span className="text-xs font-mono bg-[var(--accent)]/15 text-[var(--accent)] rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
                   {watchlistCount}
                 </span>
               )}
@@ -69,7 +69,7 @@ export default function Header() {
               }
               className={`h-8 w-8 rounded-md border flex items-center justify-center transition ${
                 permission === "granted"
-                  ? "border-[rgba(245,165,36,0.35)] text-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
+                  ? "border-[rgba(111,176,224,0.35)] text-[var(--accent)] bg-[rgba(111,176,224,0.08)]"
                   : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:hover:text-[var(--text-secondary)]"
               }`}
             >
@@ -79,7 +79,12 @@ export default function Header() {
               </svg>
             </button>
           )}
-          <div className="hidden md:flex items-center gap-2 text-xs font-mono uppercase tracking-wider">
+          {/* xl, not md — with the 208px sidebar open and logged in (the
+              "Mitt konto" pill also competing for room), this badge plus
+              the 5 nav links stopped fitting right around 1024-1279px and
+              forced the whole page to scroll sideways instead of just
+              this row. */}
+          <div className="hidden xl:flex items-center gap-2 text-xs font-mono uppercase tracking-wider">
             <span
               className={`h-2 w-2 rounded-full ${
                 isLive ? "bg-[var(--green)] animate-pulse-dot" : "bg-[var(--red)]"
@@ -93,19 +98,19 @@ export default function Header() {
             <Link
               href="/account"
               title={auth?.email ?? undefined}
-              className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
+              className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
             >
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" strokeLinecap="round" />
               </svg>
-              <span className="hidden sm:inline">Mitt konto</span>
+              <span className="hidden xl:inline">Mitt konto</span>
             </Link>
           )}
           {loggedIn === false && (
             <Link
               href="/login"
-              className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
+              className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] border border-[var(--surface-border)] rounded-md px-3 py-1.5 transition"
             >
               Logga in
             </Link>

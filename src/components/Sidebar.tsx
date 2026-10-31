@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SIDEBAR_GROUPS } from "@/lib/navConfig";
+import { useAuthStatus } from "@/lib/useAuthStatus";
 
 const WIDTH = 208; // px, matches the 13rem body padding in globals.css
 const COLLAPSED_KEY = "aura_sidebar_collapsed";
@@ -18,6 +19,10 @@ const HINT_DISMISSED_KEY = "aura_sidebar_hint_dismissed";
 // data-collapsed attribute set below).
 export default function Sidebar() {
   const pathname = usePathname();
+  const auth = useAuthStatus();
+  const groups = auth?.isAdmin
+    ? [...SIDEBAR_GROUPS, { label: "ADMIN", links: [{ href: "/admin/users", label: "Konton" }] }]
+    : SIDEBAR_GROUPS;
   const [collapsed, setCollapsed] = useState(false);
   const [transitionsEnabled, setTransitionsEnabled] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -72,9 +77,9 @@ export default function Sidebar() {
               Pilen döljer och visar menyn — klicka när du vill.
             </p>
           )}
-          {SIDEBAR_GROUPS.map((group) => (
+          {groups.map((group) => (
             <div key={group.label}>
-              <p className="text-[11px] font-mono font-bold tracking-widest text-[var(--gold)] px-3 mb-2 whitespace-nowrap">
+              <p className="text-[11px] font-mono font-bold tracking-widest text-[var(--accent)] px-3 mb-2 whitespace-nowrap">
                 {group.label}
               </p>
               <nav className="flex flex-col gap-0.5">
@@ -104,7 +109,7 @@ export default function Sidebar() {
         onClick={toggle}
         title={collapsed ? "Visa sidopanel" : "Dölj sidopanel"}
         style={{ left: collapsed ? 8 : WIDTH - 28 }}
-        className={`hidden sm:flex items-center justify-center h-6 w-6 rounded-md border border-[var(--surface-border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] fixed top-[18px] z-40 ${
+        className={`hidden sm:flex items-center justify-center h-6 w-6 rounded-md border border-[var(--surface-border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent-dim)] fixed top-[18px] z-40 ${
           transitionsEnabled ? "transition-[left] duration-200 ease-in-out" : ""
         }`}
       >

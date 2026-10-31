@@ -5,13 +5,14 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ManagerAvatar from "@/components/ManagerAvatar";
+import { LogoMark } from "@/components/Logo";
 import { formatPct, timeAgo } from "@/lib/format";
 
 interface LeaderboardEntry {
   slug: string;
   name: string;
   fund: string;
-  isAura: boolean;
+  isOwn: boolean;
   returnPct: number | null;
   coveragePct: number | null;
   asOfDate: string | null;
@@ -46,10 +47,10 @@ export default function LeaderboardPage() {
 
       <section className="mx-auto max-w-3xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
-          Topplista
+          Mot proffsen
         </h1>
         <p className="text-[var(--text-secondary)] mb-1 max-w-2xl">
-          Auras egna papperskonto mot 12 kända fondförvaltare &mdash; rankat efter
+          Candors egna papperskonto mot 12 kända fondförvaltare &mdash; rankat efter
           kursutveckling på deras offentliga innehav sedan vars och ens senaste 13F-anmälan.
         </p>
         <p className="text-xs text-[var(--text-muted)] mb-8 max-w-2xl">
@@ -74,20 +75,24 @@ export default function LeaderboardPage() {
             {ranked.map((e, i) => (
               <Link
                 key={e.slug}
-                href={e.isAura ? "/paper" : `/investors/${e.slug}`}
+                href={e.isOwn ? "/paper" : `/investors/${e.slug}`}
                 className={`flex items-center gap-4 px-5 py-4 border-b border-[var(--surface-border)] last:border-0 hover:bg-black/20 transition-colors ${
-                  e.isAura ? "bg-[rgba(245,165,36,0.05)]" : ""
+                  e.isOwn ? "bg-[rgba(111,176,224,0.05)]" : ""
                 }`}
               >
                 <span className="font-mono text-sm text-[var(--text-muted)] w-6 shrink-0">{i + 1}</span>
-                <ManagerAvatar slug={e.slug} name={e.name} size={40} />
+                {e.isOwn ? (
+                  <LogoMark size={40} />
+                ) : (
+                  <ManagerAvatar slug={e.slug} name={e.name} size={40} />
+                )}
                 <div className="min-w-0 flex-1">
-                  <p className={`font-sans font-bold truncate ${e.isAura ? "text-[var(--gold)]" : "text-[var(--text-primary)]"}`}>
+                  <p className={`font-sans font-bold truncate ${e.isOwn ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
                     {e.name}
                   </p>
                   <p className="text-xs text-[var(--text-secondary)] truncate">
                     {e.fund}
-                    {!e.isAura && e.coveragePct !== null && ` · ${e.coveragePct.toFixed(0)}% täckning`}
+                    {!e.isOwn && e.coveragePct !== null && ` · ${e.coveragePct.toFixed(0)}% täckning`}
                   </p>
                 </div>
                 <span
