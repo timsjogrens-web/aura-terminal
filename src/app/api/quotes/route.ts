@@ -64,7 +64,7 @@ export async function GET() {
   if (needsRefresh && process.env.FINNHUB_API_KEY) {
     after(() =>
       refreshAll().catch((e) => {
-        console.error("[aura] self-heal refresh failed:", e);
+        console.error("[candor] self-heal refresh failed:", e);
       })
     );
   }

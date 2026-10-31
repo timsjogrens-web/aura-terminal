@@ -56,7 +56,7 @@ export default function StatusBanner({
   if (!data.apiKeyConfigured) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 mb-6">
-        <div className="rounded-lg border border-[rgba(245,165,36,0.35)] bg-[rgba(245,165,36,0.08)] px-4 py-3 text-sm text-[var(--gold)]">
+        <div className="rounded-lg border border-[rgba(240,160,32,0.35)] bg-[rgba(240,160,32,0.08)] px-4 py-3 text-sm text-[var(--amber)]">
           FINNHUB_API_KEY är inte konfigurerad. Lägg till den i <code className="font-mono">.env.local</code> och
           starta om servern för att aktivera livedata. Inga priser visas förrän detta är gjort.
         </div>
@@ -77,7 +77,7 @@ export default function StatusBanner({
           ({timeAgo(data.lastRefresh)})
         </span>
         {data.isStale && (
-          <span className="rounded border border-[rgba(245,165,36,0.35)] bg-[rgba(245,165,36,0.1)] text-[var(--gold)] px-2 py-0.5">
+          <span className="rounded border border-[rgba(240,160,32,0.35)] bg-[rgba(240,160,32,0.1)] text-[var(--amber)] px-2 py-0.5">
             FÖRDRÖJD &middot; uppdateras var {data.staleThresholdMinutes}:e minut
           </span>
         )}
@@ -91,7 +91,7 @@ export default function StatusBanner({
         <button
           onClick={handleManualRefresh}
           disabled={refreshing}
-          className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
+          className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent-dim)] transition disabled:opacity-50"
         >
           {refreshing ? "Uppdaterar…" : "Uppdatera nu"}
         </button>

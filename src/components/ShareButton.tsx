@@ -20,7 +20,7 @@ export default function ShareButton({ ticker }: { ticker: string }) {
     <button
       onClick={handleShare}
       title="Kopiera en delningslänk till denna signal"
-      className="h-8 px-3 rounded-md border border-[var(--surface-border)] text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition flex items-center gap-1.5"
+      className="h-8 px-3 rounded-md border border-[var(--surface-border)] text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent-dim)] transition flex items-center gap-1.5"
     >
       <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="18" cy="5" r="3" />

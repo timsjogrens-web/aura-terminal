@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
+import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
 import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import { WatchlistProvider } from "@/lib/WatchlistContext";
 import "./globals.css";
+
+// Microsoft Clarity — click heatmaps, scroll maps and session recordings
+// (what Vercel Analytics above doesn't cover: it only counts page views/
+// visitors, not behavior). Loaded with next/script's "afterInteractive"
+// strategy so it never blocks the page's own first paint.
+const CLARITY_PROJECT_ID = "ymw1d1jv22";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -43,6 +51,14 @@ export default function RootLayout({
         className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <WatchlistProvider>{children}</WatchlistProvider>
+        <Analytics />
+        <Script id="ms-clarity" strategy="afterInteractive">
+          {`(function(c,l,a,r,i,t,y){
+              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          })(window, document, "clarity", "script", "${CLARITY_PROJECT_ID}");`}
+        </Script>
       </body>
     </html>
   );

@@ -66,7 +66,7 @@ export default function AccountPage() {
           <h1 className="font-serif font-bold text-3xl text-[var(--text-primary)] mb-4">Mitt konto</h1>
           <p className="text-[var(--text-secondary)]">
             Du behöver vara inloggad för att se det här.{" "}
-            <Link href="/login" className="text-[var(--gold)] underline">
+            <Link href="/login" className="text-[var(--accent)] underline">
               Logga in
             </Link>
             .
@@ -93,7 +93,7 @@ export default function AccountPage() {
           <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">STATUS</p>
           <div className="flex items-center gap-2 flex-wrap mb-1">
             {auth.isAdmin && (
-              <span className="text-xs font-mono bg-[rgba(245,165,36,0.12)] text-[var(--gold)] border border-[rgba(245,165,36,0.3)] rounded px-2 py-0.5">
+              <span className="text-xs font-mono bg-[rgba(111,176,224,0.12)] text-[var(--accent)] border border-[rgba(111,176,224,0.3)] rounded px-2 py-0.5">
                 ADMINISTRATÖR
               </span>
             )}
@@ -102,7 +102,7 @@ export default function AccountPage() {
                 E-post bekräftad
               </span>
             ) : (
-              <span className="text-xs font-mono bg-[rgba(245,165,36,0.12)] text-[var(--gold)] border border-[rgba(245,165,36,0.3)] rounded px-2 py-0.5">
+              <span className="text-xs font-mono bg-[rgba(111,176,224,0.12)] text-[var(--accent)] border border-[rgba(111,176,224,0.3)] rounded px-2 py-0.5">
                 E-post ej bekräftad
               </span>
             )}
@@ -111,7 +111,7 @@ export default function AccountPage() {
             <button
               onClick={resendVerification}
               disabled={resendState !== "idle"}
-              className="mt-3 text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--gold-dim)] hover:text-[var(--text-primary)] disabled:opacity-50"
+              className="mt-3 text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--accent-dim)] hover:text-[var(--text-primary)] disabled:opacity-50"
             >
               {resendState === "sent" ? "Skickat!" : resendState === "sending" ? "Skickar…" : "Skicka bekräftelsemejl igen"}
             </button>
@@ -121,25 +121,30 @@ export default function AccountPage() {
         <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-6 flex flex-col gap-3">
           <p className="text-xs font-mono tracking-widest text-[var(--text-muted)]">GENVÄGAR</p>
           <div className="flex gap-2 flex-wrap">
-            <Link href="/paper" className="text-sm text-[var(--gold)] underline">
+            <Link href="/paper" className="text-sm text-[var(--accent)] underline">
               Papperskonto
             </Link>
-            <Link href="/self-trade" className="text-sm text-[var(--gold)] underline">
+            <Link href="/self-trade" className="text-sm text-[var(--accent)] underline">
               Egen handel
             </Link>
-            <Link href="/watchlist" className="text-sm text-[var(--gold)] underline">
+            <Link href="/watchlist" className="text-sm text-[var(--accent)] underline">
               Bevakningslista
             </Link>
-            <Link href="/forgot-password" className="text-sm text-[var(--gold)] underline">
+            <Link href="/forgot-password" className="text-sm text-[var(--accent)] underline">
               Byt lösenord
             </Link>
+            {auth.isAdmin && (
+              <Link href="/admin/users" className="text-sm text-[var(--accent)] underline">
+                Konton (admin)
+              </Link>
+            )}
           </div>
         </div>
 
         <div className="mb-6">
           <button
             onClick={handleLogout}
-            className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--gold)] border border-[var(--surface-border)] rounded-md px-4 py-2 transition"
+            className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] border border-[var(--surface-border)] rounded-md px-4 py-2 transition"
           >
             Logga ut
           </button>

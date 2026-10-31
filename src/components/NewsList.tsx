@@ -22,7 +22,7 @@ export default function NewsList({ news }: { news: NewsItem[] }) {
           href={n.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-[var(--text-secondary)] hover:text-[var(--gold)] transition-colors leading-snug flex gap-2"
+          className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors leading-snug flex gap-2"
         >
           <span className="shrink-0 text-[var(--text-muted)] font-mono text-xs mt-0.5">
             {timeAgoShort(n.datetime)}

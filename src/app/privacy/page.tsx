@@ -26,7 +26,7 @@ export default function PrivacyPage() {
           Integritetspolicy
         </h1>
         <p className="text-[var(--text-secondary)] mb-10">
-          Kort och rakt: vad vi samlar in, varför, och vad vi aldrig gör med det. Uppdaterad 22
+          Kort och rakt: vad vi samlar in, varför, och vad vi aldrig gör med det. Uppdaterad 24
           september 2026.
         </p>
 
@@ -63,22 +63,34 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="Vad vi inte gör">
+        <Section title="Statistik och analys">
           <p>
-            Vi säljer eller delar aldrig dina uppgifter med tredje part. Inga
-            annons-spårare, ingen analysmjukvara (Google Analytics, Meta Pixel eller liknande) är
-            installerad på sajten idag. Din e-post används bara för att identifiera ditt eget
-            konto — aldrig för marknadsföring.
+            Sajten använder <strong>Vercel Analytics</strong> (antal besök, vilka sidor som
+            besöks, land och enhetstyp — inte kopplat till ditt konto eller din identitet) och{" "}
+            <strong>Microsoft Clarity</strong> (var på sidan folk klickar och rör musen/fingret,
+            samt inspelningar av hur en session rör sig genom sajten, för att hitta förvirrande
+            eller trasiga delar av gränssnittet). Inga annons-spårare, ingen datainsamling för att
+            sälja till tredje part eller för marknadsföring — bara för att förstå hur sajten
+            faktiskt används och göra den bättre.
+          </p>
+          <p>
+            Vi säljer eller delar aldrig dina uppgifter med tredje part i övrigt. Din e-post
+            används bara för att identifiera ditt eget konto — aldrig för marknadsföring.
           </p>
         </Section>
 
         <Section title="Hur länge sparas det">
           <p>
-            Så länge ditt konto finns. Vill du radera ditt konto och all tillhörande data (mejla{" "}
+            Så länge ditt konto finns. Du kan radera ditt konto och all tillhörande data själv,
+            direkt, under{" "}
+            <a href="/account" className="underline hover:text-[var(--text-primary)]">
+              Mitt konto
+            </a>{" "}
+            — eller mejla{" "}
             <a href="mailto:timsjogrens.jobb@gmail.com" className="underline hover:text-[var(--text-primary)]">
               timsjogrens.jobb@gmail.com
-            </a>
-            ), tar vi bort det manuellt — sajten har ännu ingen självbetjäningsfunktion för det.
+            </a>{" "}
+            om du vill be oss göra det istället.
           </p>
         </Section>
 

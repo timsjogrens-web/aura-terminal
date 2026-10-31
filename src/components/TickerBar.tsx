@@ -41,7 +41,7 @@ export default function TickerBar({ quotes }: { quotes: Quote[] }) {
   const durationS = Math.max(MIN_DURATION_S, withPrices.length * SECONDS_PER_ITEM);
 
   return (
-    <div className="border-b border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
+    <div className="ticker-edge-fade border-b border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
       <div
         className="flex animate-ticker w-max divide-x divide-[var(--surface-border)]"
         style={{ animationDuration: `${durationS}s` }}

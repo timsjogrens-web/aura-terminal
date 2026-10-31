@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 const SIGNAL_COLORS: Record<string, string> = {
   "STRONG BUY": "#22c55e",
   BUY: "#22c55e",
-  HOLD: "#f5a524",
+  HOLD: "#f0a020",
   SELL: "#ef4444",
   "STRONG SELL": "#ef4444",
 };
@@ -39,8 +39,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#0a0a0a",
-            color: "#8f897a",
+            background: "#0a0e17",
+            color: "#8b93a3",
             fontSize: 36,
             fontFamily: "sans-serif",
           }}
@@ -52,7 +52,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
     );
   }
 
-  const signalColor = SIGNAL_COLORS[row.signal ?? ""] ?? "#8f897a";
+  const signalColor = SIGNAL_COLORS[row.signal ?? ""] ?? "#8b93a3";
   const changeColor = (row.change_pct ?? 0) >= 0 ? "#22c55e" : "#ef4444";
   const changeSign = (row.change_pct ?? 0) >= 0 ? "+" : "";
   const asOf = row.updated_at ? new Date(row.updated_at).toLocaleDateString("en-US") : "";
@@ -66,7 +66,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#0a0a0a",
+          background: "#0a0e17",
           padding: "64px",
           fontFamily: "sans-serif",
         }}
@@ -77,30 +77,34 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
               width: 40,
               height: 40,
               borderRadius: 8,
-              background: "#f5a524",
+              background: "linear-gradient(135deg, #9cd0f2, #6fb0e0 55%, #3d6f96)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 16,
-              fontWeight: 800,
-              color: "#0a0a0a",
-              letterSpacing: -0.5,
             }}
           >
-            C
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M18.78 16.24A8 8 0 1 1 18.78 7.76"
+                stroke="#0a0e17"
+                strokeWidth="3.1"
+                strokeLinecap="round"
+              />
+              <circle cx="20" cy="12" r="1.9" fill="#0a0e17" />
+            </svg>
           </div>
           <div style={{ display: "flex", fontSize: 28, fontWeight: 700, letterSpacing: 1 }}>
-            <span style={{ color: "#f5a524" }}>CANDOR</span>
+            <span style={{ color: "#6fb0e0" }}>CANDOR</span>
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 24 }}>
-            <span style={{ fontSize: 96, fontWeight: 800, color: "#f4f2ec" }}>{symbol}</span>
-            <span style={{ fontSize: 32, color: "#8f897a" }}>{row.company_name ?? ""}</span>
+            <span style={{ fontSize: 96, fontWeight: 800, color: "#eef1f6" }}>{symbol}</span>
+            <span style={{ fontSize: 32, color: "#8b93a3" }}>{row.company_name ?? ""}</span>
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 20 }}>
-            <span style={{ fontSize: 56, fontWeight: 700, color: "#f4f2ec" }}>
+            <span style={{ fontSize: 56, fontWeight: 700, color: "#eef1f6" }}>
               ${row.price?.toFixed(2)}
             </span>
             <span style={{ fontSize: 32, fontWeight: 600, color: changeColor }}>
@@ -129,7 +133,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ ticker:
               <span style={{ opacity: 0.7, fontSize: 26 }}>{row.score}%</span>
             )}
           </div>
-          <span style={{ fontSize: 22, color: "#5c584d" }}>
+          <span style={{ fontSize: 22, color: "#576273" }}>
             Not financial advice · as of {asOf}
           </span>
         </div>

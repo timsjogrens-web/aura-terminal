@@ -62,7 +62,7 @@ async function fetchYahooChart(
   let res: Response;
   try {
     res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; AuraTerminal/1.0)" },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; CandorApp/1.0)" },
       cache: "no-store",
     });
   } catch (e) {

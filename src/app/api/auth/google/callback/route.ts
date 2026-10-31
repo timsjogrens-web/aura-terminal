@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGoogleUserInfo, GoogleOAuthError } from "@/lib/googleOAuth";
-import { findOrCreateGoogleUser } from "@/lib/users";
+import { findOrCreateGoogleUser, setLastLogin } from "@/lib/users";
 import { getSession } from "@/lib/session";
+import { sendNewSignupNotification } from "@/lib/email";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -21,6 +22,8 @@ export async function GET(req: NextRequest) {
     session.email = user.email;
     session.isAdmin = user.isAdmin;
     await session.save();
+    await setLastLogin(user.id);
+    if (isNew) sendNewSignupNotification(user.email, "Google").catch(() => {});
 
     const res = NextResponse.redirect(new URL(isNew ? "/paper?welcome=1" : "/paper", req.url));
     res.cookies.delete("google_oauth_state");

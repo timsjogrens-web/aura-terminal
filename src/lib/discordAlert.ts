@@ -21,7 +21,7 @@ export async function sendStrongBuyAlert(ticker: string, price: number, score: n
             title: `${ticker} just hit STRONG BUY`,
             description: `Score ${score} at $${price.toFixed(2)}`,
             url: `${appUrl}/stock/${ticker}`,
-            color: 0xf5a524,
+            color: 0x6fb0e0,
             footer: { text: "Candor · Not financial advice" },
           },
         ],

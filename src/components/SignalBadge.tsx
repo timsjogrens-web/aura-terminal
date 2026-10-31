@@ -1,7 +1,7 @@
 const STYLES: Record<string, string> = {
   "STRONG BUY": "bg-[rgba(34,197,94,0.12)] text-[var(--green)] border-[rgba(34,197,94,0.35)]",
   BUY: "bg-[rgba(34,197,94,0.08)] text-[var(--green)] border-[rgba(34,197,94,0.25)]",
-  HOLD: "bg-[rgba(245,165,36,0.1)] text-[var(--gold)] border-[rgba(245,165,36,0.3)]",
+  HOLD: "bg-[rgba(240,160,32,0.1)] text-[var(--amber)] border-[rgba(240,160,32,0.3)]",
   SELL: "bg-[rgba(239,68,68,0.08)] text-[var(--red)] border-[rgba(239,68,68,0.25)]",
   "STRONG SELL": "bg-[rgba(239,68,68,0.12)] text-[var(--red)] border-[rgba(239,68,68,0.35)]",
 };

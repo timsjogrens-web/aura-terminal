@@ -13,7 +13,10 @@ import { getAdminUserId } from "./users";
 // resolved ticker to price) is carried alongside every entry so a thin
 // coverage number is visible rather than hidden.
 const MAX_HOLDINGS_PRICED = 10;
-const CACHE_KEY = "leaderboard_cache";
+// Bumped to v2 when the entry's own name changed ("Aura Signal Engine" ->
+// "Candor Signal Engine") so a stale v1 cache entry from before the
+// rename can't keep showing the old name for up to CACHE_TTL_MS longer.
+const CACHE_KEY = "leaderboard_cache_v2";
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
 interface HoldingRow {
@@ -65,7 +68,7 @@ export interface LeaderboardEntry {
   slug: string;
   name: string;
   fund: string;
-  isAura: boolean;
+  isOwn: boolean;
   returnPct: number | null;
   coveragePct: number | null;
   asOfDate: string | null;
@@ -76,14 +79,14 @@ export interface LeaderboardEntry {
 // the site's own reference account (the admin's) rather than any one
 // visitor's — that's the account that's been running longest and isn't
 // tied to whichever stranger happens to load this page.
-async function getAuraEntry(): Promise<LeaderboardEntry> {
+async function getOwnEntry(): Promise<LeaderboardEntry> {
   const adminId = await getAdminUserId();
   if (adminId === null) {
     return {
-      slug: "aura",
-      name: "Aura Signal Engine",
+      slug: "candor",
+      name: "Candor Signal Engine",
       fund: "This app's own paper portfolio",
-      isAura: true,
+      isOwn: true,
       returnPct: null,
       coveragePct: 100,
       asOfDate: null,
@@ -108,10 +111,10 @@ async function getAuraEntry(): Promise<LeaderboardEntry> {
   );
   const totalValue = state.cash + holdingsValue;
   return {
-    slug: "aura",
-    name: "Aura Signal Engine",
+    slug: "candor",
+    name: "Candor Signal Engine",
     fund: "This app's own paper portfolio",
-    isAura: true,
+    isOwn: true,
     returnPct: state.startedAt ? ((totalValue - STARTING_CASH) / STARTING_CASH) * 100 : null,
     coveragePct: 100,
     asOfDate: state.startedAt,
@@ -129,7 +132,7 @@ async function computeFresh(): Promise<LeaderboardEntry[]> {
     });
     const filingDate = (datesRes.rows[0] as { filing_date: string } | undefined)?.filing_date ?? null;
     if (!filingDate) {
-      entries.push({ slug: m.slug, name: m.name, fund: m.fund, isAura: false, returnPct: null, coveragePct: null, asOfDate: null });
+      entries.push({ slug: m.slug, name: m.name, fund: m.fund, isOwn: false, returnPct: null, coveragePct: null, asOfDate: null });
       continue;
     }
 
@@ -154,14 +157,14 @@ async function computeFresh(): Promise<LeaderboardEntry[]> {
       slug: m.slug,
       name: m.name,
       fund: m.fund,
-      isAura: false,
+      isOwn: false,
       returnPct: coveredValue > 0 ? weightedReturnSum / coveredValue : null,
       coveragePct: totalValue > 0 ? (coveredValue / totalValue) * 100 : null,
       asOfDate: filingDate,
     });
   }
 
-  entries.push(await getAuraEntry());
+  entries.push(await getOwnEntry());
   return entries;
 }
 

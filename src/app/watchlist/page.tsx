@@ -78,13 +78,13 @@ async function addTicker(ticker: string, description?: string) {
         </p>
 
         {loggedIn === false && (
-          <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)]">
+          <div className="rounded-lg border border-[var(--accent-dim)] bg-[rgba(111,176,224,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)]">
             Du behöver ett konto för att ha en egen bevakningslista.{" "}
-            <Link href="/signup" className="text-[var(--gold)] underline">
+            <Link href="/signup" className="text-[var(--accent)] underline">
               Skapa konto
             </Link>{" "}
             eller{" "}
-            <Link href="/login" className="text-[var(--gold)] underline">
+            <Link href="/login" className="text-[var(--accent)] underline">
               logga in
             </Link>
             .
@@ -92,12 +92,22 @@ async function addTicker(ticker: string, description?: string) {
         )}
 
         <div className="relative mb-10">
+          <svg
+            viewBox="0 0 24 24"
+            className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)] pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4-4" strokeLinecap="round" />
+          </svg>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value.toUpperCase())}
             disabled={loggedIn === false}
             placeholder="Sök ticker eller bolag (t.ex. NFLX)"
-            className="w-full rounded-md border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-3 font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)] disabled:opacity-50"
+            className="w-full rounded-md border border-[var(--surface-border)] bg-[var(--surface)] pl-11 pr-4 py-3 font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent)] disabled:opacity-50"
           />
           {results.length > 0 && (
             <div className="absolute z-10 mt-1 w-full rounded-md border border-[var(--surface-border)] bg-[var(--surface-2)] shadow-xl overflow-hidden">
@@ -137,7 +147,7 @@ async function addTicker(ticker: string, description?: string) {
                       <div>
                         <Link
                           href={`/stock/${w.ticker}`}
-                          className="text-lg font-sans font-bold text-[var(--text-primary)] hover:text-[var(--gold)]"
+                          className="text-lg font-sans font-bold text-[var(--text-primary)] hover:text-[var(--accent)]"
                         >
                           {w.ticker}
                         </Link>

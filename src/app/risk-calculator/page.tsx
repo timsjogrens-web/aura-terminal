@@ -42,19 +42,25 @@ export default function RiskCalculatorPage() {
         <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
             <div>
-              <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                PORTFÖLJVÄRDE (KR)
+              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                Portföljvärde
               </label>
-              <input
-                type="number"
-                value={portfolioValue}
-                onChange={(e) => setPortfolioValue(Number(e.target.value))}
-                className="w-full bg-black/30 border border-[var(--surface-border)] rounded-md px-3 py-2 text-sm font-mono text-[var(--text-primary)]"
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  value={portfolioValue}
+                  onChange={(e) => setPortfolioValue(Number(e.target.value))}
+                  className="w-full bg-black/30 border border-[var(--surface-border)] rounded-md px-3 pr-9 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-colors"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-[var(--text-muted)] pointer-events-none">
+                  kr
+                </span>
+              </div>
             </div>
             <div>
-              <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                MAX RISK PER AFFÄR &middot; {riskPct}%
+              <label className="text-sm font-medium text-[var(--text-secondary)] flex items-baseline justify-between mb-1.5">
+                <span>Max risk per affär</span>
+                <span className="font-mono text-[var(--accent)] text-xs">{riskPct}%</span>
               </label>
               <input
                 type="range"
@@ -63,7 +69,8 @@ export default function RiskCalculatorPage() {
                 step={0.25}
                 value={riskPct}
                 onChange={(e) => setRiskPct(Number(e.target.value))}
-                className="w-full accent-[var(--gold)] mt-2.5"
+                className="range-slider w-full mt-2.5"
+                style={{ "--range-fill": `${((riskPct - 0.25) / (5 - 0.25)) * 100}%` } as React.CSSProperties}
               />
               <p className="text-[11px] text-[var(--text-muted)] mt-1">
                 De flesta professionella riktlinjer ligger mellan 0,5&ndash;2%.
@@ -73,26 +80,36 @@ export default function RiskCalculatorPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                INGÅNGSKURS (KR)
+              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                Ingångskurs
               </label>
-              <input
-                type="number"
-                value={entryPrice}
-                onChange={(e) => setEntryPrice(Number(e.target.value))}
-                className="w-full bg-black/30 border border-[var(--surface-border)] rounded-md px-3 py-2 text-sm font-mono text-[var(--text-primary)]"
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  value={entryPrice}
+                  onChange={(e) => setEntryPrice(Number(e.target.value))}
+                  className="w-full bg-black/30 border border-[var(--surface-border)] rounded-md px-3 pr-9 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-colors"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-[var(--text-muted)] pointer-events-none">
+                  kr
+                </span>
+              </div>
             </div>
             <div>
-              <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                STOP-LOSS KURS (KR)
+              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                Stop-loss kurs
               </label>
-              <input
-                type="number"
-                value={stopPrice}
-                onChange={(e) => setStopPrice(Number(e.target.value))}
-                className="w-full bg-black/30 border border-[var(--surface-border)] rounded-md px-3 py-2 text-sm font-mono text-[var(--text-primary)]"
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  value={stopPrice}
+                  onChange={(e) => setStopPrice(Number(e.target.value))}
+                  className="w-full bg-black/30 border border-[var(--surface-border)] rounded-md px-3 pr-9 py-2 text-sm font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-colors"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-[var(--text-muted)] pointer-events-none">
+                  kr
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -105,22 +122,26 @@ export default function RiskCalculatorPage() {
           <>
             <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-6">
               <p className="font-mono text-xs tracking-widest text-[var(--text-muted)] mb-4">RESULTAT</p>
-              <div className="grid grid-cols-2 gap-y-4 gap-x-4 text-sm">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="rounded-md border-l-[3px] border-l-[var(--accent)] bg-black/20 p-3">
                   <p className="text-[var(--text-muted)] mb-0.5">Rekommenderat antal aktier</p>
-                  <p className="font-mono text-lg text-[var(--text-primary)]">{suggestedShares}</p>
+                  <p className="font-mono text-2xl font-bold text-[var(--accent)]">{suggestedShares}</p>
                 </div>
-                <div>
+                <div className="rounded-md border-l-[3px] border-l-[var(--surface-border)] bg-black/20 p-3">
                   <p className="text-[var(--text-muted)] mb-0.5">Positionens värde</p>
                   <p className="font-mono text-lg text-[var(--text-primary)]">{formatSek(positionSize)}</p>
                 </div>
-                <div>
+                <div
+                  className={`rounded-md border-l-[3px] bg-black/20 p-3 ${
+                    isConcentrated ? "border-l-[var(--red)]" : "border-l-[var(--surface-border)]"
+                  }`}
+                >
                   <p className="text-[var(--text-muted)] mb-0.5">Andel av portföljen</p>
                   <p className={`font-mono text-lg ${isConcentrated ? "text-[var(--red)]" : "text-[var(--text-primary)]"}`}>
                     {positionPctOfPortfolio.toFixed(1)}%
                   </p>
                 </div>
-                <div>
+                <div className="rounded-md border-l-[3px] border-l-[var(--surface-border)] bg-black/20 p-3">
                   <p className="text-[var(--text-muted)] mb-0.5">Max förlust om stop-loss triggas</p>
                   <p className="font-mono text-lg text-[var(--text-primary)]">
                     {formatSek(suggestedShares * riskPerShare)}

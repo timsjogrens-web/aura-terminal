@@ -3,7 +3,7 @@ import { getProfile } from "./finnhub";
 
 // A ticker->logo cache for ANY symbol, not just the site's tracked
 // universe — used for institutional-holdings pages, where a fund manager's
-// disclosed positions are mostly names Aura doesn't otherwise track. Kept
+// disclosed positions are mostly names Candor doesn't otherwise track. Kept
 // in its own table rather than reusing quote_cache: quote_cache backs the
 // Markets screener (`SELECT * FROM quote_cache`), so inserting a logo-only
 // row for some arbitrary 13F holding would show up there as a broken,

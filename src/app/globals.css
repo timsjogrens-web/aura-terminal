@@ -1,17 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --surface: #121212;
-  --surface-2: #161514;
-  --surface-border: #2a2620;
-  --gold: #f5a524;
-  --gold-dim: #b9821c;
+  /* Deep navy palette with a cool silver-blue accent (was a warm coffee/
+     amber-gold theme — that read as "generic AI gold" once it was toned
+     up, so the whole identity moved to blue instead of just softening
+     the same gold). --amber is kept separate and NOT used for branding —
+     it's only for the handful of places that mean "caution" (the HOLD
+     signal tier, stale-data warnings), where amber still reads correctly
+     as a traffic-light middle color even though the brand itself is now
+     blue. */
+  --background: #0a0e17;
+  --surface: #10151f;
+  --surface-2: #151b28;
+  --surface-border: rgba(120, 150, 190, 0.16);
+  --accent: #6fb0e0;
+  --accent-dim: #3d6f96;
+  --amber: #f0a020;
   --green: #22c55e;
   --red: #ef4444;
-  --text-primary: #f4f2ec;
-  --text-secondary: #8f897a;
-  --text-muted: #5c584d;
+  --text-primary: #eef1f6;
+  --text-secondary: #8b93a3;
+  --text-muted: #576273;
 }
 
 @theme inline {
@@ -19,8 +28,9 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-surface-border: var(--surface-border);
-  --color-gold: var(--gold);
-  --color-gold-dim: var(--gold-dim);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-amber: var(--amber);
   --color-green: var(--green);
   --color-red: var(--red);
   --color-text-primary: var(--text-primary);
@@ -28,6 +38,17 @@
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
   --font-mono: var(--font-mono);
+
+  /* Rounder corners everywhere (cards, buttons, inputs, badges) than
+     Tailwind's defaults — this alone is most of what makes the site feel
+     less boxy, and it applies to every existing rounded-md/lg/xl/2xl
+     class across the whole app with no per-component edits needed. */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 1.75rem;
+  --radius-3xl: 2rem;
 }
 
 * {
@@ -42,19 +63,50 @@ body {
   background: var(--background);
   color: var(--text-primary);
   font-family: var(--font-sans);
+  /* Ambient cool-blue glow that drifts down the whole page instead of
+     stopping at the hero — a few large, soft, low-opacity glows so color
+     quietly fades in and out as you scroll rather than cutting between
+     flat sections — plus a faint, static (unanimated, cheap to paint)
+     starfield dusting behind every page, not just the hero, so the
+     "space" feel carries through the whole app instead of stopping at
+     the homepage. Kept much fainter than the .space-bg treatment below
+     so it never competes with dense tables/text. background-attachment:
+     fixed keeps everything anchored to the viewport, not the page
+     length, so it reads as one continuous atmosphere while scrolling. */
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 165, 36, 0.05), transparent),
-    repeating-linear-gradient(
-      transparent,
-      transparent 2px,
-      rgba(255, 255, 255, 0.006) 2px,
-      rgba(255, 255, 255, 0.006) 3px
-    );
+    radial-gradient(rgba(238, 241, 246, 0.35) 1px, transparent 1.5px),
+    radial-gradient(rgba(111, 176, 224, 0.25) 1px, transparent 1.5px),
+    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(111, 176, 224, 0.11), transparent 60%),
+    radial-gradient(ellipse 70% 60% at 100% 40%, rgba(111, 176, 224, 0.05), transparent 65%),
+    radial-gradient(ellipse 70% 60% at 0% 75%, rgba(61, 111, 150, 0.07), transparent 65%);
+  background-size: 180px 180px, 260px 260px, auto, auto, auto;
+  background-position: 30px 20px, 120px 140px, 0 0, 0 0, 0 0;
+  background-attachment: fixed;
+  background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat;
 }
 
 ::selection {
-  background: rgba(245, 165, 36, 0.25);
+  background: rgba(111, 176, 224, 0.25);
   color: var(--text-primary);
+}
+
+/* Every card/panel in the app sets its background with the literal
+   utility class `bg-[var(--surface))]`/`bg-[var(--surface-2)]` (Tailwind
+   emits that exact string as the class name), so overriding it once here
+   adds a soft cool-blue gradient sheen to every one of those ~75 call
+   sites site-wide, instead of a flat single color — without editing each
+   component. Attribute selectors don't need the brackets escaped since
+   they match the class string as written. */
+[class~="bg-[var(--surface)]"] {
+  background-color: var(--surface);
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.05), transparent 45%),
+    radial-gradient(ellipse 120% 100% at 0% 0%, rgba(111, 176, 224, 0.07), transparent 60%);
+}
+
+[class~="bg-[var(--surface-2)]"] {
+  background-color: var(--surface-2);
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.06), transparent 45%),
+    radial-gradient(ellipse 120% 100% at 0% 0%, rgba(111, 176, 224, 0.09), transparent 60%);
 }
 
 /* Sidebar.tsx renders a fixed .app-sidebar as a sibling of <header> from
@@ -79,8 +131,8 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(245, 165, 36, 0.5) 20%,
-    rgba(245, 165, 36, 0.5) 80%,
+    rgba(111, 176, 224, 0.5) 20%,
+    rgba(111, 176, 224, 0.5) 80%,
     transparent
   );
 }
@@ -102,50 +154,117 @@ body {
   animation-play-state: paused;
 }
 
-/* Hero background: a subtle gold glow + starfield + chart grid, layered
-   behind the hero text. Pure CSS (no image assets), fading out toward the
-   bottom so it never fights with the text or the sections below. */
-.hero-bg-glow {
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 50% at 78% 15%, rgba(245, 165, 36, 0.16), transparent 60%),
-    radial-gradient(ellipse 40% 40% at 15% 85%, rgba(245, 165, 36, 0.07), transparent 65%);
-}
-
-.hero-bg-stars {
+/* Shared "deep space" backdrop — nebula clouds + a drifting starfield +
+   a horizon-style glow, built from layered CSS gradients (no image
+   asset). Applied to a page-level wrapper (not just one section), so it
+   never runs out partway down a page: every layer uses
+   background-attachment: fixed, which (per the CSS spec) resolves a
+   background's own percentage sizes/positions against the *viewport*
+   rather than the element's box when attachment is fixed — so this
+   reads the same whether the element behind it is one screen tall or
+   five, with no stretching, and it keeps showing no matter how far the
+   page scrolls. Where it does need to end (the bottom of a page), the
+   element's own mask-image fades it out over the last ~18% of that
+   page's actual height instead of cutting off abruptly. */
+.space-bg {
   pointer-events: none;
   background-image:
-    radial-gradient(rgba(244, 242, 236, 0.55) 1px, transparent 1.5px),
-    radial-gradient(rgba(244, 242, 236, 0.3) 1px, transparent 1.5px),
-    radial-gradient(rgba(245, 165, 36, 0.4) 1px, transparent 1.5px);
-  background-size: 160px 160px, 110px 110px, 210px 210px;
-  background-position: 20px 10px, 70px 90px, 140px 40px;
-  mask-image: linear-gradient(to bottom, black, transparent 90%);
-  -webkit-mask-image: linear-gradient(to bottom, black, transparent 90%);
-  animation: hero-stars-drift 90s linear infinite;
+    radial-gradient(ellipse 55% 45% at 82% 8%, rgba(139, 127, 214, 0.34), transparent 65%),
+    radial-gradient(ellipse 50% 40% at 60% 25%, rgba(111, 176, 224, 0.26), transparent 60%),
+    radial-gradient(ellipse 45% 55% at 95% 45%, rgba(77, 208, 196, 0.22), transparent 65%),
+    radial-gradient(ellipse 60% 50% at 20% 60%, rgba(93, 110, 214, 0.18), transparent 65%),
+    radial-gradient(
+      ellipse 75% 130% at 50% 128%,
+      rgba(111, 176, 224, 0.4),
+      rgba(93, 110, 214, 0.16) 45%,
+      transparent 72%
+    ),
+    radial-gradient(rgba(238, 241, 246, 0.7) 1px, transparent 1.5px),
+    radial-gradient(rgba(238, 241, 246, 0.4) 1px, transparent 1.5px),
+    radial-gradient(rgba(111, 176, 224, 0.5) 1px, transparent 1.5px),
+    radial-gradient(rgba(238, 241, 246, 0.9) 1.5px, transparent 2px),
+    radial-gradient(rgba(139, 127, 214, 0.6) 1.5px, transparent 2px);
+  background-size: auto, auto, auto, auto, auto, 160px 160px, 110px 110px, 210px 210px, 340px 340px,
+    280px 280px;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 20px 10px, 70px 90px, 140px 40px, 40px 160px,
+    250px 60px;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat, repeat,
+    repeat, repeat;
+  background-attachment: fixed;
+  animation: space-stars-drift 90s linear infinite;
+  mask-image: linear-gradient(to bottom, black, black 82%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black, black 82%, transparent 100%);
 }
 
-@keyframes hero-stars-drift {
+/* A brighter pass for pages that should read more strongly (currently
+   just the login screen) — a fully separate class rather than a modifier
+   on .space-bg, since background-image on the same element doesn't
+   layer across classes, only replaces one with the other. */
+.space-bg-strong {
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 65% 55% at 78% 12%, rgba(139, 127, 214, 0.5), transparent 65%),
+    radial-gradient(ellipse 55% 45% at 55% 30%, rgba(111, 176, 224, 0.4), transparent 60%),
+    radial-gradient(ellipse 55% 65% at 100% 55%, rgba(77, 208, 196, 0.32), transparent 65%),
+    radial-gradient(ellipse 60% 50% at 15% 70%, rgba(93, 110, 214, 0.26), transparent 65%),
+    radial-gradient(rgba(238, 241, 246, 0.8) 1px, transparent 1.5px),
+    radial-gradient(rgba(238, 241, 246, 0.5) 1px, transparent 1.5px),
+    radial-gradient(rgba(111, 176, 224, 0.65) 1px, transparent 1.5px),
+    radial-gradient(rgba(238, 241, 246, 0.95) 1.5px, transparent 2px),
+    radial-gradient(rgba(139, 127, 214, 0.75) 1.5px, transparent 2px);
+  background-size: auto, auto, auto, auto, 130px 130px, 95px 95px, 175px 175px, 280px 280px,
+    230px 230px;
+  background-position: 0 0, 0 0, 0 0, 0 0, 15px 25px, 60px 70px, 110px 30px, 30px 130px, 200px 45px;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat, repeat, repeat,
+    repeat;
+  background-attachment: fixed;
+  animation: space-stars-drift 90s linear infinite;
+}
+
+@keyframes space-stars-drift {
   from {
-    background-position: 20px 10px, 70px 90px, 140px 40px;
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 20px 10px, 70px 90px, 140px 40px, 40px 160px,
+      250px 60px;
   }
   to {
-    background-position: -140px 170px, -40px 200px, -70px 250px;
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, -140px 170px, -40px 200px, -70px 250px,
+      -260px 380px, -30px 300px;
   }
 }
 
-.hero-bg-grid {
+/* A handful of larger stars that gently pulse brighter/dimmer —
+   "twinkle" — as a separate fixed full-viewport overlay so the
+   animation is a cheap opacity fade on its own element, not a repaint of
+   the drifting starfield layers above. */
+.space-twinkle {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(245, 165, 36, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(245, 165, 36, 0.07) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 55% 60% at 78% 10%, black 0%, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse 55% 60% at 78% 10%, black 0%, transparent 70%);
+    radial-gradient(rgba(238, 241, 246, 0.9) 1.5px, transparent 2.5px),
+    radial-gradient(rgba(111, 176, 224, 0.8) 1.5px, transparent 2.5px),
+    radial-gradient(rgba(238, 241, 246, 0.9) 1.5px, transparent 2.5px);
+  background-size: 100% 100%;
+  background-position: 12% 22%, 68% 12%, 85% 55%;
+  background-repeat: no-repeat;
+  animation: space-stars-twinkle 4.5s ease-in-out infinite;
+}
+
+@keyframes space-stars-twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-bg-stars {
+  .space-bg,
+  .space-bg-strong,
+  .space-twinkle {
     animation: none;
   }
 }
@@ -162,6 +281,77 @@ body {
 
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Fades the scrolling ticker bar's edges into the background instead of
+   cutting it off with a hard vertical line, and softens the divider lines
+   between each stock into a soft vertical fade rather than a ruled grid. */
+.ticker-edge-fade {
+  mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+}
+
+/* A real custom slider instead of the bare OS control `accent-color`
+   leaves you with (right shape, but still the browser's own flat track
+   and small round dot — the single biggest "unstyled/default" tell on
+   the backtest and risk-calculator pages). The filled portion (0 up to
+   the current value) uses --range-fill, a percentage each slider sets
+   inline from its own value/min/max — Chrome/Safari read it via a
+   gradient painted as the input's own `background` (appearance: none
+   hands us that), Firefox has a dedicated ::-moz-range-progress
+   pseudo-element that does the same job natively. */
+.range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent) var(--range-fill, 50%),
+    var(--surface-2) var(--range-fill, 50%)
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  border: 3px solid var(--accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(111, 176, 224, 0.16);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+
+.range-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.range-slider::-moz-range-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  border: 3px solid var(--accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
 }
 
 ::-webkit-scrollbar {

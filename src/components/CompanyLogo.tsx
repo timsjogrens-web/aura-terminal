@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const FALLBACK_COLORS = ["#f5a524", "#22c55e", "#ef4444", "#8f897a", "#b9821c"];
+const FALLBACK_COLORS = ["#6fb0e0", "#22c55e", "#ef4444", "#8b93a3", "#3d6f96"];
 
 function colorFor(ticker: string): string {
   let hash = 0;

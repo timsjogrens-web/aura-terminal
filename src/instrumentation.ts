@@ -18,7 +18,7 @@ export async function register() {
   // deliberately want live cycling while developing.
   if (process.env.ENABLE_LOCAL_REFRESH_CRON !== "true") {
     console.log(
-      "[aura] local scheduled refresh disabled (would trade the live paper account) — set ENABLE_LOCAL_REFRESH_CRON=true to enable"
+      "[candor] local scheduled refresh disabled (would trade the live paper account) — set ENABLE_LOCAL_REFRESH_CRON=true to enable"
     );
     return;
   }
@@ -28,19 +28,19 @@ export async function register() {
 
   if (!process.env.FINNHUB_API_KEY) {
     console.warn(
-      "[aura] FINNHUB_API_KEY is not set — skipping scheduled data refresh until it's configured."
+      "[candor] FINNHUB_API_KEY is not set — skipping scheduled data refresh until it's configured."
     );
     return;
   }
 
   // Refresh once shortly after boot, then every 15 minutes.
   setTimeout(() => {
-    refreshAll().catch((e) => console.error("[aura] initial refresh failed:", e));
+    refreshAll().catch((e) => console.error("[candor] initial refresh failed:", e));
   }, 3000);
 
   cron.schedule("*/15 * * * *", () => {
-    refreshAll().catch((e) => console.error("[aura] scheduled refresh failed:", e));
+    refreshAll().catch((e) => console.error("[candor] scheduled refresh failed:", e));
   });
 
-  console.log("[aura] scheduled data refresh every 15 minutes");
+  console.log("[candor] scheduled data refresh every 15 minutes");
 }

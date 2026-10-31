@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
-import { verifyCredentials } from "@/lib/users";
+import { verifyCredentials, setLastLogin } from "@/lib/users";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const MAX_ATTEMPTS = 15;
@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
   session.email = user.email;
   session.isAdmin = user.isAdmin;
   await session.save();
+  await setLastLogin(user.id);
 
   return NextResponse.json({ ok: true });
 }

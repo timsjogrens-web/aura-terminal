@@ -5,7 +5,7 @@ export default function GoogleSignInButton() {
   return (
     <a
       href="/api/auth/google/start"
-      className="flex w-full items-center justify-center gap-2.5 rounded-md border border-[var(--surface-border)] bg-black/20 py-2.5 font-sans font-medium text-sm text-[var(--text-primary)] hover:border-[var(--gold-dim)] hover:bg-black/30 transition"
+      className="flex w-full items-center justify-center gap-2.5 rounded-md border border-[var(--surface-border)] bg-black/20 py-2.5 font-sans font-medium text-sm text-[var(--text-primary)] hover:border-[var(--accent-dim)] hover:bg-black/30 transition"
     >
       <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
         <path

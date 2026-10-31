@@ -40,7 +40,7 @@ function emailShell(bodyHtml: string): string {
   return `
     <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
       <div style="font-weight: 800; font-size: 18px; margin-bottom: 24px;">
-        <span style="color: #f5a524;">CANDOR</span>
+        <span style="color: #6fb0e0;">CANDOR</span>
       </div>
       ${bodyHtml}
       <p style="margin-top: 32px; font-size: 12px; color: #888;">
@@ -56,7 +56,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
     "Återställ ditt lösenord — Candor",
     emailShell(`
       <p>Någon (troligen du) bad om att återställa lösenordet för det här kontot.</p>
-      <p><a href="${resetUrl}" style="display: inline-block; background: #f5a524; color: #000; font-weight: 700; padding: 10px 20px; border-radius: 6px; text-decoration: none;">Välj nytt lösenord</a></p>
+      <p><a href="${resetUrl}" style="display: inline-block; background: #6fb0e0; color: #000; font-weight: 700; padding: 10px 20px; border-radius: 6px; text-decoration: none;">Välj nytt lösenord</a></p>
       <p style="font-size: 13px; color: #666;">Länken slutar fungera om 1 timme. Bad du inte om detta? Ignorera bara mejlet — inget ändras förrän du klickar på länken.</p>
     `)
   );
@@ -68,8 +68,35 @@ export async function sendVerificationEmail(to: string, verifyUrl: string): Prom
     "Bekräfta din e-post — Candor",
     emailShell(`
       <p>Bekräfta din e-postadress för att slutföra registreringen:</p>
-      <p><a href="${verifyUrl}" style="display: inline-block; background: #f5a524; color: #000; font-weight: 700; padding: 10px 20px; border-radius: 6px; text-decoration: none;">Bekräfta e-post</a></p>
+      <p><a href="${verifyUrl}" style="display: inline-block; background: #6fb0e0; color: #000; font-weight: 700; padding: 10px 20px; border-radius: 6px; text-decoration: none;">Bekräfta e-post</a></p>
       <p style="font-size: 13px; color: #666;">Länken slutar fungera om 24 timmar.</p>
+    `)
+  );
+}
+
+// Tim's own regular inbox — not the jobb address, because Resend's
+// account is still on the shared resend.dev sending domain, which can
+// only deliver to the exact address the Resend account itself was signed
+// up with (a sandbox restriction, not a bug — see the 403 this threw
+// when it was pointed at the jobb address). Switch this once a real
+// domain is verified at resend.com/domains, if that's ever done.
+// Notified once per brand-new account (not on ordinary repeat logins),
+// via either signup path (email/password or Google) — see register/
+// route.ts and auth/google/callback/route.ts, the only two places a User
+// row actually gets created.
+const OWNER_EMAIL = "timsjogrens@gmail.com";
+
+export async function sendNewSignupNotification(
+  newUserEmail: string,
+  method: "e-post/lösenord" | "Google"
+): Promise<void> {
+  await sendEmail(
+    OWNER_EMAIL,
+    "Nytt konto skapat — Candor",
+    emailShell(`
+      <p>Ett nytt konto skapades precis på Candor:</p>
+      <p style="font-weight: 700; font-size: 16px;">${newUserEmail}</p>
+      <p style="font-size: 13px; color: #666;">Skapades via ${method}.</p>
     `)
   );
 }

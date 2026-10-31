@@ -72,7 +72,7 @@ export default function SignalHistoryTable({
               onClick={() => setFilter(f)}
               className={`text-xs font-mono uppercase tracking-wide rounded px-2.5 py-1 border transition ${
                 filter === f
-                  ? "border-[var(--gold)] text-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
+                  ? "border-[var(--accent)] text-[var(--accent)] bg-[rgba(111,176,224,0.08)]"
                   : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >

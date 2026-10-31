@@ -89,6 +89,7 @@ export const SCHEMA_STATEMENTS = [
     is_admin INTEGER NOT NULL DEFAULT 0,
     bot_enabled INTEGER NOT NULL DEFAULT 0,
     email_verified INTEGER NOT NULL DEFAULT 0,
+    last_login_at TEXT,
     created_at TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS auth_tokens (

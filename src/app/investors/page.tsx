@@ -86,7 +86,7 @@ export default function InvestorsPage() {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)] transition disabled:opacity-50"
+              className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent-dim)] transition disabled:opacity-50"
             >
               {refreshing ? "Kontrollerar SEC…" : "Kontrollera nya anmälningar"}
             </button>
@@ -114,8 +114,8 @@ export default function InvestorsPage() {
         )}
 
         {notableMoves.length > 0 && (
-          <div className="rounded-lg border border-[rgba(245,165,36,0.3)] bg-[rgba(245,165,36,0.05)] p-5 mb-8">
-            <p className="text-xs font-mono tracking-widest text-[var(--gold)] mb-4">
+          <div className="rounded-lg border border-[rgba(111,176,224,0.3)] bg-[rgba(111,176,224,0.05)] p-5 mb-8">
+            <p className="text-xs font-mono tracking-widest text-[var(--accent)] mb-4">
               NYA POSITIONER I AKTIER DU SPÅRAR
             </p>
             <div className="flex flex-col gap-2">
@@ -127,7 +127,7 @@ export default function InvestorsPage() {
                 >
                   <span className="text-sm text-[var(--text-primary)]">
                     <span className="font-mono font-semibold">{move.managerName}</span> öppnade en
-                    ny position i <span className="font-mono font-semibold text-[var(--gold)]">{move.ticker}</span>
+                    ny position i <span className="font-mono font-semibold text-[var(--accent)]">{move.ticker}</span>
                   </span>
                   <span className="text-xs font-mono text-[var(--text-secondary)] whitespace-nowrap">
                     {formatValue(move.value)}
@@ -144,7 +144,7 @@ export default function InvestorsPage() {
               <Link
                 key={m.slug}
                 href={`/investors/${m.slug}`}
-                className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 hover:border-[var(--gold-dim)] transition-colors"
+                className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 hover:border-[var(--accent-dim)] transition-colors"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <ManagerAvatar slug={m.slug} name={m.name} size={44} />

@@ -371,7 +371,7 @@ export default function PriceChart({
             cx={xFor(idx)}
             cy={yFor(closes[idx])}
             r={6}
-            fill="var(--gold)"
+            fill="var(--accent)"
             stroke="var(--background)"
             strokeWidth={1.5}
             className="cursor-help"
@@ -384,9 +384,9 @@ export default function PriceChart({
       {visibleMarkers.length > 0 && (
         <div className="text-xs font-mono text-[var(--text-secondary)] mt-2 mb-1 space-y-1">
           <p className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[var(--gold)] inline-block" />
+            <span className="h-2 w-2 rounded-full bg-[var(--accent)] inline-block" />
             {visibleMarkers.length} STRONG BUY-signal{visibleMarkers.length > 1 ? "er" : ""} i denna period
-            <span className="hidden sm:inline text-[var(--text-muted)]">— hovra över en guldprick för exakt tid</span>
+            <span className="hidden sm:inline text-[var(--text-muted)]">— hovra över en prick för exakt tid</span>
           </p>
           <p className="text-[var(--text-muted)]">
             Senaste:{" "}
@@ -439,13 +439,13 @@ function RangeSelector({
             onClick={() => onChange(r)}
             className={`flex flex-col items-center gap-0.5 rounded px-2.5 py-1.5 border transition whitespace-nowrap ${
               range === r
-                ? "border-[var(--gold)] bg-[rgba(245,165,36,0.08)]"
+                ? "border-[var(--accent)] bg-[rgba(111,176,224,0.08)]"
                 : "border-transparent hover:border-[var(--surface-border)]"
             }`}
           >
             <span
               className={`text-xs font-mono ${
-                range === r ? "text-[var(--gold)]" : "text-[var(--text-secondary)]"
+                range === r ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
               }`}
             >
               {RANGE_LABELS[r]}

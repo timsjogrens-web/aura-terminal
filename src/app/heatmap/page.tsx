@@ -53,7 +53,7 @@ function Tile({ quote }: { quote: Quote }) {
     <Link
       href={`/stock/${quote.ticker}`}
       style={tileStyle(quote.change_pct)}
-      className="rounded-md border border-[var(--surface-border)] p-3 flex flex-col justify-between min-h-[84px] hover:border-[var(--gold-dim)] transition-colors"
+      className="rounded-md border border-[var(--surface-border)] p-3 flex flex-col justify-between min-h-[84px] hover:border-[var(--accent-dim)] transition-colors"
     >
       <div className="flex items-center gap-1.5">
         <CompanyLogo ticker={quote.ticker} logoUrl={quote.logo} size={16} />

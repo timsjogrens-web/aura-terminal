@@ -63,18 +63,39 @@ export async function GET() {
     new Set([...state.openPositions.map((p) => p.ticker), ...state.trades.map((t) => t.ticker)])
   );
   const logoByTicker = await resolveLogos(tickers);
+  // Self-trade lets you buy anything, not just the 167 tracked stocks, so
+  // a held position's current signal/score only exists when its ticker is
+  // in quote_cache — untracked tickers get null on both, and the UI shows
+  // "Ej spårad" rather than a stale or made-up signal. This is what
+  // actually answers "when do I sell?" for something you're holding,
+  // instead of making you go check the ticker's own page separately.
+  const signalByTicker = new Map<string, { signal: string | null; score: number | null }>();
+  if (state.openPositions.length > 0) {
+    const posTickers = state.openPositions.map((p) => p.ticker);
+    const placeholders = posTickers.map(() => "?").join(",");
+    const rows = await db.execute({
+      sql: `SELECT ticker, signal, score FROM quote_cache WHERE ticker IN (${placeholders})`,
+      args: posTickers,
+    });
+    for (const row of rows.rows as unknown as { ticker: string; signal: string | null; score: number | null }[]) {
+      signalByTicker.set(row.ticker, { signal: row.signal, score: row.score });
+    }
+  }
 
   const positions = await Promise.all(
     state.openPositions.map(async (p) => {
       const currentPrice = (await resolvePrice(p.ticker)) ?? p.entryPrice;
       const value = p.shares * currentPrice;
       const costBasis = p.shares * p.entryPrice;
+      const sig = signalByTicker.get(p.ticker);
       return {
         ...p,
         currentPrice,
         value,
         returnPct: costBasis > 0 ? ((value - costBasis) / costBasis) * 100 : 0,
         logo: logoByTicker.get(p.ticker) ?? null,
+        signal: sig?.signal ?? null,
+        score: sig?.score ?? null,
       };
     })
   );

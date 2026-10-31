@@ -47,8 +47,8 @@ export default function WatchlistButton({
       }
       className={`h-7 w-7 shrink-0 rounded-md border flex items-center justify-center transition disabled:opacity-50 ${
         isWatched
-          ? "border-[rgba(245,165,36,0.4)] bg-[rgba(245,165,36,0.1)] text-[var(--gold)]"
-          : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold-dim)]"
+          ? "border-[rgba(111,176,224,0.4)] bg-[rgba(111,176,224,0.1)] text-[var(--accent)]"
+          : "border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent-dim)]"
       } ${className}`}
     >
       <svg

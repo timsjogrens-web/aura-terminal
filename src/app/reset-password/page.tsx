@@ -41,10 +41,9 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[140vmax] w-[140vmax] rounded-full bg-[radial-gradient(circle,rgba(245,165,36,0.06)_0%,transparent_45%)]" />
-      </div>
+    <div className="relative min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
+      <div aria-hidden="true" className="absolute inset-0 space-bg-strong" />
+      <div aria-hidden="true" className="space-twinkle" />
 
       <div className="relative z-10 w-full max-w-sm rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-8 shadow-2xl">
         <div className="flex items-center gap-3 mb-8">
@@ -72,7 +71,7 @@ export default function ResetPasswordPage() {
               autoFocus
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-[var(--surface-border)] bg-black/40 px-3 py-2.5 font-mono text-[var(--text-primary)] outline-none focus:border-[var(--gold)] transition-colors"
+              className="w-full rounded-md border border-[var(--surface-border)] bg-black/40 px-3 py-2.5 font-mono text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-colors"
               placeholder="Nytt lösenord"
             />
 
@@ -81,7 +80,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || password.length < 8}
-              className="mt-6 w-full rounded-md bg-[var(--gold)] py-2.5 font-sans font-bold text-black tracking-wide hover:brightness-110 transition disabled:opacity-50"
+              className="mt-6 w-full rounded-md bg-[var(--accent)] py-2.5 font-sans font-bold text-black tracking-wide hover:brightness-110 transition disabled:opacity-50"
             >
               {loading ? "Sparar..." : "Spara nytt lösenord"}
             </button>

@@ -9,6 +9,7 @@ export interface User {
   botEnabled: boolean;
   emailVerified: boolean;
   createdAt: string;
+  lastLoginAt: string | null;
 }
 
 interface UserRow {
@@ -19,6 +20,7 @@ interface UserRow {
   bot_enabled: number;
   email_verified: number;
   created_at: string;
+  last_login_at: string | null;
 }
 
 function toUser(row: UserRow): User {
@@ -29,6 +31,7 @@ function toUser(row: UserRow): User {
     botEnabled: row.bot_enabled === 1,
     emailVerified: row.email_verified === 1,
     createdAt: row.created_at,
+    lastLoginAt: row.last_login_at ?? null,
   };
 }
 
@@ -57,7 +60,7 @@ export async function createUser(email: string, password: string): Promise<User>
     args: [normalized, passwordHash, createdAt],
   });
   const id = Number(res.lastInsertRowid);
-  return { id, email: normalized, isAdmin: false, botEnabled: false, emailVerified: false, createdAt };
+  return { id, email: normalized, isAdmin: false, botEnabled: false, emailVerified: false, createdAt, lastLoginAt: null };
 }
 
 // Signing in with Google: reuses the account if this (Google-verified)
@@ -81,7 +84,7 @@ export async function findOrCreateGoogleUser(email: string): Promise<{ user: Use
   });
   const id = Number(res.lastInsertRowid);
   return {
-    user: { id, email: normalized, isAdmin: false, botEnabled: false, emailVerified: true, createdAt },
+    user: { id, email: normalized, isAdmin: false, botEnabled: false, emailVerified: true, createdAt, lastLoginAt: null },
     isNew: true,
   };
 }
@@ -122,6 +125,27 @@ export async function setEmailVerified(userId: number): Promise<void> {
   await db.execute({ sql: "UPDATE users SET email_verified = 1 WHERE id = ?", args: [userId] });
 }
 
+// Called on every successful login (password or Google) — this is what
+// lets the admin "Users" page answer "who's actually logging in", not
+// just "who has an account". Never blocks the login flow: callers fire
+// this after they've already decided the login succeeds.
+export async function setLastLogin(userId: number): Promise<void> {
+  await db.execute({
+    sql: "UPDATE users SET last_login_at = ? WHERE id = ?",
+    args: [new Date().toISOString(), userId],
+  });
+}
+
+// For the admin "Users" page — every account, newest first. Deliberately
+// leaves out password_hash (toUser never reads it into the returned
+// shape anyway, but the query itself pulls full rows, so this is a
+// reminder for future edits here: never widen this into an endpoint that
+// serializes raw rows).
+export async function listAllUsers(): Promise<User[]> {
+  const res = await db.execute("SELECT * FROM users ORDER BY created_at DESC");
+  return (res.rows as unknown as UserRow[]).map(toUser);
+}
+
 export async function setPassword(userId: number, password: string): Promise<void> {
   if (password.length < 8) {
     throw new UserError("Lösenordet måste vara minst 8 tecken.");
@@ -130,7 +154,7 @@ export async function setPassword(userId: number, password: string): Promise<voi
   await db.execute({ sql: "UPDATE users SET password_hash = ? WHERE id = ?", args: [passwordHash, userId] });
 }
 
-// The "Aura Signal Engine" leaderboard entry and similar single-canonical-
+// The "Candor Signal Engine" leaderboard entry and similar single-canonical-
 // account displays anchor to the site owner's own account rather than any
 // particular visitor's — this finds that account (the first admin user).
 let cachedAdminId: number | null = null;

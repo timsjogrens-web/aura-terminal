@@ -2,13 +2,13 @@ import Link from "next/link";
 
 export default function Hero({ tickerCount }: { tickerCount: number }) {
   return (
-    <section className="relative overflow-hidden">
-      <div aria-hidden="true" className="absolute inset-0 hero-bg-glow" />
-      <div aria-hidden="true" className="absolute inset-0 hero-bg-stars" />
-      <div aria-hidden="true" className="absolute inset-0 hero-bg-grid" />
-
+    <section className="relative">
+      {/* The "space" backdrop (nebula/stars/horizon glow) now lives on the
+          homepage's own top-level wrapper in page.tsx, spanning the whole
+          page instead of being clipped to just this section — see
+          .space-bg in globals.css. */}
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 pt-14 pb-10">
-        <p className="text-xs font-mono font-semibold tracking-[0.2em] text-[var(--gold)] mb-4">
+        <p className="text-xs font-mono font-semibold tracking-[0.2em] text-[var(--accent)] mb-4">
           HELT GRATIS &middot; {tickerCount} US-AKTIER SPÅRADE
         </p>
         <h1 className="font-serif font-bold text-4xl sm:text-6xl leading-[1.05] text-[var(--text-primary)] max-w-3xl">

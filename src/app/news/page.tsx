@@ -67,7 +67,7 @@ export default function NewsPage() {
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4 flex gap-4 hover:border-[var(--gold-dim)] transition-colors"
+                className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4 flex gap-4 hover:border-[var(--accent-dim)] transition-colors"
               >
                 {item.image && (
                   // eslint-disable-next-line @next/next/no-img-element

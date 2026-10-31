@@ -56,7 +56,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
       <section className="mx-auto max-w-4xl w-full px-4 sm:px-6 pt-12 pb-16 flex-1">
         <Link
           href="/investors"
-          className="text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--gold)] transition"
+          className="text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--accent)] transition"
         >
           ← Alla investerare
         </Link>
@@ -79,7 +79,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                   className="h-16 w-16 rounded-full object-cover border border-[var(--surface-border)]"
                 />
               ) : (
-                <div className="h-16 w-16 rounded-full bg-[rgba(245,165,36,0.12)] border border-[rgba(245,165,36,0.3)] flex items-center justify-center text-[var(--gold)] font-mono font-bold text-lg shrink-0">
+                <div className="h-16 w-16 rounded-full bg-[rgba(111,176,224,0.12)] border border-[rgba(111,176,224,0.3)] flex items-center justify-center text-[var(--accent)] font-mono font-bold text-lg shrink-0">
                   {initials(data.manager.name)}
                 </div>
               )}
@@ -137,7 +137,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                               {h.ticker ? (
                                 <Link
                                   href={`/stock/${h.ticker}`}
-                                  className="font-mono font-semibold text-[var(--gold)] hover:underline"
+                                  className="font-mono font-semibold text-[var(--accent)] hover:underline"
                                 >
                                   {h.ticker}
                                 </Link>
@@ -146,7 +146,7 @@ export default function InvestorDetailPage({ params }: { params: Promise<{ slug:
                               )}
                               <span className="text-[var(--text-secondary)] truncate">{h.issuer}</span>
                               {h.isNew && (
-                                <span className="text-[10px] font-mono tracking-wider bg-[rgba(245,165,36,0.15)] text-[var(--gold)] border border-[rgba(245,165,36,0.35)] rounded px-1.5 py-0.5 shrink-0">
+                                <span className="text-[10px] font-mono tracking-wider bg-[rgba(111,176,224,0.15)] text-[var(--accent)] border border-[rgba(111,176,224,0.35)] rounded px-1.5 py-0.5 shrink-0">
                                   NY
                                 </span>
                               )}

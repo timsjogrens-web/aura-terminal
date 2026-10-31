@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CompanyLogo from "@/components/CompanyLogo";
 import { DEFAULT_UNIVERSE } from "@/lib/universe";
 import { formatPct } from "@/lib/format";
+import { useQuotes } from "@/lib/useQuotes";
 
 interface BacktestRow {
   date: string;
@@ -38,6 +40,51 @@ export default function BacktestPage() {
   const [custom, setCustom] = useState<BacktestResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Collapsed by default, same reasoning as the paper-trading page's
+  // "Visa mer" — the full methodology writeup used to sit above the
+  // actual tool (the ticker picker, sliders, "Kör backtest" button),
+  // which made the tool itself easy to miss on first look.
+  const [showMethodDetails, setShowMethodDetails] = useState(false);
+
+  // Real logos, not just the colored-initial fallback — the same quote
+  // feed every other page already uses, keyed by ticker for a quick
+  // lookup. A plain <select> can never show these (browsers only ever
+  // render <option> as plain text, no images), which is why the ticker
+  // picker gets a custom dropdown below instead of a native <select>.
+  const { data: quotesData } = useQuotes();
+  const logoByTicker = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const q of quotesData?.quotes ?? []) map.set(q.ticker, q.logo ?? null);
+    return map;
+  }, [quotesData]);
+
+  const [tickerOpen, setTickerOpen] = useState(false);
+  const [tickerQuery, setTickerQuery] = useState("");
+  const tickerBoxRef = useRef<HTMLDivElement | null>(null);
+  const selectedEntry = DEFAULT_UNIVERSE.find((e) => e.ticker === ticker);
+  const filteredUniverse = useMemo(() => {
+    const q = tickerQuery.trim().toUpperCase();
+    if (!q) return DEFAULT_UNIVERSE;
+    return DEFAULT_UNIVERSE.filter(
+      (e) => e.ticker.includes(q) || e.name.toUpperCase().includes(q)
+    );
+  }, [tickerQuery]);
+
+  useEffect(() => {
+    function onOutsideClick(e: MouseEvent) {
+      if (tickerBoxRef.current && !tickerBoxRef.current.contains(e.target as Node)) {
+        setTickerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onOutsideClick);
+    return () => document.removeEventListener("mousedown", onOutsideClick);
+  }, []);
+
+  function pickTicker(t: string) {
+    setTicker(t);
+    setTickerOpen(false);
+    setTickerQuery("");
+  }
 
   async function run() {
     setLoading(true);
@@ -72,52 +119,108 @@ export default function BacktestPage() {
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
           Backtest-verktyg
         </h1>
-        <p className="text-[var(--text-secondary)] mb-4 max-w-2xl">
+        <p className="text-[var(--text-secondary)] mb-2 max-w-2xl flex items-center gap-2 flex-wrap">
           Vikta om trend, momentum och volym och se hur träffsäkerheten hade förändrats över
-          riktig historisk prisdata — jämförd sida vid sida med den live 40/30/30-viktningen.
+          riktig historisk prisdata.
+          <button
+            onClick={() => setShowMethodDetails((v) => !v)}
+            className="text-[var(--accent)] hover:underline font-medium shrink-0"
+          >
+            {showMethodDetails ? "Visa mindre" : "Metod och begränsningar"}
+          </button>
+        </p>
+
+        {showMethodDetails && (
+          <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-4 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+            <p className="mb-1.5">
+              Varje signal &ldquo;handlas&rdquo; till nästa handelsdags öppningskurs, aldrig samma
+              stängningskurs signalen räknades från — annars mäter man ett resultat man aldrig hade
+              kunnat få i verkligheten. Kurserna är utdelningsjusterade så en aktie inte straffas
+              för att den delar ut pengar, och en uppskattad kostnad (courtage, växlingsavgift,
+              spread) dras av på varje affär.
+            </p>
+            <p>
+              Aktieurvalet är dagens spårade bolag — delvis sådana som kända fondförvaltare äger —
+              inte ett historiskt korrekt urval som även innehåller aktier som gått i konkurs eller
+              avnoterats sedan dess. Det gör att resultatet sannolikt ser bättre ut här än vad en
+              riktig, fristående strategi skulle prestera (survivorship bias). Gratis data med den
+              bristen är ett känt, accepterat avsteg för det här verktyget just nu — inte något vi
+              gömmer.
+            </p>
+          </div>
+        )}
+        <p className="text-xs font-mono text-[var(--text-muted)] mb-8">
           Vikterna är relativa till varandra, behöver inte summera till 100.
         </p>
 
-        <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-          <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">METOD OCH BEGRÄNSNINGAR</p>
-          <p className="mb-1.5">
-            Varje signal &ldquo;handlas&rdquo; till nästa handelsdags öppningskurs, aldrig samma
-            stängningskurs signalen räknades från — annars mäter man ett resultat man aldrig hade
-            kunnat få i verkligheten. Kurserna är utdelningsjusterade så en aktie inte straffas för
-            att den delar ut pengar, och en uppskattad kostnad (courtage, växlingsavgift, spread)
-            dras av på varje affär.
-          </p>
-          <p>
-            Aktieurvalet är dagens spårade bolag — delvis sådana som kända fondförvaltare äger —
-            inte ett historiskt korrekt urval som även innehåller aktier som gått i konkurs eller
-            avnoterats sedan dess. Det gör att resultatet
-            sannolikt ser bättre ut här än vad en riktig, fristående strategi skulle prestera
-            (survivorship bias). Gratis data med den bristen är ett känt, accepterat avsteg för det
-            här verktyget just nu — inte något vi gömmer.
-          </p>
-        </div>
-
         <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-            <div>
-              <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                TICKER
+            <div ref={tickerBoxRef} className="relative">
+              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                Ticker
               </label>
-              <select
-                value={ticker}
-                onChange={(e) => setTicker(e.target.value)}
-                className="w-full bg-black/30 border border-[var(--surface-border)] rounded-md px-3 py-2 text-sm font-mono text-[var(--text-primary)]"
-              >
-                {DEFAULT_UNIVERSE.map((e) => (
-                  <option key={e.ticker} value={e.ticker}>
-                    {e.ticker} — {e.name}
-                  </option>
-                ))}
-              </select>
+              {/* Closed state: shows the real logo + name for whatever's
+                  selected. Clicking it swaps in a search box so you filter
+                  by ticker or company name instead of scrolling a 168-row
+                  list blind. */}
+              {tickerOpen ? (
+                <input
+                  autoFocus
+                  value={tickerQuery}
+                  onChange={(e) => setTickerQuery(e.target.value)}
+                  placeholder="Sök ticker eller bolag…"
+                  className="w-full bg-black/30 border border-[var(--accent)] rounded-md px-3 py-2 text-sm font-mono text-[var(--text-primary)] outline-none"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setTickerOpen(true)}
+                  className="w-full flex items-center gap-2.5 bg-black/30 border border-[var(--surface-border)] rounded-md px-3 py-2 text-sm text-left outline-none focus:border-[var(--accent)] transition-colors hover:border-[var(--accent-dim)]"
+                >
+                  <CompanyLogo ticker={ticker} logoUrl={logoByTicker.get(ticker)} size={20} />
+                  <span className="font-mono font-semibold text-[var(--text-primary)] shrink-0">{ticker}</span>
+                  <span className="text-[var(--text-secondary)] truncate">
+                    {selectedEntry?.name ?? ""}
+                  </span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-4 w-4 text-[var(--text-muted)] ml-auto shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+              {tickerOpen && (
+                <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-md border border-[var(--surface-border)] bg-[var(--surface)] shadow-lg">
+                  {filteredUniverse.length === 0 ? (
+                    <p className="px-4 py-3 text-sm text-[var(--text-muted)]">Inga träffar.</p>
+                  ) : (
+                    filteredUniverse.map((e) => (
+                      <button
+                        key={e.ticker}
+                        type="button"
+                        onClick={() => pickTicker(e.ticker)}
+                        className={`w-full flex items-center gap-2.5 text-left px-3 py-2 hover:bg-black/30 transition-colors ${
+                          e.ticker === ticker ? "bg-[rgba(111,176,224,0.08)]" : ""
+                        }`}
+                      >
+                        <CompanyLogo ticker={e.ticker} logoUrl={logoByTicker.get(e.ticker)} size={20} />
+                        <span className="font-mono font-semibold text-sm text-[var(--text-primary)] shrink-0">
+                          {e.ticker}
+                        </span>
+                        <span className="text-xs text-[var(--text-secondary)] truncate">{e.name}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
             <div>
-              <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                PERIOD
+              <label className="text-sm font-medium text-[var(--text-secondary)] block mb-1.5">
+                Period
               </label>
               <div className="flex gap-1 bg-black/30 rounded-md p-1 border border-[var(--surface-border)]">
                 {RANGES.map((r) => (
@@ -139,13 +242,29 @@ export default function BacktestPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
             {[
-              { label: "TREND (vs 50-dagars snitt)", value: trend, set: setTrend },
-              { label: "MOMENTUM (RSI)", value: momentum, set: setMomentum },
-              { label: "VOLYM", value: volume, set: setVolume },
+              {
+                label: "Trend (vs 50-dagars snitt)",
+                hint: "Stiger eller sjunker aktien just nu, jämfört med de senaste 50 dagarna?",
+                value: trend,
+                set: setTrend,
+              },
+              {
+                label: "Momentum (RSI)",
+                hint: "Har priset rört sig ovanligt snabbt nyligen — ett tecken på att det kan vara översålt eller överköpt?",
+                value: momentum,
+                set: setMomentum,
+              },
+              {
+                label: "Volym",
+                hint: "Handlas aktien med mer intresse (fler köp/sälj) än vanligt?",
+                value: volume,
+                set: setVolume,
+              },
             ].map((w) => (
               <div key={w.label}>
-                <label className="text-xs font-mono tracking-widest text-[var(--text-muted)] block mb-1.5">
-                  {w.label} · {w.value}
+                <label className="text-sm font-medium text-[var(--text-secondary)] flex items-baseline justify-between mb-1.5">
+                  <span>{w.label}</span>
+                  <span className="font-mono text-[var(--accent)] text-xs">{w.value}</span>
                 </label>
                 <input
                   type="range"
@@ -153,8 +272,10 @@ export default function BacktestPage() {
                   max={100}
                   value={w.value}
                   onChange={(e) => w.set(Number(e.target.value))}
-                  className="w-full accent-[var(--gold)]"
+                  className="range-slider w-full"
+                  style={{ "--range-fill": `${w.value}%` } as React.CSSProperties}
                 />
+                <p className="text-[11px] text-[var(--text-muted)] mt-1.5 leading-snug">{w.hint}</p>
               </div>
             ))}
           </div>
@@ -163,7 +284,8 @@ export default function BacktestPage() {
           <button
             onClick={run}
             disabled={loading}
-            className="bg-[var(--gold)] text-black font-semibold text-sm rounded-md px-4 py-2 hover:opacity-90 transition disabled:opacity-50"
+            className="font-semibold text-sm rounded-md px-5 py-2.5 text-black shadow-[0_2px_10px_rgba(111,176,224,0.35)] hover:shadow-[0_4px_16px_rgba(111,176,224,0.45)] hover:-translate-y-0.5 active:translate-y-0 transition disabled:opacity-50 disabled:shadow-none disabled:translate-y-0"
+            style={{ background: "linear-gradient(135deg, #9cd0f2, var(--accent) 65%, var(--accent-dim))" }}
           >
             {loading ? "Kör…" : "Kör backtest"}
           </button>
@@ -177,7 +299,7 @@ export default function BacktestPage() {
 
         {live && custom && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5">
+            <div className="rounded-lg border border-[var(--surface-border)] border-l-4 border-l-[var(--text-muted)] bg-[var(--surface)] p-5">
               <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
                 LIVE-VIKTER (40 / 30 / 30)
               </p>
@@ -188,8 +310,8 @@ export default function BacktestPage() {
                 {live.hits}/{live.evaluated} utvärderade signaler · {live.buySignalCount} köpsignaler
               </p>
             </div>
-            <div className="rounded-lg border border-[rgba(245,165,36,0.3)] bg-[rgba(245,165,36,0.05)] p-5">
-              <p className="text-xs font-mono tracking-widest text-[var(--gold)] mb-3">
+            <div className="rounded-lg border border-[rgba(111,176,224,0.3)] border-l-4 border-l-[var(--accent)] bg-[rgba(111,176,224,0.05)] p-5">
+              <p className="text-xs font-mono tracking-widest text-[var(--accent)] mb-3">
                 DINA VIKTER ({trend} / {momentum} / {volume})
               </p>
               <p className="font-mono text-3xl font-bold text-[var(--text-primary)] mb-1">

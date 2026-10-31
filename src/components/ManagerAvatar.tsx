@@ -23,7 +23,7 @@ export default function ManagerAvatar({ slug, name, size }: { slug: string; name
   return (
     <div
       style={{ height: px, width: px }}
-      className="rounded-full bg-[rgba(245,165,36,0.12)] border border-[rgba(245,165,36,0.3)] flex items-center justify-center text-[var(--gold)] font-mono font-bold text-sm shrink-0"
+      className="rounded-full bg-[rgba(111,176,224,0.12)] border border-[rgba(111,176,224,0.3)] flex items-center justify-center text-[var(--accent)] font-mono font-bold text-sm shrink-0"
     >
       {initials(name)}
     </div>

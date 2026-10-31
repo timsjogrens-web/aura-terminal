@@ -63,7 +63,7 @@ export default function HowItWorks() {
             className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-6"
           >
             <div className="flex items-start justify-between mb-5">
-              <div className="h-10 w-10 rounded-md bg-[rgba(245,165,36,0.1)] border border-[rgba(245,165,36,0.25)] flex items-center justify-center text-[var(--gold)]">
+              <div className="h-10 w-10 rounded-md bg-[rgba(111,176,224,0.1)] border border-[rgba(111,176,224,0.25)] flex items-center justify-center text-[var(--accent)]">
                 {card.icon}
               </div>
               <span className="text-xs font-mono text-[var(--text-muted)]">{card.number}</span>

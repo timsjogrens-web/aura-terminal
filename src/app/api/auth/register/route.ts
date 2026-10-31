@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { createUser, createAuthToken, UserError } from "@/lib/users";
-import { sendVerificationEmail } from "@/lib/email";
+import { sendVerificationEmail, sendNewSignupNotification } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const MAX_SIGNUPS = 8;
@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     const token = await createAuthToken(user.id, "verify");
     const verifyUrl = `${req.nextUrl.origin}/api/auth/verify-email?token=${token}`;
     sendVerificationEmail(user.email, verifyUrl).catch(() => {});
+    sendNewSignupNotification(user.email, "e-post/lösenord").catch(() => {});
 
     return NextResponse.json({ ok: true });
   } catch (e) {

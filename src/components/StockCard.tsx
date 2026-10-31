@@ -10,7 +10,7 @@ import CompanyLogo from "./CompanyLogo";
 
 export default function StockCard({ q }: { q: Quote }) {
   return (
-    <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 flex flex-col gap-4 hover:border-[var(--gold-dim)] transition-colors">
+    <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 flex flex-col gap-4 hover:border-[var(--accent-dim)] transition-colors">
       <Link href={`/stock/${q.ticker}`} className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5">
