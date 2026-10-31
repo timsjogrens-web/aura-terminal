@@ -17,9 +17,49 @@ interface AdminUser {
   lastLoginAt: string | null;
 }
 
+interface PortfolioSummary {
+  startedAt: string | null;
+  totalValue: number;
+  totalReturnPct: number;
+  openPositions: number;
+}
+
+interface AdminPortfolio {
+  userId: number;
+  paper: PortfolioSummary;
+  selfTrade: PortfolioSummary;
+}
+
+function formatMoney(n: number): string {
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+
+function formatPct(n: number): string {
+  const sign = n >= 0 ? "+" : "";
+  return `${sign}${n.toFixed(1)}%`;
+}
+
+// Not started yet (no trade ever placed) looks identical to "started and
+// flat at 0%" otherwise — this is the one case callers need to tell apart
+// from an honest 0.0% return.
+function PortfolioCell({ summary }: { summary: PortfolioSummary }) {
+  if (!summary.startedAt) {
+    return <span className="text-[var(--text-muted)]">ej startat</span>;
+  }
+  return (
+    <div className="whitespace-nowrap">
+      <span className={summary.totalReturnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}>
+        {formatPct(summary.totalReturnPct)}
+      </span>{" "}
+      <span className="text-[var(--text-muted)]">({formatMoney(summary.totalValue)})</span>
+    </div>
+  );
+}
+
 export default function AdminUsersPage() {
   const auth = useAuthStatus();
   const [users, setUsers] = useState<AdminUser[] | null>(null);
+  const [portfolios, setPortfolios] = useState<Map<number, AdminPortfolio> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,6 +68,17 @@ export default function AdminUsersPage() {
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((json) => setUsers(json.users))
       .catch(() => setError("Kunde inte ladda kontolistan."));
+    fetch("/api/admin/portfolios")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((json) => {
+        const map = new Map<number, AdminPortfolio>(
+          (json.portfolios as AdminPortfolio[]).map((p) => [p.userId, p])
+        );
+        setPortfolios(map);
+      })
+      .catch(() => {
+        // Non-fatal — the account list above still works without it.
+      });
   }, [auth]);
 
   if (auth === null) {
@@ -76,8 +127,9 @@ export default function AdminUsersPage() {
           Konton
         </h1>
         <p className="text-[var(--text-secondary)] mb-8 max-w-2xl">
-          Alla registrerade konton på sajten — vem som skapat ett konto, om de bekräftat sin
-          e-post, om de har boten på, och när de senast loggade in. Bara du ser den här sidan.
+          Alla registrerade konton på sajten, och hur vars och ens papperskonto (boten) och egna
+          handel går just nu — samma avkastning som de själva ser på sina sidor. Bara du ser den
+          här sidan.
         </p>
 
         {error && (
@@ -114,49 +166,60 @@ export default function AdminUsersPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[var(--surface-border)] text-left text-xs font-mono tracking-widest text-[var(--text-muted)]">
-                      <th className="px-4 py-3 font-medium">E-POST</th>
-                      <th className="px-4 py-3 font-medium">STATUS</th>
-                      <th className="px-4 py-3 font-medium">SKAPAT</th>
-                      <th className="px-4 py-3 font-medium">SENAST INLOGGAD</th>
+                      <th className="px-2.5 lg:px-4 py-3 font-medium">E-POST</th>
+                      <th className="px-2.5 lg:px-4 py-3 font-medium">STATUS</th>
+                      <th className="px-2.5 lg:px-4 py-3 font-medium">PAPPERSKONTO</th>
+                      <th className="px-2.5 lg:px-4 py-3 font-medium">EGEN HANDEL</th>
+                      <th className="hidden lg:table-cell px-4 py-3 font-medium">SKAPAT</th>
+                      <th className="hidden lg:table-cell px-4 py-3 font-medium">SENAST INLOGGAD</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((u) => (
-                      <tr key={u.id} className="border-b border-[var(--surface-border)] last:border-0">
-                        <td className="px-4 py-3 font-mono text-[var(--text-primary)] whitespace-nowrap">
-                          {u.email}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {u.isAdmin && (
-                              <span className="text-[10px] font-mono bg-[rgba(111,176,224,0.12)] text-[var(--accent)] border border-[rgba(111,176,224,0.3)] rounded px-1.5 py-0.5">
-                                ADMIN
+                    {users.map((u) => {
+                      const p = portfolios?.get(u.id);
+                      return (
+                        <tr key={u.id} className="border-b border-[var(--surface-border)] last:border-0">
+                          <td className="px-2.5 lg:px-4 py-3 font-mono text-[var(--text-primary)] whitespace-nowrap">
+                            {u.email}
+                          </td>
+                          <td className="px-2.5 lg:px-4 py-3">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {u.isAdmin && (
+                                <span className="text-[10px] font-mono bg-[rgba(111,176,224,0.12)] text-[var(--accent)] border border-[rgba(111,176,224,0.3)] rounded px-1.5 py-0.5">
+                                  ADMIN
+                                </span>
+                              )}
+                              <span
+                                className={`text-[10px] font-mono rounded px-1.5 py-0.5 border ${
+                                  u.emailVerified
+                                    ? "bg-[rgba(34,197,94,0.12)] text-[var(--green)] border-[rgba(34,197,94,0.3)]"
+                                    : "bg-[rgba(240,160,32,0.12)] text-[var(--amber)] border-[rgba(240,160,32,0.3)]"
+                                }`}
+                              >
+                                {u.emailVerified ? "VERIFIERAD" : "EJ VERIFIERAD"}
                               </span>
-                            )}
-                            <span
-                              className={`text-[10px] font-mono rounded px-1.5 py-0.5 border ${
-                                u.emailVerified
-                                  ? "bg-[rgba(34,197,94,0.12)] text-[var(--green)] border-[rgba(34,197,94,0.3)]"
-                                  : "bg-[rgba(240,160,32,0.12)] text-[var(--amber)] border-[rgba(240,160,32,0.3)]"
-                              }`}
-                            >
-                              {u.emailVerified ? "VERIFIERAD" : "EJ VERIFIERAD"}
-                            </span>
-                            {u.botEnabled && (
-                              <span className="text-[10px] font-mono bg-[rgba(34,197,94,0.12)] text-[var(--green)] border border-[rgba(34,197,94,0.3)] rounded px-1.5 py-0.5">
-                                BOT PÅ
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-[var(--text-secondary)] whitespace-nowrap">
-                          {timeAgo(u.createdAt)}
-                        </td>
-                        <td className="px-4 py-3 text-[var(--text-secondary)] whitespace-nowrap">
-                          {u.lastLoginAt ? timeAgo(u.lastLoginAt) : "aldrig"}
-                        </td>
-                      </tr>
-                    ))}
+                              {u.botEnabled && (
+                                <span className="text-[10px] font-mono bg-[rgba(34,197,94,0.12)] text-[var(--green)] border border-[rgba(34,197,94,0.3)] rounded px-1.5 py-0.5">
+                                  BOT PÅ
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-2.5 lg:px-4 py-3 text-sm">
+                            {p ? <PortfolioCell summary={p.paper} /> : <span className="text-[var(--text-muted)]">–</span>}
+                          </td>
+                          <td className="px-2.5 lg:px-4 py-3 text-sm">
+                            {p ? <PortfolioCell summary={p.selfTrade} /> : <span className="text-[var(--text-muted)]">–</span>}
+                          </td>
+                          <td className="hidden lg:table-cell px-4 py-3 text-[var(--text-secondary)] whitespace-nowrap">
+                            {timeAgo(u.createdAt)}
+                          </td>
+                          <td className="hidden lg:table-cell px-4 py-3 text-[var(--text-secondary)] whitespace-nowrap">
+                            {u.lastLoginAt ? timeAgo(u.lastLoginAt) : "aldrig"}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
