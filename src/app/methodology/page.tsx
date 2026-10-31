@@ -77,10 +77,10 @@ export default function MethodologyPage() {
           </p>
           <p>
             Vi använder också en s.k. Deflated Sharpe Ratio, som straffar ett resultat i
-            förhållande till hur många olika strategivarianter som testats — testar man sex saker
-            är sannolikheten större att minst en råkar se bra ut av ren slump, så måttet kräver
-            starkare bevis ju fler varianter som prövats. Det här kravet höjs varje gång vi lägger
-            till en ny strategi att testa, aldrig tvärtom.
+            förhållande till hur många olika strategivarianter som testats — testar man sju saker
+            (som vi gjort hittills) är sannolikheten större att minst en råkar se bra ut av ren
+            slump, så måttet kräver starkare bevis ju fler varianter som prövats. Det här kravet
+            höjs varje gång vi lägger till en ny strategi eller variant att testa, aldrig tvärtom.
           </p>
         </Section>
 
@@ -133,16 +133,27 @@ export default function MethodologyPage() {
           </p>
           <p>
             <strong>Varför vi ändå inte bygger in den i poängen/signalerna än:</strong> Deflated
-            Sharpe Ratio för resultatet är 0,871 — det betyder ungefär 13% sannolikhet att det här
-            ändå bara är tur, även efter att ha räknat med att sex saker testats. Det är lovande,
-            men långt ifrån den säkerhetsmarginal vi vill ha innan något påverkar vad du faktiskt
-            ser på sajten. Resultatet bygger dessutom på bara 24 månaders låst testdata och ett
-            litet bolagsurval (41 bolag) — en enskild ovanlig månad kan flytta siffran rejält.
-            Testet visade också <em>högst</em> nedgång (max drawdown -32%) av alla sex strategier i
+            Sharpe Ratio för resultatet är 0,852 — det betyder runt 15% sannolikhet att det här
+            ändå bara är tur, räknat mot sju testade varianter (se nedan). Det är lovande, men
+            långt ifrån den säkerhetsmarginal vi vill ha innan något påverkar vad du faktiskt ser
+            på sajten. Resultatet bygger dessutom på bara 24 månaders låst testdata och ett litet
+            bolagsurval (41 bolag) — en enskild ovanlig månad kan flytta siffran rejält. Testet
+            visade också <em>högst</em> nedgång (max drawdown -32%) av alla strategier i
             forskningsperioden, så det är inte uppenbart &ldquo;säkrare&rdquo;, bara möjligen
-            bättre tajmat. Vi fortsätter följa den här faktorn och uppdaterar den här sidan när
-            fler låsta testperioder (eller en bredare aktielista) antingen stärker eller
-            försvagar resultatet.
+            bättre tajmat.
+          </p>
+          <p>
+            <strong>Testat: går det att tämja nedgången genom att kombinera med en annan
+            faktor?</strong> Vi testade en sjunde variant — insiderklustringen ihop med
+            lågvolatilitetsfaktorn (rankad i genomsnitt, samma metod som kompositstrategin ovan),
+            specifikt för att se om det dämpar -32%-nedgången. Svaret: nej. Nedgången i
+            forskningsperioden var i princip oförändrad (-31,9%) och resultatet i den låsta
+            perioden blev svagare på alla mått (lägre avkastning, lägre t-värde 1,65 mot 2,20,
+            lägre Sharpe) än insiderklustringen ensam. Lågvolatilitet späder alltså bara ut
+            signalen istället för att skydda den. Ingen ändring av det ovanstående resultatet,
+            men nu räknat som sitt eget test i Deflated Sharpe-siffrorna. Vi fortsätter följa
+            insiderklustringen och uppdaterar den här sidan när fler låsta testperioder (eller en
+            bredare aktielista) antingen stärker eller försvagar resultatet.
           </p>
         </Section>
 

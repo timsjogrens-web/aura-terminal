@@ -165,6 +165,75 @@ export function runInsiderFactorStrategy(
   return { months, portfolioValue, monthlyReturns, holdings };
 }
 
+// Combines the insider-clustering rank with ONE price-based factor's rank
+// (cross-sectional average, same method as runCompositeRankStrategy) —
+// tries to answer whether pairing insider-clustering with something else
+// tames its own -32% max-drawdown result (see methodology page) rather
+// than whether it beats the market on return alone. low-vol specifically
+// was picked as the pairing because reducing drawdown is its whole
+// purpose, not because it was the best-scoring option out of several
+// tried — picking from several after seeing results is how this project's
+// other factors avoid overfitting, and this keeps the same discipline.
+// A ticker needs a real score on BOTH factors that month to be eligible —
+// same "no partial-data shortcuts" rule as the existing composite.
+export function runInsiderCompositeStrategy(
+  panel: MonthlySeries,
+  insiderScores: InsiderMonthlyScores,
+  priceScorer: FactorScorer,
+  topN: number,
+  startIdx: number,
+  endIdxExclusive: number
+): StrategyResult {
+  const tickers = Object.keys(panel.prices).filter((t) => insiderScores.has(t));
+  const months: string[] = [];
+  const monthlyReturns: number[] = [];
+  const holdings: { month: string; tickers: string[] }[] = [];
+  const portfolioValue: number[] = [1.0];
+
+  for (let idx = startIdx; idx < endIdxExclusive - 1; idx++) {
+    const insiderRanked = tickers
+      .map((t) => ({ t, score: insiderScores.get(t)![idx] }))
+      .filter((x): x is { t: string; score: number } => x.score !== null && x.score !== undefined)
+      .sort((a, b) => b.score - a.score || a.t.localeCompare(b.t));
+    const insiderRank = new Map(insiderRanked.map((x, i) => [x.t, i + 1]));
+
+    const priceRanked = tickers
+      .map((t) => ({ t, score: priceScorer(panel.prices[t], idx) }))
+      .filter((x): x is { t: string; score: number } => x.score !== null)
+      .sort((a, b) => b.score - a.score);
+    const priceRank = new Map(priceRanked.map((x, i) => [x.t, i + 1]));
+
+    const avgRank = tickers
+      .map((t) => {
+        const ir = insiderRank.get(t);
+        const pr = priceRank.get(t);
+        if (ir === undefined || pr === undefined) return null;
+        return { t, avg: (ir + pr) / 2 };
+      })
+      .filter((x): x is { t: string; avg: number } => x !== null)
+      .sort((a, b) => a.avg - b.avg);
+
+    const picked = avgRank.slice(0, topN).map((x) => x.t);
+    holdings.push({ month: panel.months[idx], tickers: picked });
+
+    if (picked.length === 0) {
+      months.push(panel.months[idx + 1]);
+      monthlyReturns.push(0);
+      portfolioValue.push(portfolioValue[portfolioValue.length - 1]);
+      continue;
+    }
+
+    const rets = picked.map((t) => panel.prices[t][idx + 1] / panel.prices[t][idx] - 1);
+    const portRet = rets.reduce((a, b) => a + b, 0) / rets.length;
+
+    months.push(panel.months[idx + 1]);
+    monthlyReturns.push(portRet);
+    portfolioValue.push(portfolioValue[portfolioValue.length - 1] * (1 + portRet));
+  }
+
+  return { months, portfolioValue, monthlyReturns, holdings };
+}
+
 // Benchmark: hold every ticker with data at that month, equal-weighted,
 // rebalanced monthly. This is the "equal-weighted version of the universe"
 // comparison the brief asked for, distinct from SPY.

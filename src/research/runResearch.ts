@@ -20,6 +20,7 @@ import {
   runEqualWeightUniverse,
   runCompositeRankStrategy,
   runInsiderFactorStrategy,
+  runInsiderCompositeStrategy,
   StrategyResult,
 } from "./strategies";
 import {
@@ -38,14 +39,15 @@ if (universeArg !== "default" && universeArg !== "sp500") {
   console.error(`Unknown universe "${universeArg}" — use "default" or "sp500".`);
   process.exit(1);
 }
-// Insider cluster-buying only has data for the CORE_UNIVERSE (41 tickers —
-// see universe.ts), so it's only run against the default universe, not
-// sp500. momentum, low-vol, composite, short-term reversal, 52-week-high,
-// (+ insider cluster-buying on "default" only) — every variant actually
-// being compared. Raising this when a new strategy is added is the honest
-// move: more trials means a real Sharpe ratio needs to clear a higher bar
-// before it's trustworthy, not a lower one.
-const NUM_TRIALS = universeArg === "default" ? 6 : 5;
+// Insider cluster-buying (and its composite with low-vol) only has data
+// for the CORE_UNIVERSE (41 tickers — see universe.ts), so both are only
+// run against the default universe, not sp500. momentum, low-vol,
+// composite, short-term reversal, 52-week-high, (+ insider cluster-buying
+// and insider+low-vol composite on "default" only) — every variant
+// actually being compared. Raising this when a new strategy is added is
+// the honest move: more trials means a real Sharpe ratio needs to clear a
+// higher bar before it's trustworthy, not a lower one.
+const NUM_TRIALS = universeArg === "default" ? 7 : 5;
 // The brief specifies 20-30 stock portfolios; with only 37 eligible names
 // in the hand-picked universe that would barely be a "top N" at all, so it
 // stays smaller there. With the ~460-name S&P 500 universe, 25 matches the
@@ -144,6 +146,10 @@ async function main() {
     strategies.push({
       label: "Insider cluster-buying (90d net)",
       result: runInsiderFactorStrategy(panel, insiderScores, TOP_N, startIdx, endIdxExclusive),
+    });
+    strategies.push({
+      label: "Insider cluster-buying + low-vol (composite rank)",
+      result: runInsiderCompositeStrategy(panel, insiderScores, lowVolScorer, TOP_N, startIdx, endIdxExclusive),
     });
   }
 
