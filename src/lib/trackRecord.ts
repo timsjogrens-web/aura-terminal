@@ -21,7 +21,9 @@ import { DEFAULT_UNIVERSE } from "./universe";
 // with, so if anything this understates how fast real risk exits fire).
 
 export const ALLOCATION_USD = 5_000;
-export const STOP_LOSS_PCT = 8;
+// Kept in sync with paperTrading.ts's own copies by hand — see that
+// file's comment for why STOP_LOSS_PCT is 10, not the original 8.
+export const STOP_LOSS_PCT = 10;
 export const TRAILING_ARM_PCT = 15;
 export const TRAILING_STOP_PCT = 10;
 export const STARTING_CASH = 100_000;
@@ -163,19 +165,21 @@ export function runUniverseTrackRecord(seriesList: TickerSeries[]): TrackRecordR
 
       const { signal } = computeScore({ price: s.adjCloses[idx], sma50, rsi14, volume, avgVolume });
       const prevSignal = lastSignal.get(s.ticker);
-      // Entry requires STRONG BUY specifically; exit still fires on
-      // dropping off BUY-or-STRONG-BUY entirely (unchanged) — see
-      // paperTrading.ts's maybeTrade for why these aren't the same bar.
+      // Entry requires STRONG BUY specifically; exit fires on an actual
+      // SELL/STRONG SELL signal, not just dropping off BUY-or-STRONG-BUY
+      // to a neutral HOLD — see paperTrading.ts's maybeTrade for the
+      // sweep (src/research/runPaperBotSweep.ts) that changed the exit
+      // bar this same way, and why these two bars aren't the same.
       const qualifiesForEntry = signal === "STRONG BUY";
       const wasQualifying = prevSignal === "STRONG BUY";
-      const isBuyFamily = signal === "STRONG BUY" || signal === "BUY";
-      const wasBuyFamily = prevSignal === "STRONG BUY" || prevSignal === "BUY";
+      const qualifiesForExit = signal === "SELL" || signal === "STRONG SELL";
+      const wasExitQualifying = prevSignal === "SELL" || prevSignal === "STRONG SELL";
 
       if (prevSignal !== undefined && prevSignal !== signal) {
         if (qualifiesForEntry && !wasQualifying && !positions.has(s.ticker)) {
           pendingBuys.push(s.ticker);
         }
-        if (!isBuyFamily && wasBuyFamily && positions.has(s.ticker) && !pendingSellReasons.has(s.ticker)) {
+        if (qualifiesForExit && !wasExitQualifying && positions.has(s.ticker) && !pendingSellReasons.has(s.ticker)) {
           pendingSellReasons.set(s.ticker, signal);
         }
       }

@@ -75,6 +75,14 @@ export default function StockDetailPage({
     evaluated: number;
   } | null>(null);
 
+  const [insiderSignal, setInsiderSignal] = useState<{
+    windowDays: number;
+    buyers: string[];
+    sellers: string[];
+    netCount: number;
+    hasData: boolean;
+  } | null>(null);
+
   useEffect(() => {
     fetch(`/api/company?ticker=${ticker}`)
       .then((r) => r.json())
@@ -83,6 +91,19 @@ export default function StockDetailPage({
         else setProfile(json.profile);
       })
       .catch(() => setProfileError("Kunde inte ladda bolagsinformation."));
+  }, [ticker]);
+
+  // Separate, clearly-labeled indicator — not part of the 0-100 score or
+  // signal above. Promising in a locked backtest but not yet confirmed
+  // enough to blend in (see Metodik → "Den sjätte strategin"), so it's
+  // shown on its own rather than silently changing what the badge means.
+  useEffect(() => {
+    fetch(`/api/insider-signal?ticker=${ticker}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!json.error) setInsiderSignal(json);
+      })
+      .catch(() => {});
   }, [ticker]);
 
   useEffect(() => {
@@ -99,7 +120,7 @@ export default function StockDetailPage({
       <section className="mx-auto max-w-4xl w-full px-4 sm:px-6 pt-10 pb-16 flex-1">
         <button
           onClick={() => router.back()}
-          className="text-sm text-[var(--text-secondary)] hover:text-[var(--gold)] inline-flex items-center gap-1 mb-6"
+          className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] inline-flex items-center gap-1 mb-6"
         >
           ← Tillbaka
         </button>
@@ -131,7 +152,7 @@ export default function StockDetailPage({
                 const latest = history.rows[history.rows.length - 1];
                 if (latest.signal !== quote.signal) return null;
                 return (
-                  <span className="text-xs font-mono text-[var(--gold)] bg-[rgba(245,165,36,0.1)] border border-[rgba(245,165,36,0.3)] rounded px-2 py-1 whitespace-nowrap">
+                  <span className="text-xs font-mono text-[var(--accent)] bg-[rgba(111,176,224,0.1)] border border-[rgba(111,176,224,0.3)] rounded px-2 py-1 whitespace-nowrap">
                     ● Sedan {new Date(latest.timestamp).toLocaleString("sv-SE")}
                   </span>
                 );
@@ -198,6 +219,61 @@ export default function StockDetailPage({
         )}
 
         <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-6">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)]">
+              INSIDERKÖP SENASTE {insiderSignal?.windowDays ?? 90} DAGARNA
+            </p>
+            <span className="text-[10px] font-mono uppercase tracking-wide border border-[var(--amber)]/40 text-[var(--amber)] rounded px-1.5 py-0.5">
+              Experimentell
+            </span>
+          </div>
+          {!insiderSignal ? (
+            <p className="text-sm text-[var(--text-secondary)]">Laddar…</p>
+          ) : !insiderSignal.hasData ? (
+            <p className="text-sm text-[var(--text-secondary)]">
+              Ingen insiderdata tillgänglig för den här aktien.
+            </p>
+          ) : insiderSignal.buyers.length === 0 && insiderSignal.sellers.length === 0 ? (
+            <p className="text-sm text-[var(--text-secondary)]">
+              Ingen insideraktivitet (köp eller sälj på öppna marknaden) registrerad senaste{" "}
+              {insiderSignal.windowDays} dagarna.
+            </p>
+          ) : (
+            <>
+              <p
+                className={`font-mono text-lg font-bold mb-2 ${
+                  insiderSignal.netCount > 0
+                    ? "text-[var(--green)]"
+                    : insiderSignal.netCount < 0
+                    ? "text-[var(--red)]"
+                    : "text-[var(--text-primary)]"
+                }`}
+              >
+                {insiderSignal.buyers.length} köpte, {insiderSignal.sellers.length} sålde
+              </p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {insiderSignal.netCount > 0 &&
+                  `${insiderSignal.netCount} fler unika insiders köpte än sålde — flera oberoende köpare samtidigt är mönstret som visade sig i testet.`}
+                {insiderSignal.netCount < 0 &&
+                  `${Math.abs(insiderSignal.netCount)} fler unika insiders sålde än köpte.`}
+                {insiderSignal.netCount === 0 && "Lika många köpte som sålde."}
+              </p>
+            </>
+          )}
+          <p className="text-xs text-[var(--text-muted)] mt-3">
+            Inte en del av poängen eller signalen ovan — lovande i ett låst test, men inte
+            tillräckligt bekräftat än för att lita på.{" "}
+            <Link href="/methodology#insiderklustring" className="underline hover:text-[var(--text-secondary)]">
+              Läs varför
+            </Link>
+            {" · "}
+            <Link href="/insiders" className="underline hover:text-[var(--text-secondary)]">
+              Se alla insideraffärer
+            </Link>
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5 mb-6">
           <p className="text-xs font-mono tracking-widest text-[var(--text-secondary)] mb-3">
             OM BOLAGET
           </p>
@@ -240,7 +316,7 @@ export default function StockDetailPage({
                       href={profile.weburl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[var(--gold)] hover:underline break-all"
+                      className="text-[var(--accent)] hover:underline break-all"
                     >
                       {profile.weburl}
                     </a>

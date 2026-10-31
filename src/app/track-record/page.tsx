@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CompanyLogo from "@/components/CompanyLogo";
 
 interface EquityPoint {
   date: string;
@@ -107,10 +108,10 @@ function EquityChart({ data }: { data: TrackRecordData }) {
       {spyPoints && (
         <polyline points={spyPoints} fill="none" stroke="var(--text-muted)" strokeWidth={1.5} strokeDasharray="3 3" />
       )}
-      <polyline points={portfolioPoints} fill="none" stroke="var(--gold)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={portfolioPoints} fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
 
       <g transform={`translate(${PADDING}, 14)`}>
-        <line x1={0} y1={0} x2={16} y2={0} stroke="var(--gold)" strokeWidth={2} />
+        <line x1={0} y1={0} x2={16} y2={0} stroke="var(--accent)" strokeWidth={2} />
         <text x={20} y={3} fontSize="10" fill="var(--text-secondary)" fontFamily="var(--font-mono)">
           Signalportfölj
         </text>
@@ -126,6 +127,21 @@ function EquityChart({ data }: { data: TrackRecordData }) {
 export default function TrackRecordPage() {
   const [data, setData] = useState<TrackRecordData | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Concrete, checkable proof instead of an abstract average — real
+  // tickers, real dates, real % moves, each linking straight to that
+  // stock's own page. Always shown as a pair (best AND worst) so this
+  // can't read as cherry-picked: the same simulation produced both lists,
+  // and the full equity curve/drawdown above already shows where all the
+  // rest of the trades landed.
+  const { topBest, topWorst } = useMemo(() => {
+    const closed = (data?.trades ?? []).filter(
+      (t): t is SimTrade & { returnPct: number } => t.action === "SELL" && t.returnPct !== null
+    );
+    const topBest = [...closed].sort((a, b) => b.returnPct - a.returnPct).slice(0, 5);
+    const topWorst = [...closed].sort((a, b) => a.returnPct - b.returnPct).slice(0, 5);
+    return { topBest, topWorst };
+  }, [data]);
 
   useEffect(() => {
     fetch("/api/track-record")
@@ -145,9 +161,12 @@ export default function TrackRecordPage() {
         <h1 className="font-serif font-bold text-3xl sm:text-4xl text-[var(--text-primary)] mb-2">
           Vad hade hänt om du följt varje signal?
         </h1>
+        <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
+          HISTORISK TILLBAKABLICK · INTE ETT PÅGÅENDE KONTO
+        </p>
         <p className="text-[var(--text-secondary)] mb-4 max-w-2xl leading-relaxed">
           En fullständig historisk simulering — inte bara de bra perioderna. Samma regler som det
-          riktiga papperskontot ($5 000 per ny STRONG BUY-signal, 8% stop-loss, trailing stop)
+          riktiga papperskontot ($5 000 per ny STRONG BUY-signal, 10% stop-loss, trailing stop)
           körs mekaniskt över {data ? data.universeSize : "~170"} aktiers riktiga kurshistorik de
           senaste ~2 åren, med samma regel mot framtidsdataläckage som backtest-verktyget:
           varje beslut baseras bara på data fram till dagens stängning, och handlas tidigast
@@ -229,27 +248,58 @@ export default function TrackRecordPage() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              {data.worstTrade && (
-                <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5">
-                  <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-2">SÄMSTA ENSKILDA AFFÄR</p>
-                  <p className="font-mono font-semibold text-[var(--text-primary)]">{data.worstTrade.ticker}</p>
-                  <p className="font-mono text-2xl font-bold text-[var(--red)]">
-                    {formatPct(data.worstTrade.returnPct ?? 0)}
-                  </p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">Såld {data.worstTrade.date} · {data.worstTrade.reason}</p>
+              <div className="rounded-lg border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.03)] p-5">
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
+                  5 BÄSTA AFFÄRERNA
+                </p>
+                <div className="flex flex-col gap-2.5">
+                  {topBest.map((t, i) => (
+                    <Link
+                      key={i}
+                      href={`/stock/${t.ticker}`}
+                      className="flex items-center gap-2.5 hover:opacity-80 transition"
+                    >
+                      <CompanyLogo ticker={t.ticker} size={22} />
+                      <span className="font-mono font-semibold text-sm text-[var(--text-primary)]">
+                        {t.ticker}
+                      </span>
+                      <span className="text-xs text-[var(--text-muted)] flex-1 truncate">Såld {t.date}</span>
+                      <span className="font-mono text-sm font-bold text-[var(--green)] shrink-0">
+                        {formatPct(t.returnPct)}
+                      </span>
+                    </Link>
+                  ))}
                 </div>
-              )}
-              {data.bestTrade && (
-                <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-5">
-                  <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-2">BÄSTA ENSKILDA AFFÄR</p>
-                  <p className="font-mono font-semibold text-[var(--text-primary)]">{data.bestTrade.ticker}</p>
-                  <p className="font-mono text-2xl font-bold text-[var(--green)]">
-                    {formatPct(data.bestTrade.returnPct ?? 0)}
-                  </p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">Såld {data.bestTrade.date} · {data.bestTrade.reason}</p>
+              </div>
+              <div className="rounded-lg border border-[rgba(239,68,68,0.25)] bg-[rgba(239,68,68,0.03)] p-5">
+                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-3">
+                  5 SÄMSTA AFFÄRERNA
+                </p>
+                <div className="flex flex-col gap-2.5">
+                  {topWorst.map((t, i) => (
+                    <Link
+                      key={i}
+                      href={`/stock/${t.ticker}`}
+                      className="flex items-center gap-2.5 hover:opacity-80 transition"
+                    >
+                      <CompanyLogo ticker={t.ticker} size={22} />
+                      <span className="font-mono font-semibold text-sm text-[var(--text-primary)]">
+                        {t.ticker}
+                      </span>
+                      <span className="text-xs text-[var(--text-muted)] flex-1 truncate">Såld {t.date}</span>
+                      <span className="font-mono text-sm font-bold text-[var(--red)] shrink-0">
+                        {formatPct(t.returnPct)}
+                      </span>
+                    </Link>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
+            <p className="text-xs text-[var(--text-muted)] mb-8">
+              Visas alltid tillsammans, inte utvalt — samma simulering gav båda listorna. Hela
+              utvecklingen (inklusive den sämsta perioden ovan) väger in alla affärer, inte bara
+              dessa.
+            </p>
 
             {data.excludedTickers.length > 0 && (
               <p className="text-xs text-[var(--text-muted)] mb-4">

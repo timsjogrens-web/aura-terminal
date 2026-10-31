@@ -3,7 +3,9 @@
 // SEC asks all automated callers to identify themselves with a descriptive
 // User-Agent including contact info (https://www.sec.gov/os/webmaster-faq#developers).
 
-const SEC_USER_AGENT = "Candor (personal finance dashboard) contact@candor.example";
+// A real, reachable contact (not the reserved .example TLD) — see the
+// longer note in secForm4.ts's SEC_USER_AGENT for why this matters.
+const SEC_USER_AGENT = "Candor (personal finance dashboard) timsjogrens.jobb@gmail.com";
 
 export class SecError extends Error {}
 

@@ -6,6 +6,7 @@
 // runFactorStrategy's tests check for.
 
 import type { MonthlySeries } from "./fetchHistory";
+import type { InsiderMonthlyScores } from "./insiderFactor";
 
 export type FactorScorer = (prices: number[], idx: number) => number | null;
 
@@ -92,6 +93,56 @@ export function runFactorStrategy(
       .map((t) => ({ t, score: scorer(panel.prices[t], idx) }))
       .filter((x): x is { t: string; score: number } => x.score !== null)
       .sort((a, b) => b.score - a.score);
+
+    const picked = scored.slice(0, topN).map((x) => x.t);
+    holdings.push({ month: panel.months[idx], tickers: picked });
+
+    if (picked.length === 0) {
+      months.push(panel.months[idx + 1]);
+      monthlyReturns.push(0);
+      portfolioValue.push(portfolioValue[portfolioValue.length - 1]);
+      continue;
+    }
+
+    const rets = picked.map((t) => panel.prices[t][idx + 1] / panel.prices[t][idx] - 1);
+    const portRet = rets.reduce((a, b) => a + b, 0) / rets.length;
+
+    months.push(panel.months[idx + 1]);
+    monthlyReturns.push(portRet);
+    portfolioValue.push(portfolioValue[portfolioValue.length - 1] * (1 + portRet));
+  }
+
+  return { months, portfolioValue, monthlyReturns, holdings };
+}
+
+// Same top-N, equal-weight, monthly-rebalance mechanics as
+// runFactorStrategy, but ranked from a precomputed ticker+month score
+// table (see insiderFactor.ts) instead of a price-only scorer function —
+// the insider factor needs to know WHICH ticker it's scoring, which the
+// shared `FactorScorer` signature (prices array only, no ticker) can't
+// express without changing that tested, price-only contract for every
+// existing strategy. Tickers with a null score that month (no insider
+// data) are excluded from that month's ranking, same convention as a
+// null from any FactorScorer.
+export function runInsiderFactorStrategy(
+  panel: MonthlySeries,
+  scores: InsiderMonthlyScores,
+  topN: number,
+  startIdx: number,
+  endIdxExclusive: number
+): StrategyResult {
+  const tickers = Object.keys(panel.prices).filter((t) => scores.has(t));
+  const months: string[] = [];
+  const monthlyReturns: number[] = [];
+  const holdings: { month: string; tickers: string[] }[] = [];
+  const portfolioValue: number[] = [1.0];
+
+  for (let idx = startIdx; idx < endIdxExclusive - 1; idx++) {
+    const scored = tickers
+      .map((t) => ({ t, score: scores.get(t)![idx] }))
+      .filter((x): x is { t: string; score: number } => x.score !== null && x.score !== undefined)
+      // Higher net cluster-buying first; ties broken by ticker for determinism.
+      .sort((a, b) => b.score - a.score || a.t.localeCompare(b.t));
 
     const picked = scored.slice(0, topN).map((x) => x.t);
     holdings.push({ month: panel.months[idx], tickers: picked });

@@ -2,20 +2,42 @@
 // free, public EDGAR data source as the 13F client, just a different
 // filing type and scoped to individual companies instead of fund managers.
 
-const SEC_USER_AGENT = "Candor (personal finance dashboard) contact@candor.example";
+// SEC's fair-access policy (https://www.sec.gov/os/webmaster-faq#developers)
+// requires a real, reachable contact in the User-Agent — the previous
+// "contact@candor.example" used the reserved .example TLD, which can't
+// actually receive mail. That's exactly the kind of non-compliant header
+// SEC's automated traffic filtering is liable to start throttling or
+// blocking under sustained volume, which is what a multi-thousand-request
+// research backfill ran straight into (see src/research/fetchInsiderHistory.ts).
+const SEC_USER_AGENT = "Candor (personal finance dashboard) timsjogrens.jobb@gmail.com";
 const TICKERS_JSON_URL = "https://www.sec.gov/files/company_tickers.json";
 
 export class Form4Error extends Error {}
 
-async function secFetch(url: string): Promise<Response> {
-  let res: Response;
-  try {
-    res = await fetch(url, { headers: { "User-Agent": SEC_USER_AGENT }, cache: "no-store" });
-  } catch (e) {
-    throw new Form4Error(`Network error contacting SEC EDGAR: ${(e as Error).message}`);
+// A transient blip (a dropped connection, a momentary 429/503 from EDGAR)
+// used to take down the entire research backfill permanently — one failed
+// fetch partway through a multi-thousand-request run threw, and nothing
+// above caught it. A short, bounded retry absorbs exactly that kind of
+// one-off without masking a genuinely broken ticker/URL (those still fail
+// for good after `attempts` tries).
+async function secFetch(url: string, attempts = 3): Promise<Response> {
+  let lastErr: Error | null = null;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url, { headers: { "User-Agent": SEC_USER_AGENT }, cache: "no-store" });
+      if (res.ok) return res;
+      if (res.status === 429 || res.status >= 500) {
+        lastErr = new Form4Error(`SEC EDGAR request failed: ${res.status} ${url}`);
+      } else {
+        throw new Form4Error(`SEC EDGAR request failed: ${res.status} ${url}`);
+      }
+    } catch (e) {
+      if (e instanceof Form4Error) throw e; // non-retryable status above
+      lastErr = new Form4Error(`Network error contacting SEC EDGAR: ${(e as Error).message}`);
+    }
+    if (i < attempts - 1) await new Promise((r) => setTimeout(r, 500 * 2 ** i)); // 500ms, 1s, ...
   }
-  if (!res.ok) throw new Form4Error(`SEC EDGAR request failed: ${res.status} ${url}`);
-  return res;
+  throw lastErr!;
 }
 
 interface TickerEntry {
@@ -44,9 +66,9 @@ interface FilingRef {
   indexUrl: string;
 }
 
-async function getRecentForm4Filings(cik: string, count: number): Promise<FilingRef[]> {
+async function getForm4FilingsPage(cik: string, count: number, start: number): Promise<FilingRef[]> {
   const paddedCik = cik.padStart(10, "0");
-  const url = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${paddedCik}&type=4&dateb=&owner=include&count=${count}&output=atom`;
+  const url = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${paddedCik}&type=4&dateb=&owner=include&count=${count}&start=${start}&output=atom`;
   const res = await secFetch(url);
   const text = await res.text();
 
@@ -66,6 +88,37 @@ async function getRecentForm4Filings(cik: string, count: number): Promise<Filing
     });
   }
   return entries;
+}
+
+async function getRecentForm4Filings(cik: string, count: number): Promise<FilingRef[]> {
+  return getForm4FilingsPage(cik, count, 0);
+}
+
+// Walks pages of a company's full Form 4 filing history (oldest filings
+// are further back in the list; EDGAR returns newest-first) until either
+// a page's oldest filing is before `sinceDate`, a page comes back empty,
+// or `maxFilings` is hit — used by the offline research backfill, which
+// needs years of history per company rather than just the live site's
+// "a handful of recent filings" need that getRecentForm4Filings serves.
+export async function getForm4FilingsSince(
+  cik: string,
+  sinceDate: string,
+  maxFilings = 400,
+  pageSize = 100
+): Promise<FilingRef[]> {
+  const all: FilingRef[] = [];
+  let start = 0;
+  while (all.length < maxFilings) {
+    const page = await getForm4FilingsPage(cik, pageSize, start);
+    if (page.length === 0) break;
+    all.push(...page);
+    const oldestOnPage = page[page.length - 1].filingDate;
+    if (oldestOnPage < sinceDate) break;
+    if (page.length < pageSize) break; // short page = no more results
+    start += pageSize;
+    await new Promise((r) => setTimeout(r, 150)); // stay well under SEC's fair-access rate limit
+  }
+  return all.filter((f) => f.filingDate >= sinceDate).slice(0, maxFilings);
 }
 
 export interface InsiderTransaction {
@@ -96,7 +149,7 @@ function extractTag(block: string, tag: string): string | null {
   return m ? decodeXmlEntities(m[1].trim()) : null;
 }
 
-async function parseForm4Doc(indexUrl: string, ticker: string, filingDate: string): Promise<InsiderTransaction[]> {
+export async function parseForm4Doc(indexUrl: string, ticker: string, filingDate: string): Promise<InsiderTransaction[]> {
   const dirRes = await secFetch(`${indexUrl}/index.json`);
   const dir = (await dirRes.json()) as { directory: { item: { name: string }[] } };
   const xmlFile = dir.directory.item.find((i) => i.name.toLowerCase().endsWith(".xml"))?.name;

@@ -67,6 +67,14 @@ export default function PaperTradingPage() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [verifyResult, setVerifyResult] = useState<"ok" | "invalid" | "missing" | null>(null);
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
+  // Collapsed by default — the bot on/off toggle and the actual numbers
+  // are the whole point of this page, and they used to sit below a wall
+  // of explanatory text (the mechanics paragraph + a dated notice), which
+  // read as "just an explanation page" to people seeing it for the first
+  // time (friends testing the site never noticed there was a real bot to
+  // switch on). Same information, just tucked behind a click instead of
+  // forced on everyone up front.
+  const [showDetails, setShowDetails] = useState(false);
 
   const loadData = useCallback(() => {
     fetch("/api/paper")
@@ -127,9 +135,21 @@ export default function PaperTradingPage() {
             SIMULERAT · INGA RIKTIGA PENGAR
           </span>
         </div>
+        <p className="text-sm text-[var(--text-secondary)] mb-6 max-w-2xl">
+          Boten köper och säljer automatiskt åt dig, live, baserat på dagens signaler — ingen
+          historik. Vill du handla själv istället?{" "}
+          <Link href="/self-trade" className="text-[var(--accent)] underline">
+            Se egen handel
+          </Link>
+          . Vill du se hur det hade gått bakåt i tiden?{" "}
+          <Link href="/track-record" className="text-[var(--accent)] underline">
+            Se track record
+          </Link>
+          .
+        </p>
 
         {showWelcome && (
-          <div className="rounded-lg border border-[rgba(245,165,36,0.35)] bg-[rgba(245,165,36,0.06)] p-5 mb-6 max-w-2xl">
+          <div className="rounded-lg border border-[rgba(111,176,224,0.35)] bg-[rgba(111,176,224,0.06)] p-5 mb-6 max-w-2xl">
             <div className="flex items-start justify-between gap-3">
               <p className="font-serif font-bold text-lg text-[var(--text-primary)] mb-2">
                 Välkommen till Candor! 🎉
@@ -152,14 +172,14 @@ export default function PaperTradingPage() {
               </li>
               <li>
                 Eller testa{" "}
-                <Link href="/self-trade" className="text-[var(--gold)] underline">
+                <Link href="/self-trade" className="text-[var(--accent)] underline">
                   egen handel
                 </Link>{" "}
                 och välj dina egna affärer.
               </li>
               <li>
                 Bygg din{" "}
-                <Link href="/watchlist" className="text-[var(--gold)] underline">
+                <Link href="/watchlist" className="text-[var(--accent)] underline">
                   bevakningslista
                 </Link>{" "}
                 med aktier du vill följa.
@@ -188,62 +208,38 @@ export default function PaperTradingPage() {
         )}
 
         {auth?.loggedIn && auth.emailVerified === false && (
-          <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 max-w-2xl text-sm text-[var(--text-secondary)] flex items-center justify-between gap-3 flex-wrap">
+          <div className="rounded-lg border border-[var(--accent-dim)] bg-[rgba(111,176,224,0.06)] px-4 py-3 mb-6 max-w-2xl text-sm text-[var(--text-secondary)] flex items-center justify-between gap-3 flex-wrap">
             <span>Bekräfta din e-postadress — vi skickade en länk när du registrerade dig.</span>
             <button
               onClick={resendVerification}
               disabled={resendState !== "idle"}
-              className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--gold-dim)] hover:text-[var(--text-primary)] disabled:opacity-50 shrink-0"
+              className="text-xs font-mono border border-[var(--surface-border)] rounded px-3 py-1.5 text-[var(--text-secondary)] hover:border-[var(--accent-dim)] hover:text-[var(--text-primary)] disabled:opacity-50 shrink-0"
             >
               {resendState === "sent" ? "Skickat!" : resendState === "sending" ? "Skickar…" : "Skicka igen"}
             </button>
           </div>
         )}
 
-        <p className="text-[var(--text-secondary)] mb-6 max-w-2xl">
-          Ditt eget fiktiva {data ? formatMoney(data.startingCash) : "$100,000"}-konto, som du
-          själv sätter igång — när boten är på köper den automatiskt i samma stund en aktie når
-          STRONG BUY (den högsta signalnivån — vanlig BUY visas fortfarande på sajten men
-          auto-handlas inte längre, se notisen nedan), och säljer i samma stund den faller under
-          BUY. Två skyddsnät ligger ovanpå signalen: en fast stop-loss på 8% under ingångspriset,
-          och en trailing stop som låser in vinst när en position gått upp 15%+ (säljer om den
-          sedan backar 10% från sin topp) — båda visas som anledning i handelsloggen nedan.
-        </p>
-
         {loggedIn === false && (
-          <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)] max-w-2xl">
+          <div className="rounded-lg border border-[var(--accent-dim)] bg-[rgba(111,176,224,0.06)] px-4 py-3 mb-6 text-sm text-[var(--text-secondary)] max-w-2xl">
             Du behöver ett konto för att köra din egen bot.{" "}
-            <Link href="/signup" className="text-[var(--gold)] underline">
+            <Link href="/signup" className="text-[var(--accent)] underline">
               Skapa konto
             </Link>{" "}
             (startar på $100 000) eller{" "}
-            <Link href="/login" className="text-[var(--gold)] underline">
+            <Link href="/login" className="text-[var(--accent)] underline">
               logga in
             </Link>
             .
           </div>
         )}
 
-        <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-          <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
-            NOTIS, 22 SEPTEMBER 2026 — BOTEN BLEV MER SELEKTIV
-          </p>
-          <p>
-            Boten köpte tidigare på både BUY och STRONG BUY. En backtest över de senaste 2 åren
-            visade att strategin fick tydligt bättre resultat (och lägre nedgångar) ju mer
-            selektiv den blev, och höll i sig i båda halvorna av perioden var för sig — inte bara
-            en lyckad period. Boten köper nu bara på STRONG BUY. Ärlig brasklapp: detta är testat
-            på samma 2 år som vi bara har tillgång till, inte ett facit på framtiden — se{" "}
-            <Link href="/methodology" className="underline hover:text-[var(--text-primary)]">
-              metodiken
-            </Link>{" "}
-            för detaljer.
-          </p>
-        </div>
-
+        {/* The actual hook — moved above all the explanatory text instead
+            of below it. This is a real, switchable bot, not just a page
+            about one. */}
         {data && (
           <div
-            className={`rounded-lg border px-4 py-3 mb-8 max-w-2xl flex items-center justify-between gap-4 flex-wrap ${
+            className={`rounded-lg border px-4 py-3 mb-3 max-w-2xl flex items-center justify-between gap-4 flex-wrap ${
               data.botEnabled
                 ? "border-[rgba(34,197,94,0.35)] bg-[rgba(34,197,94,0.06)]"
                 : "border-[var(--surface-border)] bg-[var(--surface)]"
@@ -273,41 +269,133 @@ export default function PaperTradingPage() {
           </div>
         )}
 
-        {/* Only relevant to an account that already existed during that
-            window — irrelevant (and confusing) for anyone who signs up
-            after the fact, so it's shown only if this account's history
-            actually reaches back that far. */}
-        {data?.startedAt && new Date(data.startedAt) <= new Date("2026-09-16T23:59:59Z") && (
-          <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-            <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
-              NOTIS, 9–16 SEPTEMBER 2026
-            </p>
-            <p>
-              Under kontots första vecka uppdaterades priserna av misstag var 15:e minut istället
-              för en gång per dag som är tänkt, på grund av en bugg i utvecklingsmiljön — det gav
-              fler affärer än vad kontot normalt skulle göra, vilket sannolikt gjort resultatet
-              sämre än det annars hade blivit. Bortsett från antalet affärer är siffrorna äkta och
-              orörda — vi visar dem som de är, inklusive en dålig vecka, istället för att städa bort
-              den. Buggen är fixad 16 september.
-            </p>
-          </div>
-        )}
+        <p className="text-sm text-[var(--text-secondary)] mb-8 max-w-2xl flex items-center gap-2 flex-wrap">
+          Boten köper/säljer automatiskt på STRONG BUY-signaler med ett fiktivt{" "}
+          {data ? formatMoney(data.startingCash) : "$100,000"}-konto.
+          <button
+            onClick={() => setShowDetails((v) => !v)}
+            className="text-[var(--accent)] hover:underline font-medium shrink-0"
+          >
+            {showDetails ? "Visa mindre" : "Hur funkar det? Visa mer"}
+          </button>
+        </p>
 
-        {/* Same "existed before the fix" scoping as the notice above.
-            Only Tim's admin account is old enough to hit this. */}
-        {data?.startedAt && new Date(data.startedAt) <= new Date("2026-09-18T23:59:59Z") && (
-          <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 mb-8 text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-            <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
-              NOTIS, 18 SEPTEMBER 2026 — RÄTTAD 23 SEPTEMBER
+        {showDetails && (
+          <div className="mb-8 max-w-2xl flex flex-col gap-4">
+            <p className="text-[var(--text-secondary)] text-sm">
+              När boten är på köper den automatiskt i samma stund en aktie når STRONG BUY (den
+              högsta signalnivån — vanlig BUY visas fortfarande på sajten men auto-handlas inte
+              längre, se notisen nedan), och säljer i samma stund signalen blir SELL eller STRONG
+              SELL. Två skyddsnät ligger ovanpå signalen: en fast stop-loss på 10% under
+              ingångspriset, och en trailing stop som låser in vinst när en position gått upp 15%+
+              (säljer om den sedan backar 10% från sin topp) — båda visas som anledning i
+              handelsloggen nedan.
             </p>
-            <p>
-              Två uppdateringskörningar råkade gå samtidigt och köpte ANET dubbelt (en
-              låsningsbugg i uppdateringsjobbet, inte i själva signalen) — kontot ägde tillfälligt
-              dubbelt så mycket ANET som avsett, utan att motsvarande belopp drogs från kassan.
-              Det blåste upp avkastningen med cirka $5 200 (ungefär +4,9 procentenheter) tills det
-              upptäcktes. Den extra affären är borttagen och boken stämmer nu exakt mot
-              handelsloggen igen; låsningsbuggen är fixad så det inte kan hända igen.
-            </p>
+
+            <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 text-xs text-[var(--text-secondary)] leading-relaxed">
+              <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
+                NOTIS, 27 OKTOBER 2026 — STOP-LOSSEN TESTAD, FLYTTAD 8% → 10%
+              </p>
+              <p>
+                Stop-loss, trailing-start och trailing-stop (8%/15%/10%) var tidigare bara vanliga
+                tumregler från teknisk analys-litteraturen, aldrig testade mot den här specifika
+                signalmotorn. Testade alla tre var för sig (en i taget, de andra vid sina
+                nuvarande värden, samma 2 år delat i två halvor). 5% stop-loss gick back i båda
+                halvorna — för snäv, stoppas ur innan normal studs hinner vända. 10% gick plus i
+                båda halvorna och var klart jämnare mellan dem än 8% (+1,6%/+3,3% mot 8%:s
+                +8,5%/+1,4%), med högre totalavkastning och färre affärer som stängdes inom 3
+                dagar. Flyttad till 10%. Trailing-start (15%) och trailing-stop (10%) testades på
+                samma sätt — ingen annan siffra slog dem på både jämnhet och avkastning, så de
+                lämnas oförändrade. Samma brasklapp som alltid: 2 års data, inget bevis för
+                framtiden — se{" "}
+                <Link href="/methodology" className="underline hover:text-[var(--text-primary)]">
+                  metodiken
+                </Link>
+                .
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 text-xs text-[var(--text-secondary)] leading-relaxed">
+              <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
+                NOTIS, 21 OKTOBER 2026 — SÄLJREGELN BLEV MINDRE NERVÖS
+              </p>
+              <p>
+                Boten sålde tidigare direkt när en innehavd aktie föll av BUY/STRONG BUY till
+                bara HOLD, inte bara vid en faktisk säljsignal. Flera konton drabbades av precis
+                vad det låter som: en aktie pendlade runt gränsen, boten köpte och sålde samma
+                aktie flera gånger på några dagar, oftast med en liten förlust varje gång. En
+                sweep över samma 2 år som köpregeln testades på (samma universum, samma riskstopp,
+                bara säljvillkoret varierat, delat i två halvor var för sig) visade att den gamla
+                regeln var den ENDA av fyra testade varianter som gick back i någon av halvorna
+                (-3,1% första halvan, +15,8% andra, +8,4% i snitt) — att bara sälja på en faktisk
+                SELL/STRONG SELL-signal gick plus i båda halvorna (+8,5%, +1,4%) och halverade
+                andelen affärer som stängdes inom 3 dagar (24% → 12%). Valdes framför två
+                strängare varianter som backtestade ännu bättre eftersom de kräver ett nytt,
+                godtyckligt antal dagar — exakt den typen av överanpassning den här sajten annars
+                undviker. Samma brasklapp som för köpregeln: 2 års data, ingen äkta orörd
+                testperiod, inget bevis för framtiden — se{" "}
+                <Link href="/methodology" className="underline hover:text-[var(--text-primary)]">
+                  metodiken
+                </Link>
+                .
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 text-xs text-[var(--text-secondary)] leading-relaxed">
+              <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
+                NOTIS, 22 SEPTEMBER 2026 — BOTEN BLEV MER SELEKTIV
+              </p>
+              <p>
+                Boten köpte tidigare på både BUY och STRONG BUY. En backtest över de senaste 2 åren
+                visade att strategin fick tydligt bättre resultat (och lägre nedgångar) ju mer
+                selektiv den blev, och höll i sig i båda halvorna av perioden var för sig — inte
+                bara en lyckad period. Boten köper nu bara på STRONG BUY. Ärlig brasklapp: detta är
+                testat på samma 2 år som vi bara har tillgång till, inte ett facit på framtiden — se{" "}
+                <Link href="/methodology" className="underline hover:text-[var(--text-primary)]">
+                  metodiken
+                </Link>{" "}
+                för detaljer.
+              </p>
+            </div>
+
+            {/* Only relevant to an account that already existed during that
+                window — irrelevant (and confusing) for anyone who signs up
+                after the fact, so it's shown only if this account's history
+                actually reaches back that far. */}
+            {data?.startedAt && new Date(data.startedAt) <= new Date("2026-09-16T23:59:59Z") && (
+              <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 text-xs text-[var(--text-secondary)] leading-relaxed">
+                <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
+                  NOTIS, 9–16 SEPTEMBER 2026
+                </p>
+                <p>
+                  Under kontots första vecka uppdaterades priserna av misstag var 15:e minut
+                  istället för en gång per dag som är tänkt, på grund av en bugg i
+                  utvecklingsmiljön — det gav fler affärer än vad kontot normalt skulle göra,
+                  vilket sannolikt gjort resultatet sämre än det annars hade blivit. Bortsett från
+                  antalet affärer är siffrorna äkta och orörda — vi visar dem som de är, inklusive
+                  en dålig vecka, istället för att städa bort den. Buggen är fixad 16 september.
+                </p>
+              </div>
+            )}
+
+            {/* Same "existed before the fix" scoping as the notice above.
+                Only Tim's admin account is old enough to hit this. */}
+            {data?.startedAt && new Date(data.startedAt) <= new Date("2026-09-18T23:59:59Z") && (
+              <div className="rounded-lg border border-[var(--surface-border)] bg-black/20 px-4 py-3 text-xs text-[var(--text-secondary)] leading-relaxed">
+                <p className="font-mono tracking-widest text-[var(--text-muted)] mb-1.5">
+                  NOTIS, 18 SEPTEMBER 2026 — RÄTTAD 23 SEPTEMBER
+                </p>
+                <p>
+                  Två uppdateringskörningar råkade gå samtidigt och köpte ANET dubbelt (en
+                  låsningsbugg i uppdateringsjobbet, inte i själva signalen) — kontot ägde
+                  tillfälligt dubbelt så mycket ANET som avsett, utan att motsvarande belopp drogs
+                  från kassan. Det blåste upp avkastningen med cirka $5 200 (ungefär +4,9
+                  procentenheter) tills det upptäcktes. Den extra affären är borttagen och boken
+                  stämmer nu exakt mot handelsloggen igen; låsningsbuggen är fixad så det inte kan
+                  hända igen.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -316,14 +404,18 @@ export default function PaperTradingPage() {
         {data && (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-              <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">TOTALT VÄRDE</p>
+              <div className="rounded-lg border border-[var(--surface-border)] border-l-[3px] border-l-[var(--surface-border)] bg-[var(--surface)] p-4">
+                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Totalt värde</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">
                   {formatMoney(data.totalValue)}
                 </p>
               </div>
-              <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">AVKASTNING</p>
+              <div
+                className={`rounded-lg border border-[var(--surface-border)] border-l-[3px] bg-[var(--surface)] p-4 ${
+                  data.totalReturnPct >= 0 ? "border-l-[var(--green)]" : "border-l-[var(--red)]"
+                }`}
+              >
+                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Avkastning</p>
                 <p
                   className={`font-mono text-xl font-bold ${
                     data.totalReturnPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"
@@ -332,14 +424,14 @@ export default function PaperTradingPage() {
                   {formatPct(data.totalReturnPct)}
                 </p>
               </div>
-              <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">KONTANTER</p>
+              <div className="rounded-lg border border-[var(--surface-border)] border-l-[3px] border-l-[var(--surface-border)] bg-[var(--surface)] p-4">
+                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Kontanter</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">
                   {formatMoney(data.cash)}
                 </p>
               </div>
-              <div className="rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-mono tracking-widest text-[var(--text-muted)] mb-1">ÖPPNA POSITIONER</p>
+              <div className="rounded-lg border border-[var(--surface-border)] border-l-[3px] border-l-[var(--accent)] bg-[var(--surface)] p-4">
+                <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">Öppna positioner</p>
                 <p className="font-mono text-xl font-bold text-[var(--text-primary)]">
                   {data.positions.length}
                 </p>
@@ -365,9 +457,9 @@ export default function PaperTradingPage() {
             )}
 
             {data.startedAt && (
-              <div className="rounded-lg border border-[rgba(245,165,36,0.3)] bg-[rgba(245,165,36,0.05)] p-5 mb-8 flex items-center justify-between flex-wrap gap-4">
+              <div className="rounded-lg border border-[rgba(111,176,224,0.3)] bg-[rgba(111,176,224,0.05)] p-5 mb-8 flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <p className="text-xs font-mono tracking-widest text-[var(--gold)] mb-1">VS. S&amp;P 500</p>
+                  <p className="text-xs font-mono tracking-widest text-[var(--accent)] mb-1">VS. S&amp;P 500</p>
                   <p className="text-sm text-[var(--text-secondary)]">
                     Samma {formatMoney(data.startingCash)} i SPY sedan den första affären ({timeAgo(data.startedAt)})
                   </p>
@@ -439,7 +531,7 @@ export default function PaperTradingPage() {
                               <Link
                                 href={`/stock/${p.ticker}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="flex items-center gap-2 font-mono font-semibold text-[var(--gold)] hover:underline"
+                                className="flex items-center gap-2 font-mono font-semibold text-[var(--accent)] hover:underline"
                               >
                                 <CompanyLogo ticker={p.ticker} logoUrl={p.logo} size={20} />
                                 {p.ticker}
@@ -466,7 +558,7 @@ export default function PaperTradingPage() {
                             </td>
                             <td
                               className={`px-2.5 sm:px-4 py-3 text-right font-mono whitespace-nowrap ${
-                                usingTrailing ? "text-[var(--gold)]" : "text-[var(--red)]"
+                                usingTrailing ? "text-[var(--accent)]" : "text-[var(--red)]"
                               }`}
                               title={
                                 usingTrailing
@@ -529,7 +621,7 @@ export default function PaperTradingPage() {
                             <Link
                               href={`/stock/${t.ticker}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--gold)]"
+                              className="flex items-center gap-2 font-mono font-semibold text-[var(--text-primary)] hover:text-[var(--accent)]"
                             >
                               <CompanyLogo ticker={t.ticker} logoUrl={t.logo} size={20} />
                               {t.ticker}

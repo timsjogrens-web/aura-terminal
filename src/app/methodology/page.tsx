@@ -4,9 +4,9 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <section className="mb-10">
+    <section id={id} className="mb-10 scroll-mt-20">
       <h2 className="font-serif font-bold text-xl sm:text-2xl text-[var(--text-primary)] mb-3">
         {title}
       </h2>
@@ -31,17 +31,19 @@ export default function MethodologyPage() {
           vi ännu inte kan bevisa. Uppdaterad löpande i takt med att fler strategier testas.
         </p>
 
-        <div className="rounded-lg border border-[var(--gold-dim)] bg-[rgba(245,165,36,0.06)] p-5 mb-10">
-          <p className="font-mono text-xs tracking-widest text-[var(--gold)] mb-2">
+        <div className="rounded-lg border border-[var(--accent-dim)] bg-[rgba(111,176,224,0.06)] p-5 mb-10">
+          <p className="font-mono text-xs tracking-widest text-[var(--accent)] mb-2">
             NULÄGE, I KORTHET
           </p>
           <p className="text-sm text-[var(--text-primary)] leading-relaxed">
-            Vi har hittills testat fem olika köpstrategier mot en rättvis, bred aktielista
+            Vi har hittills testat sex olika köpstrategier mot en rättvis, bred aktielista
             (S&amp;P 500) med en låst testperiod som aldrig användes för att justera strategierna.
-            <strong> Ingen av dem har visat en statistiskt säkerställd fördel mot index</strong> i
-            den låsta testperioden. Det gäller även de poäng och signaler du ser på sajten idag —
-            de bygger på en formel som ännu inte bevisats slå index. Vi säger det rakt ut istället
-            för att antyda något annat.
+            <strong> Fem av sex har inte visat en statistiskt säkerställd fördel mot index</strong> i
+            den låsta testperioden — det gäller fortfarande de poäng och signaler du ser på sajten
+            idag, som bygger på en av dessa fem. Den sjätte (insiderköp-klustring) visade faktiskt
+            en säkerställd fördel i den låsta perioden, men bara en gång och på ett litet underlag —
+            se nedan för varför det ännu inte räcker för att lita på eller bygga in i signalerna. Vi
+            säger det rakt ut istället för att antyda något annat åt något håll.
           </p>
         </div>
 
@@ -75,9 +77,10 @@ export default function MethodologyPage() {
           </p>
           <p>
             Vi använder också en s.k. Deflated Sharpe Ratio, som straffar ett resultat i
-            förhållande till hur många olika strategivarianter som testats — testar man fem saker
+            förhållande till hur många olika strategivarianter som testats — testar man sex saker
             är sannolikheten större att minst en råkar se bra ut av ren slump, så måttet kräver
-            starkare bevis ju fler varianter som prövats.
+            starkare bevis ju fler varianter som prövats. Det här kravet höjs varje gång vi lägger
+            till en ny strategi att testa, aldrig tvärtom.
           </p>
         </Section>
 
@@ -99,6 +102,47 @@ export default function MethodologyPage() {
             finns bara som dagens siffra — att använda dagens siffra för ett beslut för flera år
             sedan hade varit precis den typen av framtidsdataläckage (look-ahead bias) vi aktivt
             testar bort på andra ställen på sajten.
+          </p>
+        </Section>
+
+        <Section id="insiderklustring" title="Den sjätte strategin: insiderköp-klustring">
+          <p>
+            En användare påpekade, helt rättvist, att 50–56% träffsäkerhet känns som ett
+            myntkast — vilket det statistiskt sett är. Istället för att bara säga &ldquo;det stämmer,
+            ingen av strategierna är bevisad&rdquo; testade vi en sjätte, helt ny faktor: hur många{" "}
+            <em>olika</em> direktörer/styrelsemedlemmar som köpt aktien själva på öppna marknaden
+            (SEC Form 4) under de senaste 90 dagarna, minus hur många som sålt. Flera oberoende
+            insiders som köper samtidigt har faktiskt akademiskt stöd (Lakonishok &amp; Lee 2001;
+            Jeng, Metrick &amp; Zeckhauser 2003) — till skillnad från ren teknisk analys.
+          </p>
+          <p>
+            Testet backades av egen insamlad Form 4-historik från SEC EDGAR (2015 och framåt, ~21
+            400 köp/sälj-transaktioner över de 41 kärnbolagen), strikt tidsriktigt — en affär
+            räknas bara med från och med dagen den blev <em>offentlig</em> (filing-datum), aldrig
+            från transaktionsdatumet, så testet aldrig &ldquo;vet&rdquo; om en affär innan den
+            faktiskt gick att se.
+          </p>
+          <p>
+            <strong>Resultat:</strong> i forskningsperioden visade den ingen säkerställd fördel
+            (t-värde 1,70, under gränsen för statistisk säkerhet). Men i den låsta testperioden —
+            den som aldrig tittades på innan strategin var fastställd — visade den faktiskt en
+            säkerställd fördel (t-värde 2,20) och det bästa Sharpe-talet av alla sex strategier
+            (1,82). Det är ett ovanligt mönster: de andra fem strategierna blev alla{" "}
+            <em>svagare</em> i den låsta perioden jämfört med forskningsperioden (ett klassiskt
+            tecken på överanpassning) — den här blev starkare.
+          </p>
+          <p>
+            <strong>Varför vi ändå inte bygger in den i poängen/signalerna än:</strong> Deflated
+            Sharpe Ratio för resultatet är 0,871 — det betyder ungefär 13% sannolikhet att det här
+            ändå bara är tur, även efter att ha räknat med att sex saker testats. Det är lovande,
+            men långt ifrån den säkerhetsmarginal vi vill ha innan något påverkar vad du faktiskt
+            ser på sajten. Resultatet bygger dessutom på bara 24 månaders låst testdata och ett
+            litet bolagsurval (41 bolag) — en enskild ovanlig månad kan flytta siffran rejält.
+            Testet visade också <em>högst</em> nedgång (max drawdown -32%) av alla sex strategier i
+            forskningsperioden, så det är inte uppenbart &ldquo;säkrare&rdquo;, bara möjligen
+            bättre tajmat. Vi fortsätter följa den här faktorn och uppdaterar den här sidan när
+            fler låsta testperioder (eller en bredare aktielista) antingen stärker eller
+            försvagar resultatet.
           </p>
         </Section>
 

@@ -9,6 +9,8 @@
 // fairer (though still not survivorship-bias-free) starting universe.
 
 import { fetchUniverseMonthlyHistory, BENCHMARK_TICKER, UniverseChoice } from "./fetchHistory";
+import { fetchInsiderHistory } from "./fetchInsiderHistory";
+import { buildInsiderMonthlyScores } from "./insiderFactor";
 import {
   momentumScorer,
   lowVolScorer,
@@ -17,6 +19,7 @@ import {
   runFactorStrategy,
   runEqualWeightUniverse,
   runCompositeRankStrategy,
+  runInsiderFactorStrategy,
   StrategyResult,
 } from "./strategies";
 import {
@@ -29,17 +32,20 @@ import {
 } from "./stats";
 
 const HOLDOUT_MONTHS = 24; // locked, never used to pick a strategy or tune parameters
-// momentum, low-vol, composite, short-term reversal, 52-week-high — every
-// variant actually being compared. Raising this when a new strategy is
-// added is the honest move: more trials means a real Sharpe ratio needs to
-// clear a higher bar before it's trustworthy, not a lower one.
-const NUM_TRIALS = 5;
 
 const universeArg = (process.argv[2] as UniverseChoice) ?? "default";
 if (universeArg !== "default" && universeArg !== "sp500") {
   console.error(`Unknown universe "${universeArg}" — use "default" or "sp500".`);
   process.exit(1);
 }
+// Insider cluster-buying only has data for the CORE_UNIVERSE (41 tickers —
+// see universe.ts), so it's only run against the default universe, not
+// sp500. momentum, low-vol, composite, short-term reversal, 52-week-high,
+// (+ insider cluster-buying on "default" only) — every variant actually
+// being compared. Raising this when a new strategy is added is the honest
+// move: more trials means a real Sharpe ratio needs to clear a higher bar
+// before it's trustworthy, not a lower one.
+const NUM_TRIALS = universeArg === "default" ? 6 : 5;
 // The brief specifies 20-30 stock portfolios; with only 37 eligible names
 // in the hand-picked universe that would barely be a "top N" at all, so it
 // stays smaller there. With the ~460-name S&P 500 universe, 25 matches the
@@ -128,6 +134,19 @@ async function main() {
       result: runFactorStrategy(panel, fiftyTwoWeekHighScorer, TOP_N, startIdx, endIdxExclusive),
     },
   ];
+
+  if (universeArg === "default") {
+    console.log("Fetching / loading cached insider (SEC Form 4) history for the universe...\n");
+    const insiderHistory = await fetchInsiderHistory();
+    const insiderScores = buildInsiderMonthlyScores(insiderHistory.byTicker, panel.months);
+    const tickersWithData = [...insiderScores.values()].filter((s) => s.some((x) => x !== null)).length;
+    console.log(`Insider data: ${tickersWithData}/${panel.months.length > 0 ? Object.keys(panel.prices).length - 1 : 0} tickers have at least one usable month.\n`);
+    strategies.push({
+      label: "Insider cluster-buying (90d net)",
+      result: runInsiderFactorStrategy(panel, insiderScores, TOP_N, startIdx, endIdxExclusive),
+    });
+  }
+
   const benchmarks: { label: string; result: StrategyResult }[] = [
     { label: "Equal-weight universe (all tickers)", result: runEqualWeightUniverse(panel, startIdx, endIdxExclusive) },
   ];
@@ -187,7 +206,10 @@ async function main() {
       ? `- Universe is the CURRENT S&P 500 constituent list — fairer than a hand-picked list, but still NOT survivorship-bias-free (companies removed from the index before today aren't included).`
       : `- Universe is the site's hand-picked 39 tickers, NOT survivorship-bias-free (no delisted/failed companies included).`
   );
-  console.log(`- Only price-based factors tested. Quality/value need fundamentals data that's only available as today's snapshot from free sources — using it for historical decisions would be look-ahead bias, so it's excluded rather than faked. PEAD was investigated and ruled out for the same reason: Finnhub's free tier only returns the last 4 quarters of earnings-surprise history per ticker, not enough for a real backtest.`);
+  console.log(`- Price-based factors use only point-in-time price history. Quality/value need fundamentals data that's only available as today's snapshot from free sources — using it for historical decisions would be look-ahead bias, so it's excluded rather than faked. PEAD was investigated and ruled out for the same reason: Finnhub's free tier only returns the last 4 quarters of earnings-surprise history per ticker, not enough for a real backtest.`);
+  if (universeArg === "default") {
+    console.log(`- Insider cluster-buying factor is gated on SEC Form 4 filing date (not transaction date), so it never "knows" about a trade before it was actually public. Backfilled from 2015 onward; earlier months in the panel may have thin or no insider data (fewer public officers/directors filed, or EDGAR's history for a given CIK starts later), which shrinks the eligible pool those months rather than fabricating a score.`);
+  }
   console.log(`- No trading costs applied in this research pass (that's modeled separately in the live backtest tool, not here yet).`);
   console.log(`- Deflated Sharpe Ratio is an approximation (see stats.ts) — a rigorous estimate, not a guarantee.`);
   console.log(`- Hold-out numbers above were computed in this same run as the research numbers — parameters (TOP_N, lookback windows) were fixed by academic convention BEFORE looking at this data, not tuned on it.`);

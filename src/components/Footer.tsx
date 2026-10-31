@@ -7,8 +7,11 @@ export default function Footer() {
         <p>
           Candor är inte en licensierad investeringsrådgivare. Signaler och poäng
           genereras automatiskt från en regelbaserad formel, inte en bevisad
-          fördel &mdash; vi har testat fem strategier mot ett brett index och
-          ingen har ännu visat en statistiskt säkerställd fördel (se{" "}
+          fördel &mdash; vi har testat sex strategier mot ett brett index. Fem har
+          inte visat en statistiskt säkerställd fördel (det gäller formeln bakom
+          signalerna du ser här); en sjätte (insiderköp-klustring) visade en
+          säkerställd fördel i en låst testperiod, men bara en gång och på för
+          litet underlag för att ännu lita på eller bygga in (se{" "}
           <Link href="/methodology" className="underline hover:text-[var(--text-secondary)]">
             Metodik
           </Link>
